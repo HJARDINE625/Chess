@@ -176,6 +176,7 @@ public class ChessPiece {
         // The following cases are for if the piece can only attack or only move
         } else if (canMove) {
             switch(type) {
+                //might want to add stuff here for castleing logic
                 case KING:
                     break;
                 case QUEEN:
@@ -201,7 +202,6 @@ public class ChessPiece {
                     break;
                 case QUEEN:
                     break;
-                //might want to add stuff here for castleing logic
                 case ROOK:
                     break;
                 case KNIGHT:
@@ -220,11 +220,68 @@ public class ChessPiece {
             return null;
         }
         //If we got here we either can attack, move or attack/move, so we should now execute the code to check where those moves send us.
-    whereCanIGoInfinite(myMoves, board, myPosition, canAttack, canMove, );
-    whereCanIGoFinite(myMoves, board, myPosition, canAttack, canMove, );
+    myMoves = whereCanIGoInfinite(myMoves, board, myPosition, canAttack, canMove, up, down, left, right, drup, dlup, drdo, dldo, knightup, knightdown, knightleft, knightright, knightdrup, knightdlup, knightdrdo, knightdldo);
+    myMoves = whereCanIGoFinite(myMoves, board, myPosition, canAttack, canMove, Up, Down, Left, Right, Drup, Dlup, Drdo, Dldo, Knightup, Knightdown, Knightleft, Knightright, Knightdrup, Knightdlup, Knightdrdo, Knightdldo);
+    return myMoves;
     }
 
-    private ArrayList<ChessPosition> whereCanIGoFinite(ArrayList<ChessPosition> myMoves, ChessBoard board, ChessPosition myPosition, boolean canAttack, boolean canMove, int Up, int Down, int Left, int Right, int Drup, int Dlup, int Drdo, int Dldo, int Knightup, int Knightdown, int Knightleft, int Knightright, int Knightdrup, int Knightdlup, int Knightdrdo, int Knightdldo)
+    /**
+     * calculates possible moves based upon inputs, either for infinite movesets
+     * @return Collection of valid positions
+     */
+    private ArrayList<ChessPosition> whereCanIGoFinite(ArrayList<ChessPosition> myMoves, ChessBoard board, ChessPosition myPosition, boolean canAttack, boolean canMove, int Up, int Down, int Left, int Right, int Drup, int Dlup, int Drdo, int Dldo, int Knightup, int Knightdown, int Knightleft, int Knightright, int Knightdrup, int Knightdlup, int Knightdrdo, int Knightdldo){
+        //At bare minimum the King needs all of these, so I should keep them.
+        if (Up >= 1){
+            myMoves = Move(board, canMove, canAttack, 1, 0, myPosition, myMoves, Up);
+        }
+        if (Down >= 1){
+            myMoves = Move(board, canMove, canAttack, -1, 0, myPosition, myMoves, Down);
+        }
+        if (Left >= 1){
+            myMoves = Move(board, canMove, canAttack, 0, -1, myPosition, myMoves, Left);
+        }
+        if (Right >= 1){
+            myMoves = Move(board, canMove, canAttack, 0, 1, myPosition, myMoves, Right);
+        }
+        if (Drup >= 1){
+            myMoves = Move(board, canMove, canAttack, 1, 1, myPosition, myMoves, Drup);
+        }
+        if (Drdo >= 1){
+            myMoves = Move(board, canMove, canAttack, -1, 1, myPosition, myMoves, Drdo);
+        }
+        if (Dlup >= 1){
+            myMoves = Move(board, canMove, canAttack, 1, -1, myPosition, myMoves, Dlup);
+        }
+        if (Dldo >= 1){
+            myMoves = Move(board, canMove, canAttack, -1, -1, myPosition, myMoves, Dldo);
+        }
+        //This next series of ifs actually does apply to the real knight so it is important this time
+        if (Knightup >= 1){
+            myMoves = Move(board, canMove, canAttack, 2, 1, myPosition, myMoves, Knightup);
+        }
+        if (Knightdown >= 1){
+            myMoves = Move(board, canMove, canAttack, -2, 1, myPosition, myMoves, Knightdown);
+        }
+        if (Knightleft >= 1){
+            myMoves = Move(board, canMove, canAttack, 1, -2, myPosition, myMoves, Knightleft);
+        }
+        if (Knightright >= 1){
+            myMoves = Move(board, canMove, canAttack, 1, 2, myPosition, myMoves, Knightright);
+        }
+        if (Knightdrup >= 1){
+            myMoves = Move(board, canMove, canAttack, 2, -1, myPosition, myMoves, Knightdrup);
+        }
+        if (Knightdrdo >= 1){
+            myMoves = Move(board, canMove, canAttack, -2, -1, myPosition, myMoves, Knightdrdo);
+        }
+        if (Knightdlup >= 1){
+            myMoves = Move(board, canMove, canAttack, -1, -2, myPosition, myMoves, Knightdlup);
+        }
+        if (Knightdldo >= 1){
+            myMoves = Move(board, canMove, canAttack, -1, 2, myPosition, myMoves, Knightdldo);
+        }
+        return myMoves;
+    }
 
         //Check all the move conditions
     /**
@@ -294,150 +351,7 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         //First we need an array to store all the moves and a list of booleans to store all the kinds of moves.
-        boolean up = false;
-        boolean down = false;
-        boolean left = false;
-        boolean right = false;
-        boolean drup = false;
-        boolean dlup = false;
-        boolean drdo = false;
-        boolean dldo = false;
-        //might want to change this last one for more readablity, but it is more expandable like this
-        boolean knightup = false;
-        boolean knightdown = false;
-        boolean knightleft = false;
-        boolean knightright = false;
-        boolean knightdrup = false;
-        boolean knightdlup = false;
-        boolean knightdrdo = false;
-        boolean knightdldo = false;
-        //We also need some ints to decide how far they can go like this.
-        //First we need an array to store all the moves and a list of booleans to store all the kinds of moves.
-        //Here I break naming convention in order to show how the ints relate to the booleans.
-        int Up = 0;
-        int Down = 0;
-        int Left = 0;
-        int Right = 0;
-        int Drup = 0;
-        int Dlup = 0;
-        int Drdo = 0;
-        int Dldo = 0;
-        //might want to change this last one for more readablity, but it is more expandable like this
-        int Knightup = 0;
-        int Knightdown = 0;
-        int Knightleft = 0;
-        int Knightright = 0;
-        int Knightdrup = 0;
-        int Knightdlup = 0;
-        int Knightdrdo = 0;
-        int Knightdldo = 0;
-        //Now we need a inital array list of ChessPositions to store the positions as we generate them bellow.
         ArrayList<ChessPosition> myMoves = new ArrayList<>();
-        //After setting up the data structure to hold the new list we need to decide what kind of moves should be made for the piece.
-        //For every infinte move set the bool will be changed and for every finite one only the int will be.
-        //First move/attack will be set then move then attack. so we will start setting both booleans to true.
-        boolean canMove = true;
-        boolean canAttack = true;
-        switch(type) {
-            case KING:
-            Up++;
-            Down++;
-            Left++;
-            Right++;
-            Drup++;
-            Dlup++;
-            Drdo++;
-            Dldo++;
-            break;
-            case QUEEN:
-            up = true;
-            down = true;
-            left = true;
-            right = true;
-            drup = true;
-            dlup = true;
-            drdo = true;
-            dldo = true;
-            break;
-            case ROOK:
-            up = true;
-            down = true;
-            left = true;
-            right = true;
-            break;
-            case BISHOP:
-            drup = true;
-            dlup = true;
-            drdo = true;
-            dldo = true;
-            break;
-            //Interestingly the knight only moves a single time in the given direction so the booleans above are only useful if you want to add knightriders
-            case KNIGHT:
-                Knightup++;
-                Knightdown++;
-                Knightleft++;
-                Knightright++;
-                Knightdrup++;
-                Knightdlup++;
-                Knightdrdo++;
-                Knightdldo++;
-                break;
-            //Oddly enough the pawn can always only move to or attack to a space, never both to a space.
-            case PAWN:
-                break;
-            default:
-                break;
-        }
-        //Now that we know who can move/attack in what ways we need another set of statements to execute code to find all the move sets.
-        if (up){
-            myMoves = Move(board, canMove, canAttack, 1, 0, myPosition, myMoves);
-        }
-        if (down){
-            myMoves = Move(board, canMove, canAttack, -1, 0, myPosition, myMoves);
-        }
-        if (left){
-            myMoves = Move(board, canMove, canAttack, 0, -1, myPosition, myMoves);
-        }
-        if (right){
-            myMoves = Move(board, canMove, canAttack, 0, 1, myPosition, myMoves);
-        }
-        if (drup){
-            myMoves = Move(board, canMove, canAttack, 1, 1, myPosition, myMoves);
-        }
-        if (drdo){
-            myMoves = Move(board, canMove, canAttack, -1, 1, myPosition, myMoves);
-        }
-        if (dlup){
-            myMoves = Move(board, canMove, canAttack, 1, -1, myPosition, myMoves);
-        }
-        if (dldo){
-            myMoves = Move(board, canMove, canAttack, -1, -1, myPosition, myMoves);
-        }
-        //This next series of ifs is for the more complicated knight moves and thus will only be used if I add fantasy pieces.
-        if (knightup){
-            myMoves = Move(board, canMove, canAttack, 2, 1, myPosition, myMoves);
-        }
-        if (knightdown){
-            myMoves = Move(board, canMove, canAttack, -2, 1, myPosition, myMoves);
-        }
-        if (knightleft){
-            myMoves = Move(board, canMove, canAttack, 1, -2, myPosition, myMoves);
-        }
-        if (knightright){
-            myMoves = Move(board, canMove, canAttack, 1, 2, myPosition, myMoves);
-        }
-        if (knightdrup){
-            myMoves = Move(board, canMove, canAttack, 2, -1, myPosition, myMoves);
-        }
-        if (knightdrdo){
-            myMoves = Move(board, canMove, canAttack, -2, -1, myPosition, myMoves);
-        }
-        if (knightdlup){
-            myMoves = Move(board, canMove, canAttack, -1, -2, myPosition, myMoves);
-        }
-        if (knightdldo){
-            myMoves = Move(board, canMove, canAttack, -1, 2, myPosition, myMoves);
-        }
         throw new RuntimeException("Not implemented");
     }
     //move a specific way forever
