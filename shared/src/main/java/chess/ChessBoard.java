@@ -1,5 +1,14 @@
 package chess;
 
+//Make sure to import ALL pieces here!
+
+//import static chess.ChessPiece.PieceType.PAWN;
+//import static chess.ChessPiece.PieceType.KNIGHT;
+//import static chess.ChessPiece.PieceType.BISHOP;
+//import static chess.ChessPiece.PieceType.QUEEN;
+//import static chess.ChessPiece.PieceType.KING;
+
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -7,9 +16,147 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private int ChessBoardSize = 8;
-    private ChessPiece[][] squares = new ChessPiece[ChessBoardSize][ChessBoardSize];
+    //How big the user ought to think the chess board is
+    private int ChessBoardSize;
+
+    //All the magic "1's" allow for the board to be just big enough to be eaisly indexed into
+    private ChessPiece[][] baseboard = new ChessPiece[ChessBoardSize+1][ChessBoardSize+1];
+    private ChessPiece[][] squares = new ChessPiece[ChessBoardSize+1][ChessBoardSize+1];
+
+    //Set up the reset board
     public ChessBoard() {
+        //first decide length/height the chessboard ought to be
+        ChessBoardSize = 8;
+
+        //define twined white and black pieces
+        ChessPiece whitePieces = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
+        ChessPiece blackPieces = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
+        //These are on the second row.
+        int[] rows = new int [1];
+        rows[0] = 1;
+        //These are on all the columns
+        int[] columns = new int[4];
+        for(int i = 0; i<columns.length; i++){
+            columns[i] = i;
+        }
+        //now run the algerythem
+        rowSetUp(columns,rows,whitePieces,blackPieces);
+
+        //now do this for the other peices
+        //rows go up one
+        rows[0] = 0;
+        //all the rest of the pieces we can use rowSetUp on have only two copies in base chess.
+        columns = new int[1];
+
+        //rooks
+        whitePieces.setType(ChessPiece.PieceType.ROOK);
+        blackPieces.setType(ChessPiece.PieceType.ROOK);
+        columns[0] = 0;
+        rowSetUp(columns,rows,whitePieces,blackPieces);
+
+        //knights
+        whitePieces.setType(ChessPiece.PieceType.KNIGHT);
+        blackPieces.setType(ChessPiece.PieceType.KNIGHT);
+        columns[0]++;
+        rowSetUp(columns,rows,whitePieces,blackPieces);
+
+        //Bishops
+        whitePieces.setType(ChessPiece.PieceType.BISHOP);
+        blackPieces.setType(ChessPiece.PieceType.BISHOP);
+        columns[0]++;
+        rowSetUp(columns,rows,whitePieces,blackPieces);
+
+        //King and Queen need to be done separately as they are not cloned.
+        whitePieces.setType(ChessPiece.PieceType.KING);
+        blackPieces.setType(ChessPiece.PieceType.KING);
+        //Hard coded, not the best but it works...
+        ChessPosition whitePos = new ChessPosition(1,4);
+        ChessPosition blackPos = new ChessPosition(ChessBoardSize,4);
+        this.addPiece(whitePos,whitePieces);
+        this.addPiece(blackPos,blackPieces);
+
+        //Queen's turn
+        whitePieces.setType(ChessPiece.PieceType.QUEEN);
+        blackPieces.setType(ChessPiece.PieceType.QUEEN);
+        //Hard coded, not the best but it works...
+        whitePos = new ChessPosition(1,5);
+        blackPos = new ChessPosition(ChessBoardSize,5);
+        this.addPiece(whitePos,whitePieces);
+        this.addPiece(blackPos,blackPieces);
+
+        //Now copy to base board
+        for (ChessPiece[] chessPieces : baseboard = squares) {
+        }
+        //not too sure that worked...
+
+
+//END
+
+
+        //revert to this if the above code cannot work
+        //then fill it in first and copy it to the reset board
+//        for(int i = 1; i <= ChessBoardSize; i++) {
+//            //this adds the frontrow white pieces followed by the front row black pieces in a normal game.
+//            ChessPosition pos = new ChessPosition(2,i);
+//            ChessPiece piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
+//            this.addPiece(pos, piece);
+//            pos = new ChessPosition(ChessBoardSize-1,i);
+//            piece = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
+//            this.addPiece(pos,piece);
+//        }
+        //Now we add the other pieces, iterately doing this can get confusing, so it is done one piece at a time. White and then Black.
+
+//        //Adding Rooks
+//        ChessPosition pos = new ChessPosition(1,1);
+//        ChessPosition pos2 = new ChessPosition(1, ChessBoardSize);
+//        ChessPiece piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
+//        this.addPiece(pos, piece);
+//        this.addPiece(pos2, piece);
+//        pos = new ChessPosition(ChessBoardSize, ChessBoardSize);
+//        pos2 = new ChessPosition(ChessBoardSize,1);
+//        piece = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK);
+//        this.addPiece(pos,piece);
+//        this.addPiece(pos2,piece);
+//        //Adding Knights
+//        pos = new ChessPosition(1,2);
+//        pos2 = new ChessPosition(1,ChessBoardSize-1);
+//        piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.KNIGHT);
+//        this.addPiece(pos,piece);
+//        this.addPiece(pos2,piece);
+//        pos = new ChessPosition(ChessBoardSize,ChessBoardSize-1);
+//        pos2 = new ChessPosition(ChessBoardSize,2);
+//        piece = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KNIGHT);
+//        this.addPiece(pos,piece);
+//        this.addPiece(pos2,piece);
+//        //Adding Bishops
+//        pos = new ChessPosition(1,3);
+//        pos2 = new ChessPosition(1,ChessBoardSize-2);
+//        piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.BISHOP);
+//        this.addPiece(pos,piece);
+//        this.addPiece(pos2,piece);
+//        pos = new ChessPosition(ChessBoardSize,ChessBoardSize-2);
+//        pos2 = new ChessPosition(ChessBoardSize,3);
+//        piece = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.BISHOP);
+//        this.addPiece(pos,piece);
+//        this.addPiece(pos2,piece);
+    }
+
+    //Make sure to pass in distances from the edges of the offical board as locations and rows.
+    //This function is only good for White Vs Black games that are mirrored... to make other colors change "whitePieces to some other color in the passed in variable (same with black) and then transpose the array and overlay it on a larger board).
+    public void rowSetUp(int[] locations, int[] rows, ChessPiece whitePieces, ChessPiece blackPieces){
+        for (int l: locations) {
+            for (int r: rows) {
+                ChessPosition posWhite = new ChessPosition(1+r,1+l);
+                ChessPosition posBlack = new ChessPosition(ChessBoardSize-r,ChessBoardSize-l);
+                ChessPosition posWhite2 = new ChessPosition(1+r,ChessBoardSize-l);
+                ChessPosition posBlack2 = new ChessPosition(ChessBoardSize-r,1+l);
+                this.addPiece(posWhite,whitePieces);
+                this.addPiece(posWhite2, whitePieces);
+                this.addPiece(posBlack,blackPieces);
+                this.addPiece(posBlack2, blackPieces);
+            }
+
+        }
     }
 
     /**
@@ -40,7 +187,12 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        throw new RuntimeException("Not implemented");
+        for (ChessPiece[] chessPieces : squares = baseboard) {
+        }
+
+
+        //throw new RuntimeException("Not implemented");
+
     }
 
     public int getChessBoardSize() {
