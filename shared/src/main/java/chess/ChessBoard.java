@@ -7,7 +7,8 @@ package chess;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private ChessPiece[][] squares = new ChessPiece[8][8];
+    private int ChessBoardSize = 8;
+    private ChessPiece[][] squares = new ChessPiece[ChessBoardSize][ChessBoardSize];
     public ChessBoard() {
     }
 
@@ -40,5 +41,14 @@ public class ChessBoard {
      */
     public void resetBoard() {
         throw new RuntimeException("Not implemented");
+    }
+
+    public int getChessBoardSize() {
+        return ChessBoardSize;
+    }
+
+    public void setChessBoardSize(int chessBoardSize) {
+        ChessBoardSize = chessBoardSize;
+        squares = new ChessPiece[chessBoardSize][chessBoardSize];
     }
 }
