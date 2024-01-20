@@ -45,4 +45,30 @@ public class ChessMove {
         return promotionPiece;
         //throw new RuntimeException("Not implemented");
     }
+
+    //new equals method.
+    @Override
+    public boolean equals(Object o){
+        //These first two lines might be completely unessisary, but I include them anyway.
+        if(o == null){
+            return false;
+        } if (this == null) {
+            return false;
+        } if(o.getClass().equals(this.getClass())){
+            //I am not sure if the lines above or below this work, but if they do, so does the function
+            if(this.startPosition.equals(((ChessMove) o).getStartPosition()) && (this.endPosition.equals(((ChessMove) o).getEndPosition()))){
+                //not sure if the equals below is a good idea...
+                if(this.promotionPiece == ((ChessMove) o).getPromotionPiece()) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+    }
 }

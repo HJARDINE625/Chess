@@ -33,4 +33,25 @@ public class ChessPosition {
         return col;
         //throw new RuntimeException("Not implemented");
     }
+
+    @Override
+    public boolean equals(Object o){
+        //These first two lines might be completely unessisary, but I include them anyway.
+        if(o == null){
+            return false;
+        } if (this == null) {
+            return false;
+        } if(o.getClass().equals(this.getClass())){
+            //I am not sure if the lines above or below this work, but if they do, so does the function
+           if(this.getRow() == ((ChessPosition) o).getRow() && this.getColumn() == ((ChessPosition) o).getColumn()){
+               return true;
+           } else {
+               return false;
+           }
+        } else {
+            return false;
+        }
+
+    }
+
 }
