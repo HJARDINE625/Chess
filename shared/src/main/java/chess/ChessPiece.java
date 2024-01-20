@@ -2,6 +2,10 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+
+import static chess.ChessPiece.PieceType.*;
 
 /**
  * Represents a single chess piece
@@ -61,6 +65,60 @@ public class ChessPiece {
         KNIGHT,
         ROOK,
         PAWN
+    }
+
+    /**
+     * This is a surprisingly important function that determines if premotions are possible.
+     * @return what pieces this piece can premote to.
+     */
+    private List<PieceType> canPremoteTo() {
+        //First initialize the list
+        List<PieceType> premotions = new ArrayList<>();
+        //I think I should only include pieces that can premote here otherwise default is none.
+        switch(type) {
+            case PAWN:
+            premotions.add(QUEEN);
+            premotions.add(BISHOP);
+            premotions.add(ROOK);
+            premotions.add(KNIGHT);
+            break;
+            default:
+                break;
+        }
+        return premotions;
+    }
+
+   //In the future we could get creative with how we determine premotion locations, but for now we can assume they are the ends of the board.
+    private ArrayList<ChessPosition>findPremotionLocations(ChessBoard board){
+        //First initialize the array.
+        ArrayList<ChessPosition> premotionLocations = new ArrayList<ChessPosition>();
+        //switch statement to allow multiple different teams in more than 2 player game.
+        switch(pieceColor) {
+            //Where White premotes (right now it assumes normal pawn premotions is all there is... could complicate it if I want
+            case WHITE:
+                int finalRank = board.getChessBoardSize();
+                //If I make a non-square board, not only will I have to edit my code in ChessBoard and the edge calculater, but I will have
+                //to update the middle part of this for loop to calculate for the correct number of squares on a rectangle at the end.
+                for(int i = 0; i < finalRank; i++) {
+                    ChessPosition premotionSquare = new ChessPosition(finalRank, i);
+                    premotionLocations.add(premotionSquare);
+                }
+            break;
+            //Where Black premotes (right now it assumes normal pawn premotions is all there is... could complicate it if I want
+            case BLACK:
+                //The different name for this basically identical number for tracking things opitimizes why I will have to change this for non-square boards.
+                int finalColumn = board.getChessBoardSize();
+                //here I update again...
+                for(int i = 0; i < finalColumn; i++){
+                    //only this line is currently different than above (and only barely).
+                    ChessPosition premotionSquare = new ChessPosition(0, finalColumn);
+                    premotionLocations.add(premotionSquare);
+                }
+            break;
+            default:
+            break;
+        }
+        return premotionLocations;
     }
 
     /**
@@ -340,6 +398,7 @@ public class ChessPiece {
         if (knightdldo){
             myMoves = Move(board, canMove, canAttack, -1, 2, myPosition, myMoves);
         }
+        return myMoves;
     }
 
     /**
@@ -352,7 +411,47 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         //First we need an array to store all the moves and a list of booleans to store all the kinds of moves.
         ArrayList<ChessPosition> myMoves = new ArrayList<>();
-        throw new RuntimeException("Not implemented");
+        boolean canAttack = true;
+        boolean canMove = true;
+        //now we need to caculate moves under four conditions, when you can move/attack, when you can just move and when you can just attack. (I can add when you cannot do any of them for opestant/other special moves).
+        myMoves = whatIsMoving(myMoves, board, myPosition, canAttack, canMove);
+        canAttack = false;
+        myMoves = whatIsMoving(myMoves, board, myPosition, canAttack, canMove);
+        canAttack= true;
+        canMove = false;
+        myMoves = whatIsMoving(myMoves, board, myPosition, canAttack, canMove);
+
+
+
+        //Check to see if this piece can premote
+        List<PieceType> availablePremotions = canPremoteTo();
+
+        //Now we need to make a collection of ChessMoves and fill it with a combination of our moves followed by where we move from
+        Collection<ChessMove> possibleMoves = new HashSet<ChessMove>();
+        //This needs to be here to allow for premotions
+
+        //If there are available premotions, find out where.
+        if(availablePremotions.size() > 0) {
+            ArrayList<ChessPosition> premotionLocations = findPremotionLocations(board);
+            //As long as I never premote an unpremoteable piece, this should work fine
+            for(ChessPosition position: myMoves){
+                for (ChessPosition premotion:premotionLocations) {
+                    if(position.equals(premotion)) {
+                        myMoves.remove(position);
+                        for (PieceType p:availablePremotions) {
+                            possibleMoves.add(new ChessMove(myPosition, position, p));
+                        }
+
+                    }
+                }
+            }
+        }
+
+        //We already handeled (only) premotions above, so this should work for all nonpremoted peices.
+        for (ChessPosition p: myMoves) {
+            possibleMoves.add(new ChessMove(myPosition, p, null));
+        }
+        return possibleMoves;
     }
     //move a specific way forever
     private ArrayList<ChessPosition> Move(ChessBoard board, boolean canMove, boolean canAttack, int deltaY, int deltaX, ChessPosition myPosition, ArrayList<ChessPosition> validSpaces) {
