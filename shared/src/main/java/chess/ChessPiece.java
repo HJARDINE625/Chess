@@ -15,15 +15,17 @@ import static chess.ChessPiece.PieceType.*;
  */
 public class ChessPiece {
 
-    private ChessBoard firstMoveChecker = new ChessBoard();
+    //private ChessBoard firstMoveChecker = new ChessBoard();
 
-    public boolean hasThisPieceMoved(ChessPosition currentPosition) {
+    public boolean hasThisPieceMoved(ChessPosition currentPosition, ChessBoard currentBoard) {
+        //first we need to get the rest board checker from currentBoard
+        ChessPiece peiceToTestAgainst = currentBoard.getInitalPiece(currentPosition);
         if(hasMoved) {
             return hasMoved;
-        } else if (this.type!=firstMoveChecker.getPiece(currentPosition).getPieceType()){
+        } else if (this.type!=peiceToTestAgainst.getPieceType()){
             hasMoved = true;
             return hasMoved;
-        } else if (this.pieceColor!=firstMoveChecker.getPiece(currentPosition).getTeamColor()){
+        } else if (this.pieceColor!=peiceToTestAgainst.getTeamColor()){
             hasMoved = true;
             return hasMoved;
         } else {
@@ -51,7 +53,7 @@ public class ChessPiece {
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.type = type;
         this.pieceColor = pieceColor;
-        this.firstMoveChecker.resetBoard();
+        //this.firstMoveChecker.resetBoard();
     }
 
     /**
@@ -247,7 +249,7 @@ public class ChessPiece {
                     break;
                 case PAWN:
                     Up++;
-                    if(!hasThisPieceMoved(myPosition)){
+                    if(!hasThisPieceMoved(myPosition, board)){
                         Up++;
                     }
                 break;
@@ -488,31 +490,43 @@ public class ChessPiece {
     }
     // Here we caculate the next space
     private ChessPosition caculateNextValidSpace(ChessBoard board, boolean canMove, boolean canAttack, int deltaY, int deltaX, ChessPosition myPosition, Collection<ChessPosition> validSpaces){
-        // First caculate where the next move position would be
-        int myNewYPosition = myPosition.getColumn() + deltaX;
-        int myNewXPosition = myPosition.getRow() + deltaY;
-        ChessPosition nextValidSpace = new ChessPosition(myNewYPosition, myNewXPosition);
-        // We will not ask for spaces that are out of bounds
-        if(((myNewXPosition > board.getChessBoardSize()) || (myNewYPosition > board.getChessBoardSize())) || ((myNewXPosition < 0) || (myNewYPosition < 0))) {
-            return null;
-            // next we will have to see if we can move to an empty space if the space is empty or a full space if it is full
-        } else if (board.getPiece(nextValidSpace) == null){
-            if(canMove) {
-                return nextValidSpace;
-            } else {
-                return null;
-            }
-        } else {
-            ChessPiece obstruction = board.getPiece(nextValidSpace);
-            if(obstruction.getTeamColor() == this.pieceColor) {
-                //change this statement by adding an inner statement and another boolean in this and the two functions that call it if you want to allow for peice switching or suicide.
-                return null;
-            } else if (canAttack){
-                return nextValidSpace;
-            } else {
+        //First double check that we are not on top of a peice (we can add an input to allow multiple takes later if we want.
+        ChessPiece possibleObstruction = board.getPiece(myPosition);
+        //our code works just fine for not allowing moves unto friendly pieces so we do not need to worry about friendlies here.
+        if(possibleObstruction != null) {
+            //we do need to worry about if our last iterative move was a take.
+            if (possibleObstruction.pieceColor != this.pieceColor) {
                 return null;
             }
         }
+        //Otherwise keep going...
+
+            // Calculate where the next move position would be
+            int myNewXPosition = myPosition.getColumn() + deltaX;
+            int myNewYPosition = myPosition.getRow() + deltaY;
+            ChessPosition nextValidSpace = new ChessPosition(myNewYPosition, myNewXPosition);
+            // We will not ask for spaces that are out of bounds
+            if (((myNewXPosition > board.getChessBoardSize()) || (myNewYPosition > board.getChessBoardSize())) || ((myNewXPosition < 0) || (myNewYPosition < 0))) {
+                return null;
+                // next we will have to see if we can move to an empty space if the space is empty or a full space if it is full
+            } else if (board.getPiece(nextValidSpace) == null) {
+                if (canMove) {
+                    return nextValidSpace;
+                } else {
+                    return null;
+                }
+            } else {
+                ChessPiece obstruction = board.getPiece(nextValidSpace);
+                if (obstruction.getTeamColor() == this.pieceColor) {
+                    //change this statement by adding an inner statement and another boolean in this and the two functions that call it if you want to allow for peice switching or suicide.
+                    return null;
+                } else if (canAttack) {
+                    return nextValidSpace;
+                } else {
+                    return null;
+                }
+            }
+
     }
 
 }

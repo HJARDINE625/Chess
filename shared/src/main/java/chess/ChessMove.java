@@ -54,21 +54,20 @@ public class ChessMove {
             return false;
         } if (this == null) {
             return false;
-        } if(o.getClass().equals(this.getClass())){
+        } if(o.getClass().equals(this.getClass())) {
             //I am not sure if the lines above or below this work, but if they do, so does the function
-            if(this.startPosition.equals(((ChessMove) o).getStartPosition()) && (this.endPosition.equals(((ChessMove) o).getEndPosition()))){
-                //not sure if the equals below is a good idea...
-                if(this.promotionPiece == ((ChessMove) o).getPromotionPiece()) {
-                    return true;
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
+            if (this.toString() == o.toString()) {
+                return true;
             }
-        } else {
-            return false;
         }
-
+    return false;
     }
+
+    public String toString() {
+        String toStringBuilder = new String();
+        toStringBuilder = startPosition.toString() + ";" + endPosition.toString();
+        toStringBuilder = toStringBuilder + " " + promotionPiece;
+        return toStringBuilder;
+    }
+
 }

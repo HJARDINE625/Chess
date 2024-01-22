@@ -35,23 +35,27 @@ public class ChessPosition {
     }
 
     @Override
-    public boolean equals(Object o){
+    public boolean equals(Object o) {
         //These first two lines might be completely unessisary, but I include them anyway.
-        if(o == null){
-            return false;
-        } if (this == null) {
-            return false;
-        } if(o.getClass().equals(this.getClass())){
-            //I am not sure if the lines above or below this work, but if they do, so does the function
-           if(this.getRow() == ((ChessPosition) o).getRow() && this.getColumn() == ((ChessPosition) o).getColumn()){
-               return true;
-           } else {
-               return false;
-           }
-        } else {
+        if (o == null) {
             return false;
         }
-
+        if (this == null) {
+            return false;
+        }
+        if (o.getClass() == this.getClass()) {
+            if(o.toString() == this.toString()) {
+                return true;
+            }
+        }
+        return false;
     }
+
+    public String toString(){
+        StringBuilder returnedString = new StringBuilder();
+        returnedString = new StringBuilder("("+ Integer.toString(col) + "," + Integer.toString(row) + ")");
+        return returnedString.toString();
+    }
+
 
 }
