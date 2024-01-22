@@ -22,6 +22,8 @@ public class ChessPiece {
         ChessPiece peiceToTestAgainst = currentBoard.getInitalPiece(currentPosition);
         if(hasMoved) {
             return hasMoved;
+        } else if (peiceToTestAgainst == null) {
+            return hasMoved;
         } else if (this.type!=peiceToTestAgainst.getPieceType()){
             hasMoved = true;
             return hasMoved;
@@ -247,11 +249,26 @@ public class ChessPiece {
                     break;
                 case BISHOP:
                     break;
+                    //For the PAWN I have to add an inner switch case to see if it is a black or white (or other colored) pawn then give rules.
                 case PAWN:
-                    Up++;
-                    if(!hasThisPieceMoved(myPosition, board)){
-                        Up++;
+                    switch (pieceColor) {
+                        case WHITE -> {
+                            //Oddly enough this non-preconfiqured code is probably best if I want to do things like add new pawn colors, as it would be hard to paramiterize the directions given how everything else is set up and easy to duplicate this code, which really should not fundamentally change (just make a new piece type if you want to do that).
+                            Up++;
+                            if (!hasThisPieceMoved(myPosition, board)) {
+                                Up++;
+                            }
+                        }
+                        case BLACK -> {
+                            Down++;
+                            if (!hasThisPieceMoved(myPosition, board)) {
+                                Down++;
+                            }
+                        }
+                        default -> {
+                        }
                     }
+
                 break;
                 default:
                 break;
@@ -270,8 +287,20 @@ public class ChessPiece {
                     break;
                 //might want to add some stuff here for opepsent logic
                 case PAWN:
-                    Drup++;
-                    Dlup++;
+                    //Here we add the switch idea from above...
+                    switch (pieceColor) {
+                        case WHITE -> {
+                            //Oddly enough this non-preconfiqured code is probably best if I want to do things like add new pawn colors, as it would be hard to paramiterize the directions given how everything else is set up and easy to duplicate this code, which really should not fundamentally change (just make a new piece type if you want to do that).
+                            Drup++;
+                            Dlup++;
+                        }
+                        case BLACK -> {
+                            Drdo++;
+                            Dldo++;
+                        }
+                        default -> {
+                        }
+                    }
                     break;
                 default:
                     break;
@@ -506,7 +535,7 @@ public class ChessPiece {
             int myNewYPosition = myPosition.getRow() + deltaY;
             ChessPosition nextValidSpace = new ChessPosition(myNewYPosition, myNewXPosition);
             // We will not ask for spaces that are out of bounds
-            if (((myNewXPosition > board.getChessBoardSize()) || (myNewYPosition > board.getChessBoardSize())) || ((myNewXPosition < 0) || (myNewYPosition < 0))) {
+            if (((myNewXPosition > board.getChessBoardSize()) || (myNewYPosition > board.getChessBoardSize())) || ((myNewXPosition <= 0) || (myNewYPosition <= 0))) {
                 return null;
                 // next we will have to see if we can move to an empty space if the space is empty or a full space if it is full
             } else if (board.getPiece(nextValidSpace) == null) {
