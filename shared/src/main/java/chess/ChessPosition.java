@@ -1,5 +1,7 @@
 package chess;
 
+import java.util.Objects;
+
 /**
  * Represents a single square position on a chess board
  * <p>
@@ -44,7 +46,7 @@ public class ChessPosition {
             return false;
         }
         if (o.getClass() == this.getClass()) {
-            if(o.toString() == this.toString()) {
+            if(Objects.equals(o.toString(), this.toString())) {
                 return true;
             }
         }
@@ -57,5 +59,15 @@ public class ChessPosition {
         return returnedString.toString();
     }
 
-
+    @Override
+    public int hashCode() {
+        //Here I make two prime numbers (1 large and 1 small) to allow for row and column flipping to not create equal hash codes
+        int specialInt = 29;
+        int secondPrime = 11;
+        //Now I add them in various ways to allow for new hash code combinations
+        specialInt = specialInt*row + specialInt;
+        specialInt = specialInt*col + specialInt;
+        //This last line helps make row and column not reflexive (ie (4,5)!=(5,4));
+        return specialInt + ((secondPrime*row)+col);
+    }
 }

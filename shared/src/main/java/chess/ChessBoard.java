@@ -9,6 +9,9 @@ package chess;
 //import static chess.ChessPiece.PieceType.KING;
 
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * A chessboard that can hold and rearrange chess pieces.
  * <p>
@@ -76,21 +79,21 @@ public class ChessBoard {
         rowSetUp(columns,rows,whitePieces,blackPieces,addingToBaseBoard);
 
         //King and Queen need to be done separately as they are not cloned.
-        whitePieces.setType(ChessPiece.PieceType.KING);
-        blackPieces.setType(ChessPiece.PieceType.KING);
+        whitePieces.setType(ChessPiece.PieceType.QUEEN);
+        blackPieces.setType(ChessPiece.PieceType.QUEEN);
         //now duplicate it into another piece
-        ChessPiece whiteCommander = new ChessPiece(whitePieces.getTeamColor(), whitePieces.getPieceType());
-        ChessPiece blackCommander = new ChessPiece(blackPieces.getTeamColor(), blackPieces.getPieceType());
+        ChessPiece whiteUltimate = new ChessPiece(whitePieces.getTeamColor(), whitePieces.getPieceType());
+        ChessPiece blackUltimate = new ChessPiece(blackPieces.getTeamColor(), blackPieces.getPieceType());
 
         //Hard coded, not the best but it works...
         ChessPosition whitePos = new ChessPosition(1,4);
         ChessPosition blackPos = new ChessPosition(ChessBoardSize,4);
-        this.addPiece(whitePos,whiteCommander,addingToBaseBoard);
-        this.addPiece(blackPos,blackCommander,addingToBaseBoard);
+        this.addPiece(whitePos,whiteUltimate,addingToBaseBoard);
+        this.addPiece(blackPos,blackUltimate,addingToBaseBoard);
 
-        //Queen's turn
-        whitePieces.setType(ChessPiece.PieceType.QUEEN);
-        blackPieces.setType(ChessPiece.PieceType.QUEEN);
+        //King's turn
+        whitePieces.setType(ChessPiece.PieceType.KING);
+        blackPieces.setType(ChessPiece.PieceType.KING);
         //Hard coded, not the best but it works...
         whitePos = new ChessPosition(1,5);
         blackPos = new ChessPosition(ChessBoardSize,5);
@@ -255,5 +258,46 @@ public class ChessBoard {
     public void setChessBoardSize(int chessBoardSize) {
         ChessBoardSize = chessBoardSize;
         squares = new ChessPiece[chessBoardSize][chessBoardSize];
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessBoard that = (ChessBoard) o;
+        boolean truthValue = ChessBoardSize == that.ChessBoardSize && addingToBaseBoard == that.addingToBaseBoard;
+        if (!truthValue) {
+            return truthValue;
+        } else {
+            for (int currentRow = 1; currentRow < (ChessBoardSize+1); currentRow++) {
+                for (int currentCol = 1; currentCol < (ChessBoardSize+1); currentCol++) {
+                    if (!(this.squares[currentRow][currentCol] == null)) {
+                        if(((ChessBoard) o).squares[currentRow][currentCol] == null) {
+                            return false;
+                        }
+                        if (!(this.squares[currentRow][currentCol].equals(((ChessBoard) o).squares[currentRow][currentCol]))) {
+                            return false;
+                        }
+                    }
+                    if(!(this.baseboard[currentRow][currentCol] == null)) {
+                        if(((ChessBoard) o).baseboard[currentRow][currentCol] == null) {
+                            return false;
+                        }
+                        if (!(this.baseboard[currentRow][currentCol].equals(((ChessBoard) o).baseboard[currentRow][currentCol]))) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(ChessBoardSize, addingToBaseBoard);
+        result = 31 * result + Arrays.hashCode(baseboard);
+        result = 31 * result + Arrays.hashCode(squares);
+        return result;
     }
 }

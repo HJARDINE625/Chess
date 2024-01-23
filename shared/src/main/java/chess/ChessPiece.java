@@ -1,9 +1,6 @@
 package chess;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static chess.ChessPiece.PieceType.*;
 
@@ -558,4 +555,18 @@ public class ChessPiece {
 
     }
 
+    //In order for the system to realize that we have equivlent chessboards, we need a way for it to see that we have equivlient chess peices in them
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ChessPiece that)) return false;
+        return hasMoved == that.hasMoved && pieceColor == that.pieceColor && type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(hasMoved, pieceColor, type);
+    }
 }
