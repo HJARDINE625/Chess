@@ -20,6 +20,7 @@ public class ChessPiece {
         if(hasMoved) {
             return hasMoved;
         } else if (peiceToTestAgainst == null) {
+            hasMoved = true;
             return hasMoved;
         } else if (this.type!=peiceToTestAgainst.getPieceType()){
             hasMoved = true;
