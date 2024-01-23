@@ -101,7 +101,7 @@ public class ChessPiece {
                 int finalRank = board.getChessBoardSize();
                 //If I make a non-square board, not only will I have to edit my code in ChessBoard and the edge calculater, but I will have
                 //to update the middle part of this for loop to calculate for the correct number of squares on a rectangle at the end.
-                for(int i = 0; i < finalRank; i++) {
+                for(int i = 1; i <= finalRank; i++) {
                     ChessPosition premotionSquare = new ChessPosition(finalRank, i);
                     premotionLocations.add(premotionSquare);
                 }
@@ -111,9 +111,9 @@ public class ChessPiece {
                 //The different name for this basically identical number for tracking things opitimizes why I will have to change this for non-square boards.
                 int finalColumn = board.getChessBoardSize();
                 //here I update again...
-                for(int i = 0; i < finalColumn; i++){
+                for(int i = 1; i <= finalColumn; i++){
                     //only this line is currently different than above (and only barely).
-                    ChessPosition premotionSquare = new ChessPosition(0, finalColumn);
+                    ChessPosition premotionSquare = new ChessPosition(1, i);
                     premotionLocations.add(premotionSquare);
                 }
             break;
@@ -450,6 +450,13 @@ public class ChessPiece {
         canMove = false;
         myMoves = whatIsMoving(myMoves, board, myPosition, canAttack, canMove);
 
+        //I need to add this to stop a very abnormal exception from being thrown when I delete from the array I am using to copy from below.
+        ArrayList<ChessPosition> myDeletableMoves = new ArrayList<>();
+        for (ChessPosition pos: myMoves) {
+            myDeletableMoves.add(pos);
+        }
+
+
 
 
         //Check to see if this piece can premote
@@ -466,7 +473,7 @@ public class ChessPiece {
             for(ChessPosition position: myMoves){
                 for (ChessPosition premotion:premotionLocations) {
                     if(position.equals(premotion)) {
-                        myMoves.remove(position);
+                        myDeletableMoves.remove(position);
                         for (PieceType p:availablePremotions) {
                             possibleMoves.add(new ChessMove(myPosition, position, p));
                         }
@@ -477,7 +484,7 @@ public class ChessPiece {
         }
 
         //We already handeled (only) premotions above, so this should work for all nonpremoted peices.
-        for (ChessPosition p: myMoves) {
+        for (ChessPosition p: myDeletableMoves) {
             possibleMoves.add(new ChessMove(myPosition, p, null));
         }
         return possibleMoves;
