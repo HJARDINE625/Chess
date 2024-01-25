@@ -19,6 +19,12 @@ public class ChessGame {
 
     private TeamColor[] moveOrder = new TeamColor[lastTeamLocation];
 
+    private TeamColor[][] alliances = new TeamColor[1][1];
+
+    private int addingTeam = 0;
+
+    private int largestTeam = 1;
+
 
     public ChessGame() {
 
@@ -39,6 +45,7 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         currentTeam = team;
+        //might need to change last parameter to ++i to make the breaks below work, just need to be sure the last statement will still be accessible probably not...
         for(int i = currentTeamLocation; i < lastTeamLocation; i++){
             //Remeber to check for valid move orders when a new game is started up, otherwise players will wait forever here
             if(moveOrder[i] == null){
@@ -117,6 +124,9 @@ public class ChessGame {
         } else {
             //We will need this later to see who to check for check on
             TeamColor teamToCheck = testedPiece.getTeamColor();
+            //Remeber this
+            TeamColor oldTeamTurn = currentTeam;
+            int currentMoveIndex = currentTeamLocation;
 
             //Now we have to unpack the return, we can keep ChessMove vauge here as we are just looking for chess positions right now.
             Collection<ChessMove> currentMoves = testedPiece.pieceMoves(board, startPosition);
@@ -124,6 +134,8 @@ public class ChessGame {
             //Someone might want to do this at some point...
             if(teamToCheck == null) {
                 return currentMoves;
+            } else {
+                setTeamTurn(teamToCheck);
             }
 
             //We will use this to update some start Positions
@@ -132,9 +144,13 @@ public class ChessGame {
                 //I think this is best done here in two similar calls, I will make an unpack subfunction
                 ChessPosition removePosition = M.getStartPosition();
                 ChessPosition addPosition = M.getEndPosition();
+                ChessPiece oldPiece = checkBoard.getPiece(addPosition);
                 //now unpack each one
                 checkBoard = unpack(removePosition, checkBoard, null);
                 checkBoard = unpack(addPosition, checkBoard, testedPiece);
+
+                //This particular setting will allow for moving into check a few turns later (just not the next turn)
+                isInCheck(currentTeam, checkBoard);
 
             }
         }
@@ -165,8 +181,23 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        isInCheck(teamColor, board);
     }
+    //here is a helper function
+    public boolean isInCheck(TeamColor teamColor, ChessBoard checkBoard){
+        if(checkBoard == null) {
+            return false;
+        }
+        int numberOfIterations = checkBoard.getChessBoardSize();
+        for(int row = 1; row<numberOfIterations; row++){
+            for(int col = 1; col<numberOfIterations; col++){
+                ChessPosition testPosition = new ChessPosition(row, col);
+                ChessPiece testingPiece = checkBoard.getPiece(testPosition);
+                if(testingPiece == null) {} else if(testingPiece.getTeamColor() == isAlliedPiece)
+            }
+        }
+    }
+
 
     /**
      * Determines if the given team is in checkmate
@@ -237,4 +268,50 @@ public class ChessGame {
         return board;
         //throw new RuntimeException("Not implemented");
     }
+    //now different players can be on the same team
+
+    public void setAlliances(TeamColor[] alliedTeams) {
+        int i = 0;
+        for (TeamColor player: alliedTeams) {
+            i++;
+        }
+        if (i>largestTeam-1){
+            int newLargestTeam = i;
+        }
+        TeamColor[][] alliancesCopy = new TeamColor[addingTeam][i];
+        for(int j = i-1; j>=0; j--) {
+            if(alliedTeams[j] != null){
+                alliancesCopy[addingTeam][j] = alliedTeams[j];
+            }
+        }
+        //work here
+
+        for (int j = 0; j < addingTeam; j++){
+            for(int k = 0; j < largestTeam; k++) {
+
+            }
+        }
+        addingTeam++;
+    }
+
+    //how to make sure you do not take yourself only call on a REAL piece
+    public boolean isAlliedPiece(TeamColor firstPiece, TeamColor secondPiece){
+        //most used function here
+        if(firstPiece == secondPiece){
+            return true;
+        }
+        //second most used
+         else if(addingTeam == 0) {
+            return false;
+        }
+        //now the crazy stuff
+        for (int i = 0; i < addingTeam; i++) {
+            for (:
+                 ) {
+
+            }
+        }
+
+    }
+
 }
