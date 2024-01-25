@@ -9,6 +9,10 @@ import java.util.Collection;
  * signature of the existing methods.
  */
 public class ChessGame {
+    private TeamColor currentTeam;
+
+    private ChessBoard board = new ChessBoard();
+
 
     public ChessGame() {
 
@@ -18,7 +22,8 @@ public class ChessGame {
      * @return Which team's turn it is
      */
     public TeamColor getTeamTurn() {
-        throw new RuntimeException("Not implemented");
+        return currentTeam;
+        //throw new RuntimeException("Not implemented");
     }
 
     /**
@@ -27,7 +32,8 @@ public class ChessGame {
      * @param team the team whose turn it is
      */
     public void setTeamTurn(TeamColor team) {
-        throw new RuntimeException("Not implemented");
+        currentTeam = team;
+        //throw new RuntimeException("Not implemented");
     }
 
     /**
@@ -46,8 +52,43 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        //Other than setting things up this first part (up until the else) fulfills the last speck requirement above.
+        ChessPiece testedPiece = board.getPiece(startPosition);
+        if(testedPiece == null) {
+            return null;
+        } else {
+            //We will need this later to see who to check for check on
+            TeamColor teamToCheck = testedPiece.getTeamColor();
+
+            //Now we have to unpack the return, we can keep ChessMove vauge here as we are just looking for chess positions right now.
+            Collection<ChessMove> currentMoves = testedPiece.pieceMoves(board, startPosition);
+
+            //Someone might want to do this at some point...
+            if(teamToCheck == null) {
+                return currentMoves;
+            }
+
+            //We will use this to update some start Positions
+            ChessBoard checkBoard = setBoard(board, new ChessBoard());
+            for (ChessMove M: currentMoves) {
+                //I think this is best done here in two similar calls, I will make an unpack subfunction
+                ChessPosition removePosition = M.getStartPosition();
+                ChessPosition addPosition = M.getEndPosition();
+                //now unpack each one
+                unpack(removePosition, checkBoard, null);
+                unpack(addPosition, checkBoard, testedPiece);
+
+            }
+        }
+        //throw new RuntimeException("Not implemented");
     }
+
+    //Here is the unpack function used twice above (and perhaps elsewhere). (It could help modify boards for abnormal games).
+    public ChessBoard unpack(ChessPosition unwindPosition, ChessBoard checkBoard, ChessPiece replacementPiece){
+        checkBoard.addPiece(unwindPosition, replacementPiece);
+        return checkBoard;
+    }
+
 
     /**
      * Makes a move in a chess game
@@ -76,7 +117,13 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if(isInCheck(teamColor)) {
+            if(isInStalemate(teamColor)) {
+                return true;
+            }
+        }
+        return false;
+        // throw new RuntimeException("Not implemented");
     }
 
     /**
@@ -96,7 +143,31 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        throw new RuntimeException("Not implemented");
+        //We do not need to use the return value, as it will already be correctly set...
+        setBoard(board, this.board);
+        //throw new RuntimeException("Not implemented");
+    }
+
+    //A helper function to let me reuse the function above in other contexts. (I will consider turning it private.
+    public ChessBoard setBoard(ChessBoard board, ChessBoard newBoard) {
+        int transform = board.getChessBoardSize();
+        newBoard.setChessBoardSize(transform);
+        for (int i = transform; i > 0; i--) {
+            for (int j = transform; j > 0; j--) {
+                ChessPosition currentPosition = new ChessPosition(i,j);
+                ChessPiece currentPiece = board.getPiece(currentPosition);
+                if(currentPiece != null) {
+                    newBoard.addPiece(currentPosition, currentPiece, false);
+                }
+                currentPosition = new ChessPosition(i,j);
+                currentPiece = board.getInitalPiece(currentPosition);
+                if(currentPiece != null) {
+                    newBoard.addPiece(currentPosition, currentPiece, true);
+                }
+            }
+
+        }
+        return newBoard;
     }
 
     /**
@@ -105,6 +176,7 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        throw new RuntimeException("Not implemented");
+        return board;
+        //throw new RuntimeException("Not implemented");
     }
 }

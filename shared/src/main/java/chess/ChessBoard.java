@@ -254,10 +254,10 @@ public class ChessBoard {
     public int getChessBoardSize() {
         return ChessBoardSize;
     }
-
     public void setChessBoardSize(int chessBoardSize) {
         ChessBoardSize = chessBoardSize;
-        squares = new ChessPiece[chessBoardSize][chessBoardSize];
+        squares = new ChessPiece[chessBoardSize+1][chessBoardSize+1];
+        baseboard = new ChessPiece[chessBoardSize+1][chessBoardSize+1];
     }
 
     @Override
