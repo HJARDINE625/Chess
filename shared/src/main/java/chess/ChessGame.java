@@ -39,6 +39,20 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         currentTeam = team;
+        for(int i = currentTeamLocation; i < lastTeamLocation; i++){
+            //Remeber to check for valid move orders when a new game is started up, otherwise players will wait forever here
+            if(moveOrder[i] == null){
+                i = 0;
+                if(moveOrder[i] == null) {
+                    break;
+                }
+            }
+            //We have found the closest (sequentially) next turn of this side, we can now use this normal command for monster chess...
+            if(moveOrder[i] == currentTeam) {
+                currentTeamLocation = i;
+                return;
+            }
+        }
         //throw new RuntimeException("Not implemented");
     }
 
