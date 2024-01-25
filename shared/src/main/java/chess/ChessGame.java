@@ -13,6 +13,12 @@ public class ChessGame {
 
     private ChessBoard board = new ChessBoard();
 
+    private int currentTeamLocation = 0;
+
+    private int lastTeamLocation = 2;
+
+    private TeamColor[] moveOrder = new TeamColor[lastTeamLocation];
+
 
     public ChessGame() {
 
@@ -35,6 +41,44 @@ public class ChessGame {
         currentTeam = team;
         //throw new RuntimeException("Not implemented");
     }
+
+    public void setTeamOrder(TeamColor[] teamOrder, int lastTeamLocation) {
+        //Allow for a new game with a diffent possible team order
+        int numberOfSwitches = lastTeamLocation;
+        for(int i = 0; i<lastTeamLocation; i++) {
+            if(teamOrder[i] == null){
+                return;
+            } else {
+                moveOrder[i] = teamOrder[i];
+            }
+        }
+    }
+    //This function works with the one above to allow multiple move variants (like monster chess) and multiple team varaients
+    private TeamColor getNextTeamTurn(){
+        return moveOrder[nextTeamIndex()];
+    }
+
+    //helper function for above.
+    private int nextTeamIndex (){
+        if(currentTeamLocation+1 < lastTeamLocation) {
+            if (moveOrder[currentTeamLocation + 1] != null) {
+                return currentTeamLocation+1;
+            }
+        }
+        return 0;
+    }
+
+    //Now to update everything
+    private void updateTeam(){
+        setTeamTurn(getNextTeamTurn());
+        updateTeamIndex();
+    }
+    //UpdateTeamIndex
+    private void updateTeamIndex(){
+        currentTeamLocation = nextTeamIndex();
+    }
+
+
 
     /**
      * Enum identifying the 2 possible teams in a chess game
@@ -75,8 +119,8 @@ public class ChessGame {
                 ChessPosition removePosition = M.getStartPosition();
                 ChessPosition addPosition = M.getEndPosition();
                 //now unpack each one
-                unpack(removePosition, checkBoard, null);
-                unpack(addPosition, checkBoard, testedPiece);
+                checkBoard = unpack(removePosition, checkBoard, null);
+                checkBoard = unpack(addPosition, checkBoard, testedPiece);
 
             }
         }
