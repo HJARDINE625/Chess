@@ -10,6 +10,7 @@ package chess;
 
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 
@@ -50,6 +51,39 @@ public class ChessBoard {
         }
         return rulingPieces;
     }
+
+    public HashSet<ChessPosition> returnAllPiecesOnTeam(ChessGame.TeamColor teamToInspect){
+        //This is slightly repeated from the function above, but it is more confusing to change probably... (maybe not)
+        HashSet<ChessPosition> moveset = new HashSet<ChessPosition>();
+        for (int i = 1; i<ChessBoardSize; i++){
+            for(int j = 1; j<ChessBoardSize; j++){
+                if(squares[i][j] != null){
+                    if(squares[i][j].getTeamColor() != null) {
+                        if (squares[i][j].getTeamColor() == teamToInspect) {
+                            ChessPosition piecesLocation = new ChessPosition(i,j);
+                            moveset.add(piecesLocation);
+                            }
+                        }
+                    }
+                }
+            }
+
+        return moveset;
+    }
+    //Here is a function that uses the function above as a helper function
+    public HashSet<ChessMove> returnAllPiecesMovesOnTeam(ChessGame.TeamColor teamToInspect) {
+        HashSet<ChessPosition> moveset = returnAllPiecesOnTeam(teamToInspect);
+        HashSet<ChessMove> finalMoves = new HashSet<ChessMove>();
+        for (ChessPosition p:moveset) {
+            ChessPiece examinedPiece = getPiece(p);
+            Collection<ChessMove> moves = examinedPiece.pieceMoves(this, p);
+            for (ChessMove m:moves) {
+                finalMoves.add(m);
+            }
+        }
+        return finalMoves;
+    }
+
 
     public ChessBoard() {
         //We need to set up the base board (we will reset if we want to start a game.
