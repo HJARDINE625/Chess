@@ -275,23 +275,39 @@ public class ChessGame {
         for (TeamColor player: alliedTeams) {
             i++;
         }
+        int newLargestTeam = largestTeam;
         if (i>largestTeam-1){
-            int newLargestTeam = i;
+            newLargestTeam = i;
         }
-        TeamColor[][] alliancesCopy = new TeamColor[addingTeam][i];
+        TeamColor[][] alliancesCopy = new TeamColor[addingTeam][newLargestTeam];
         for(int j = i-1; j>=0; j--) {
             if(alliedTeams[j] != null){
                 alliancesCopy[addingTeam][j] = alliedTeams[j];
             }
         }
         //work here
-
-        for (int j = 0; j < addingTeam; j++){
-            for(int k = 0; j < largestTeam; k++) {
-
+        if(addingTeam > 0) {
+            for (int j = 0; j < (addingTeam - 1); j++) {
+                for (int k = 0; j < largestTeam; k++) {
+                    if (alliances[j][k] != null) {
+                        alliancesCopy[j][k] = alliances[j][k];
+                    } else {
+                        alliancesCopy[j][k] = null;
+                    }
+                }
             }
         }
         addingTeam++;
+        largestTeam = newLargestTeam;
+        for (int j = 0; j < addingTeam; j++) {
+            for (int k = 0; j < largestTeam; k++) {
+                if (alliancesCopy[j][k] != null) {
+                    alliances[j][k] = alliancesCopy[j][k];
+                } else {
+                    alliances[j][k] = null;
+                }
+            }
+        }
     }
 
     //how to make sure you do not take yourself only call on a REAL piece
@@ -305,12 +321,26 @@ public class ChessGame {
             return false;
         }
         //now the crazy stuff
-        for (int i = 0; i < addingTeam; i++) {
-            for (:
-                 ) {
+        boolean isAnAlly = false;
 
+        for (int i = 0; i < addingTeam; i++) {
+            boolean firstTeamPresent = false;
+            boolean secondTeamPresent = false;
+            for(int j = 0; j<largestTeam; j++) {
+                if(alliances[i][j] != null){
+                    if(alliances[i][j] == firstPiece){
+                        firstTeamPresent = true;
+                    }
+                    if(alliances[i][j] == secondPiece){
+                        secondTeamPresent = true;
+                    }
+                }
+            }
+            if(firstTeamPresent && secondTeamPresent){
+                isAnAlly = true;
             }
         }
+        return isAnAlly;
 
     }
 
