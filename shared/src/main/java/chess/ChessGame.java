@@ -164,6 +164,7 @@ public class ChessGame {
                 ChessPosition removePosition = M.getStartPosition();
                 ChessPosition addPosition = M.getEndPosition();
                 ChessPiece oldPiece = checkBoard.getPiece(addPosition);
+                ChessPiece checkedPiece = checkBoard.getPiece(removePosition);
                 //now unpack each one
                 checkBoard = unpack(removePosition, checkBoard, null);
                 checkBoard = unpack(addPosition, checkBoard, testedPiece);
@@ -181,11 +182,16 @@ public class ChessGame {
                     rulerMoves.add(addPosition);
                     if(isInCheck(currentTeam, checkBoard, rulerMoves)){
                         validMove = false;
+                    } else {
+                        isInCheck(currentTeam, checkBoard, rulerMoves);
                     }
                 }
                 if(validMove){
+
                     finalMoves.add(M);
                 }
+                checkBoard = unpack(addPosition, checkBoard, oldPiece);
+                checkBoard = unpack(removePosition, checkBoard, checkedPiece);
 
             }
             return finalMoves;
@@ -231,8 +237,8 @@ public class ChessGame {
             return false;
         }
         int numberOfIterations = checkBoard.getChessBoardSize();
-        for(int row = 1; row<numberOfIterations; row++){
-            for(int col = 1; col<numberOfIterations; col++){
+        for(int row = 1; row<=numberOfIterations; row++){
+            for(int col = 1; col<=numberOfIterations; col++){
                 ChessPosition testPosition = new ChessPosition(row, col);
                 ChessPiece testingPiece = checkBoard.getPiece(testPosition);
                 if(testingPiece == null) {} else if(isAlliedPiece(testingPiece.getTeamColor(),teamColor)){} else {

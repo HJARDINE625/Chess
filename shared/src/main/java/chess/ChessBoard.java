@@ -34,8 +34,8 @@ public class ChessBoard {
     //This is a very helpful function for implementing how the game runs.
     public HashSet<ChessPosition> findRulingPieces(ChessGame.TeamColor teamToInspect) {
         HashSet<ChessPosition> rulingPieces = new HashSet<ChessPosition>();
-        for (int i = 1; i<ChessBoardSize; i++){
-            for(int j = 1; j<ChessBoardSize; j++){
+        for (int i = 1; i<=ChessBoardSize; i++){
+            for(int j = 1; j<=ChessBoardSize; j++){
                 if(squares[i][j] != null){
                     if(squares[i][j].getPieceType() != null) {
                         if (squares[i][j].getPieceType() == ChessPiece.PieceType.KING) {
@@ -55,8 +55,8 @@ public class ChessBoard {
     public HashSet<ChessPosition> returnAllPiecesOnTeam(ChessGame.TeamColor teamToInspect){
         //This is slightly repeated from the function above, but it is more confusing to change probably... (maybe not)
         HashSet<ChessPosition> moveset = new HashSet<ChessPosition>();
-        for (int i = 1; i<ChessBoardSize; i++){
-            for(int j = 1; j<ChessBoardSize; j++){
+        for (int i = 1; i<=ChessBoardSize; i++){
+            for(int j = 1; j<=ChessBoardSize; j++){
                 if(squares[i][j] != null){
                     if(squares[i][j].getTeamColor() != null) {
                         if (squares[i][j].getTeamColor() == teamToInspect) {
