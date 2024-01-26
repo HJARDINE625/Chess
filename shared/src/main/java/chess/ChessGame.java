@@ -1,6 +1,8 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -117,6 +119,9 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+    //this is for later
+        boolean needToCheckChecks = true;
+        boolean checkMovedPiece = false;
         //Other than setting things up this first part (up until the else) fulfills the last speck requirement above.
         ChessPiece testedPiece = board.getPiece(startPosition);
         if(testedPiece == null) {
@@ -124,12 +129,24 @@ public class ChessGame {
         } else {
             //We will need this later to see who to check for check on
             TeamColor teamToCheck = testedPiece.getTeamColor();
+            //We need to know where the kings/similar pieces are for later
+            HashSet<ChessPosition> rulingPieces = board.findRulingPieces(teamToCheck);
+            if(rulingPieces.isEmpty()) {
+                needToCheckChecks = false;
+            } else if (rulingPieces.contains(startPosition)) {
+                checkMovedPiece = true;
+                rulingPieces.remove(startPosition);
+                if(rulingPieces.isEmpty()){
+                    needToCheckChecks = false;
+                }
+            }
             //Remeber this
             TeamColor oldTeamTurn = currentTeam;
             int currentMoveIndex = currentTeamLocation;
 
             //Now we have to unpack the return, we can keep ChessMove vauge here as we are just looking for chess positions right now.
             Collection<ChessMove> currentMoves = testedPiece.pieceMoves(board, startPosition);
+            Collection<ChessMove> finalMoves = new HashSet<ChessMove>();
 
             //Someone might want to do this at some point...
             if(teamToCheck == null) {
@@ -141,6 +158,8 @@ public class ChessGame {
             //We will use this to update some start Positions
             ChessBoard checkBoard = setBoard(board, new ChessBoard());
             for (ChessMove M: currentMoves) {
+                //keep track of if we should add this
+                boolean validMove = true;
                 //I think this is best done here in two similar calls, I will make an unpack subfunction
                 ChessPosition removePosition = M.getStartPosition();
                 ChessPosition addPosition = M.getEndPosition();
@@ -149,10 +168,27 @@ public class ChessGame {
                 checkBoard = unpack(removePosition, checkBoard, null);
                 checkBoard = unpack(addPosition, checkBoard, testedPiece);
 
+
+
                 //This particular setting will allow for moving into check a few turns later (just not the next turn)
-                isInCheck(currentTeam, checkBoard);
+                if(needToCheckChecks) {
+                    if(isInCheck(currentTeam, checkBoard, rulingPieces)){
+                        validMove = false;
+                    }
+                }
+                if(checkMovedPiece){
+                    HashSet<ChessPosition> rulerMoves = new HashSet<ChessPosition>();
+                    rulerMoves.add(addPosition);
+                    if(isInCheck(currentTeam, checkBoard, rulerMoves)){
+                        validMove = false;
+                    }
+                }
+                if(validMove){
+                    finalMoves.add(M);
+                }
 
             }
+            return finalMoves;
         }
         //throw new RuntimeException("Not implemented");
     }
@@ -181,10 +217,16 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        isInCheck(teamColor, board);
+        HashSet<ChessPosition> rulingPieces = board.findRulingPieces(teamColor);
+        //No King or similar piece, no check
+        if (rulingPieces.isEmpty()) {
+            return false;
+        } else {
+            return isInCheck(teamColor, board, rulingPieces);
+        }
     }
     //here is a helper function
-    public boolean isInCheck(TeamColor teamColor, ChessBoard checkBoard){
+    public boolean isInCheck(TeamColor teamColor, ChessBoard checkBoard, HashSet<ChessPosition> KingPositions){
         if(checkBoard == null) {
             return false;
         }
@@ -193,9 +235,17 @@ public class ChessGame {
             for(int col = 1; col<numberOfIterations; col++){
                 ChessPosition testPosition = new ChessPosition(row, col);
                 ChessPiece testingPiece = checkBoard.getPiece(testPosition);
-                if(testingPiece == null) {} else if(testingPiece.getTeamColor() == isAlliedPiece)
+                if(testingPiece == null) {} else if(isAlliedPiece(testingPiece.getTeamColor(),teamColor)){} else {
+                    for (ChessPosition kingPosition: KingPositions) {
+                        //This will make multiple kings be a vulnerability, not a benifit, to change this you could have a counter tracking all kings on is in checkmate.
+                    if(testingPiece.pieceMoves(checkBoard,testPosition).contains(kingPosition)){
+                        return true;
+                        }
+                    }
+                }
             }
         }
+        return false;
     }
 
 

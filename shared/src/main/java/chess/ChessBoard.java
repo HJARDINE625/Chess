@@ -10,6 +10,7 @@ package chess;
 
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -28,6 +29,28 @@ public class ChessBoard {
 
     private boolean addingToBaseBoard = true;
     //Set up the reset board
+
+    //This is a very helpful function for implementing how the game runs.
+    public HashSet<ChessPosition> findRulingPieces(ChessGame.TeamColor teamToInspect) {
+        HashSet<ChessPosition> rulingPieces = new HashSet<ChessPosition>();
+        for (int i = 1; i<ChessBoardSize; i++){
+            for(int j = 1; j<ChessBoardSize; j++){
+                if(squares[i][j] != null){
+                    if(squares[i][j].getPieceType() != null) {
+                        if (squares[i][j].getPieceType() == ChessPiece.PieceType.KING) {
+                            if(squares[i][j].getTeamColor() != null) {
+                                if (squares[i][j].getTeamColor() == teamToInspect) {
+                                    rulingPieces.add(new ChessPosition(i, j));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return rulingPieces;
+    }
+
     public ChessBoard() {
         //We need to set up the base board (we will reset if we want to start a game.
 
