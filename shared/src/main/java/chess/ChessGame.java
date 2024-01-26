@@ -238,9 +238,18 @@ public class ChessGame {
                 if(testingPiece == null) {} else if(isAlliedPiece(testingPiece.getTeamColor(),teamColor)){} else {
                     for (ChessPosition kingPosition: KingPositions) {
                         //This will make multiple kings be a vulnerability, not a benifit, to change this you could have a counter tracking all kings on is in checkmate.
-                    if(testingPiece.pieceMoves(checkBoard,testPosition).contains(kingPosition)){
-                        return true;
+                    if(testingPiece.pieceMoves(checkBoard,testPosition) != null) {
+                        var move = testingPiece.pieceMoves(checkBoard, testPosition);
+                        if (!move.isEmpty()) {
+                            for (ChessMove m : move) {
+                                if (m.getEndPosition().equals(kingPosition)) {
+                                    return true;
+                                }
+                            }
                         }
+                    }
+
+
                     }
                 }
             }
