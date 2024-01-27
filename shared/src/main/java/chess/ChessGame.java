@@ -17,7 +17,7 @@ public class ChessGame {
 
     private int currentTeamLocation = 0;
 
-    private int lastTeamLocation = 2;
+    private int lastTeamLocation = 1;
 
     private TeamColor[] moveOrder = new TeamColor[lastTeamLocation];
 
@@ -120,6 +120,7 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
     //this is for later
+        TeamColor whoIsMoving = currentTeam;
         boolean needToCheckChecks = true;
         boolean checkMovedPiece = false;
         //Other than setting things up this first part (up until the else) fulfills the last speck requirement above.
@@ -194,6 +195,7 @@ public class ChessGame {
                 checkBoard = unpack(removePosition, checkBoard, checkedPiece);
 
             }
+            currentTeam = whoIsMoving;
             return finalMoves;
         }
         //throw new RuntimeException("Not implemented");
@@ -213,7 +215,49 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        //throw new RuntimeException("Not implemented");
+        try{
+            ChessPosition piecePosition = move.getStartPosition();
+            Collection<ChessMove> allowedMoves = validMoves(piecePosition);
+            for (ChessMove m: allowedMoves) {
+                //If any move works we need to avoid implementing the stuff at the end (which throws an error).
+                if(m.equals(move)){
+                    //This code is remarkably similar to the code in valid move.
+                    //However rather than have valid move call this function that in turn calls valid move
+                    //or having some strange third function to do the work for these two functions together,
+                    //I determined this was the least confusing not totally inefficient solution.
+
+                    //Get the positions we need to modify...
+                    ChessPosition removePosition = m.getStartPosition();
+                    ChessPosition addPosition = m.getEndPosition();
+                    ChessPiece checkedPiece = board.getPiece(removePosition);
+                    //now unpack each one
+                    unpack(removePosition, board, null);
+                    unpack(addPosition, board, checkedPiece);
+                    return;
+                    //If this worked return before we throw an error.
+//                    currentTeamLocation++;
+//                    if(currentTeamLocation > lastTeamLocation) {
+//                        currentTeamLocation = 0;
+//                        if(moveOrder[currentTeamLocation] == null){
+//                            for(currentTeamLocation = currentTeamLocation; currentTeamLocation < lastTeamLocation; currentTeamLocation++){
+//                                if(moveOrder[currentTeamLocation] != null) {
+//                                    currentTeam = moveOrder[currentTeamLocation];
+//                                    return;
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    currentTeamLocation = (lastTeamLocation-1);
+
+                }
+                //throw new InvalidMoveException();
+            }
+        } catch (Exception e) {
+            throw new InvalidMoveException();
+        }
+        throw new InvalidMoveException();
     }
 
     /**
@@ -317,7 +361,7 @@ public class ChessGame {
         //throw new RuntimeException("Not implemented");
     }
 
-    //A helper function to let me reuse the function above in other contexts. (I will consider turning it private.
+    //A helper function to let me reuse the function above in other contexts. (I will consider turning it private).
     public ChessBoard setBoard(ChessBoard board, ChessBoard newBoard) {
         int transform = board.getChessBoardSize();
         newBoard.setChessBoardSize(transform);

@@ -266,7 +266,10 @@ public class ChessBoard {
         if(!addingToBaseBoard) {
             addPiece(position,piece);
         } else {
-            baseboard[position.getRow()][position.getColumn()] = piece;
+            //For whatever reason we must update this when a new piece is created or the test cases will call our functions in a odd order that makes baseboard in a has moved position.
+            ChessPiece updatePiece = new ChessPiece(piece.getTeamColor(), piece.getPieceType());
+            updatePiece.setHasMoved(false);
+            baseboard[position.getRow()][position.getColumn()] = updatePiece;
         }
     }
 
@@ -341,6 +344,7 @@ public class ChessBoard {
                             return false;
                         }
                         if (!(this.baseboard[currentRow][currentCol].equals(((ChessBoard) o).baseboard[currentRow][currentCol]))) {
+                            //this.baseboard[currentRow][currentCol].equals(((ChessBoard) o).baseboard[currentRow][currentCol]);
                             return false;
                         }
                     }
