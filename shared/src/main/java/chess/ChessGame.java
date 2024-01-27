@@ -19,7 +19,7 @@ public class ChessGame {
 
     private int lastTeamLocation = 1;
 
-    private TeamColor[] moveOrder = new TeamColor[lastTeamLocation];
+    private TeamColor[] moveOrder = new TeamColor[lastTeamLocation+1];
 
     private TeamColor[][] alliances = new TeamColor[1][1];
 
@@ -29,6 +29,13 @@ public class ChessGame {
 
 
     public ChessGame() {
+        //Assume that if no parameters were passed then there are two teams with one member each
+        currentTeam = TeamColor.WHITE;
+        moveOrder[currentTeamLocation] = currentTeam;
+        moveOrder[currentTeamLocation+1] = TeamColor.BLACK;
+        //(the next team to move is black, but the first one is white).
+
+        //We do not need to do anything with alliances as adding team has not been updated to require it... (ie the player must instruct the system to have teams).
 
     }
 
@@ -216,8 +223,11 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         //throw new RuntimeException("Not implemented");
+        int teamToRemeber =  currentTeamLocation;
         try{
             ChessPosition piecePosition = move.getStartPosition();
+            ChessPiece pieceToTest = board.getPiece(piecePosition);
+            if(pieceToTest.getTeamColor() == currentTeam) {
             Collection<ChessMove> allowedMoves = validMoves(piecePosition);
             for (ChessMove m: allowedMoves) {
                 //If any move works we need to avoid implementing the stuff at the end (which throws an error).
@@ -234,29 +244,40 @@ public class ChessGame {
                     //now unpack each one
                     unpack(removePosition, board, null);
                     unpack(addPosition, board, checkedPiece);
-                    return;
+                    //return;
                     //If this worked return before we throw an error.
-//                    currentTeamLocation++;
-//                    if(currentTeamLocation > lastTeamLocation) {
-//                        currentTeamLocation = 0;
-//                        if(moveOrder[currentTeamLocation] == null){
-//                            for(currentTeamLocation = currentTeamLocation; currentTeamLocation < lastTeamLocation; currentTeamLocation++){
-//                                if(moveOrder[currentTeamLocation] != null) {
-//                                    currentTeam = moveOrder[currentTeamLocation];
-//                                    return;
-//                                }
-//                            }
-//                        }
-//                    }
-//
-//                    currentTeamLocation = (lastTeamLocation-1);
+                    //remeber where we were and update
+
+                    currentTeamLocation++;
+                    if(currentTeamLocation > lastTeamLocation) {
+                        currentTeamLocation = 0;
+                    }
+                        if(moveOrder[currentTeamLocation] == null){
+                            for(currentTeamLocation = currentTeamLocation; currentTeamLocation <= lastTeamLocation; currentTeamLocation++){
+                                if(moveOrder[currentTeamLocation] != null) {
+                                    currentTeam = moveOrder[currentTeamLocation];
+                                    return;
+                                    //If this worked return before we throw an error.
+                                }
+                            }
+                        } else {
+                            currentTeam = moveOrder[currentTeamLocation];
+                            return;
+                        }
+
+
 
                 }
                 //throw new InvalidMoveException();
             }
-        } catch (Exception e) {
+        }
+        }catch (Exception e) {
+            //if we did not return yet we had an error and need to correct it.
+            currentTeamLocation = (teamToRemeber);
+            currentTeam = moveOrder[currentTeamLocation];
             throw new InvalidMoveException();
         }
+
         throw new InvalidMoveException();
     }
 
