@@ -40,6 +40,12 @@ public class ChessPiece {
     private boolean hasMoved = false;
     private ChessGame.TeamColor pieceColor;
 
+    //this is one way that we can see if other multi-piece moves are avaible (with the getters and setters for this)
+
+    private boolean specialMove;
+
+    private ChessMove[] specialMoves;
+
     public void setPieceColor(ChessGame.TeamColor pieceColor) {
         this.pieceColor = pieceColor;
     }
@@ -54,6 +60,95 @@ public class ChessPiece {
         this.type = type;
         this.pieceColor = pieceColor;
         //this.firstMoveChecker.resetBoard();
+    }
+
+    public void setSpecialMove(boolean specialMove) {
+        this.specialMove = specialMove;
+    }
+
+    public void activateSpecialMove(ChessBoard board, ChessPosition position, ChessPiece.PieceType activatingPiece, ChessMove activatingMove) {
+        switch(activatingPiece){
+            case KING:
+                if(this.type == activatingPiece){
+                   if(!hasThisPieceMoved(position, board)){
+                       for (int i = 0; i <= board.getChessBoardSize(); i++) {
+                           for (int j = 0; j <= board.getChessBoardSize(); j++) {
+                               ChessPosition testPosition = new ChessPosition(i,j);
+                               if(board.getInitalPiece(testPosition) != null){
+                                   ChessPiece checkPiece = board.getInitalPiece(testPosition);
+                                   if(checkPiece.getTeamColor() == this.getTeamColor()){
+                                       if(checkPiece.getPieceType() == ROOK){
+                                           activateSpecialMove(board, testPosition, this.type, null);
+                                       }
+                                   }
+                               }
+
+                           }
+                       }
+                       //Now that the rooks are activated check for activated rooks
+                       for (int i = 0; i <= board.getChessBoardSize(); i++) {
+                           for (int j = 0; j <= board.getChessBoardSize(); j++) {
+                               ChessPosition testPosition = new ChessPosition(i,j);
+                               if(board.getInitalPiece(testPosition) != null){
+                                   ChessPiece checkPiece = board.getInitalPiece(testPosition);
+                                   if(checkPiece.getTeamColor() == this.getTeamColor()){
+                                       if(checkPiece.getPieceType() == ROOK){
+                                           if(checkPiece.getSpecialMove() == true) {
+                                               setSpecialMove(true);
+                                               return;
+                                           }
+                                       }
+                                   }
+                               }
+
+                           }
+                       }
+
+                   }
+                   setSpecialMove(false);
+                   return;
+                } else if(this.type == ROOK) {
+                    if(!this.hasThisPieceMoved(position, board)) {
+                        setSpecialMove(true);
+                    } else {
+                        setSpecialMove(false);
+                    }
+                    return;
+                } else {
+                    return;
+                }
+            case PAWN:
+                if(this.type != PAWN){
+                    return;
+                } else{
+                   ChessPosition placeItHappened = activatingMove.getEndPosition();
+                   ChessGame.TeamColor pieceLoyalty = board.getPiece(placeItHappened).getTeamColor();
+                   if(pieceLoyalty != getTeamColor()){
+                       //no room for opesant moves at end so null there, otherwise we know where to add the move
+                       ChessMove newMove = new ChessMove(position, placeItHappened, null);
+                       if(getSpecialMove() == false){
+                           specialMoves = new ChessMove[1];
+                           specialMoves[0] = newMove;
+                       } else {
+                       ChessMove oldSpecialMove = specialMoves[0];
+                       specialMoves = new ChessMove[2];
+                       specialMoves[0] = oldSpecialMove;
+                       specialMoves[1] = newMove;
+                       }
+                       setSpecialMove(true);
+                       return;
+                   }
+                }
+                setSpecialMove(false);
+                return;
+            default:
+              return;
+        }
+    }
+
+
+    public boolean getSpecialMove() {
+        return specialMove;
     }
 
     /**
@@ -431,6 +526,24 @@ public class ChessPiece {
     }
 
     /**
+     * Calculates the conditions for special movements based upon the whole board
+     */
+    public Collection<ChessMove> specialPieceMoves(ChessBoard board, ChessPosition myPosition) {
+        ArrayList<ChessPosition> myMoves = new ArrayList<>();
+        if(specialMove) {
+            switch (type) {
+                case PAWN:
+                    if
+
+            }
+        } else {
+            return null;
+        }
+
+    }
+
+
+    /**
      * Calculates all the positions a chess piece can move to
      * Does not take into account moves that are illegal due to leaving the king in
      * danger
@@ -571,9 +684,9 @@ public class ChessPiece {
         if (this == o) return true;
         if (!(o instanceof ChessPiece that)) return false;
         //here is the last line of test mode, this is specifically used to pass the tests given by the class this was orginally developed for
-        return pieceColor == that.pieceColor && type == that.type;
+        return pieceColor == that.pieceColor && type == that.type && specialMove == that.specialMove;
         //When Test mode is over uncomment below
-        //return hasMoved == that.hasMoved && pieceColor == that.pieceColor && type == that.type;
+        //return hasMoved == that.hasMoved && pieceColor == that.pieceColor && type == that.type && specialMove == that.specialMove;
     }
 
     @Override
