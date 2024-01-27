@@ -241,6 +241,11 @@ public class ChessGame {
                     ChessPosition removePosition = m.getStartPosition();
                     ChessPosition addPosition = m.getEndPosition();
                     ChessPiece checkedPiece = board.getPiece(removePosition);
+                    //if there is a premotion make the switch now
+                    if(m.getPromotionPiece() != null) {
+                        //if you want to implement early chess promote to enemy piece rules you will have to make a transforming piece type in piece (like a piece that calls set color on itself if it makes a move to the end of the board).
+                    checkedPiece = new ChessPiece(checkedPiece.getTeamColor(), m.getPromotionPiece());
+                    }
                     //now unpack each one
                     unpack(removePosition, board, null);
                     unpack(addPosition, board, checkedPiece);
