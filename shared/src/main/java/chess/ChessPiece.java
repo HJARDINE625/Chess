@@ -66,6 +66,67 @@ public class ChessPiece {
         this.specialMove = specialMove;
     }
 
+    //to make the lower functions work somewhat well, we need this (only call on the piece it represents!
+    public boolean shouldIActivateSpecialMove(Collection<ChessMove> movesToConsider) {
+        switch (pieceColor) {
+            case WHITE:
+                switch (type) {
+                    case KING:
+                        for (ChessMove m : movesToConsider) {
+                            ChessPosition beginning = m.getEndPosition();
+                            ChessPosition end = m.getStartPosition();
+                            //may need to change for non-black/white characters, add a switch statement above to allow for sideways lineups, which will use .getColumn() instead
+                            if (beginning.getRow() == end.getRow()) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    case PAWN:
+                        for (ChessMove m : movesToConsider) {
+                            ChessPosition beginning = m.getEndPosition();
+                            ChessPosition end = m.getStartPosition();
+                            //may need to change for non-black/white characters, add a switch statement above to allow for sideways lineups, which will use .getRow() instead
+                            if (beginning.getRow() + 1 < end.getRow()) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    default:
+                        break;
+                }
+                return false;
+            //there probably is a more fancy way to parameterize this, but this was as good as I got in the time I had...
+            case BLACK:
+                switch (type) {
+                    case KING:
+
+                        for (ChessMove m : movesToConsider) {
+                            ChessPosition beginning = m.getEndPosition();
+                            ChessPosition end = m.getStartPosition();
+                            //may need to change for non-black/white characters, add a switch statement above to allow for sideways lineups, which will use .getColumn() instead
+                            if (beginning.getRow() == end.getRow()) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    case PAWN:
+                        for (ChessMove m : movesToConsider) {
+                            ChessPosition beginning = m.getEndPosition();
+                            ChessPosition end = m.getStartPosition();
+                            //may need to change for non-black/white characters, add a switch statement above to allow for sideways lineups, which will use .getRow() instead
+                            if (beginning.getRow() - 1 > end.getRow()) {
+                                return true;
+                            }
+                        }
+                        return false;
+                }
+                //other colors go here
+            default:
+                return false;
+        }
+    }
+
+    //I might have found a better way to make this private, but it needs a lot of data from outside, so it is basically an indirectly called helper function.
     public void activateSpecialMove(ChessBoard board, ChessPosition position, ChessPiece.PieceType activatingPiece, ChessMove activatingMove) {
         switch(activatingPiece){
             case KING:
@@ -86,6 +147,7 @@ public class ChessPiece {
                            }
                        }
                        //Now that the rooks are activated check for activated rooks
+                       int numberOfMoves = 0;
                        for (int i = 0; i <= board.getChessBoardSize(); i++) {
                            for (int j = 0; j <= board.getChessBoardSize(); j++) {
                                ChessPosition testPosition = new ChessPosition(i,j);
@@ -95,13 +157,31 @@ public class ChessPiece {
                                        if(checkPiece.getPieceType() == ROOK){
                                            if(checkPiece.getSpecialMove() == true) {
                                                setSpecialMove(true);
-                                               return;
+                                               numberOfMoves++;
+                                               if(numberOfMoves == 1){
+                                                   specialMoves = new ChessMove[1];
+                                                   specialMoves[0] =  new ChessMove(position,testPosition, null);
+                                               } else {
+                                                   //so far only works for two rooks, one to a side
+                                                   ChessMove oldMove = specialMoves[1];
+                                                   specialMoves = new ChessMove[2];
+                                                   specialMoves[0] = new ChessMove(position,testPosition, null);
+                                                   specialMoves[1] = oldMove;
+                                               }
                                            }
                                        }
                                    }
                                }
 
                            }
+                       }
+                       //now we see if we found something
+                       if (numberOfMoves > 0) {
+                           setSpecialMove(true);
+                           return;
+                       } else {
+                           setSpecialMove(false);
+                           return;
                        }
 
                    }
