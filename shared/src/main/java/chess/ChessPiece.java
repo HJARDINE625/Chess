@@ -3,6 +3,7 @@ package chess;
 import java.util.*;
 
 import static chess.ChessPiece.PieceType.*;
+import static java.lang.Math.abs;
 
 /**
  * Represents a single chess piece
@@ -62,34 +63,46 @@ public class ChessPiece {
         //this.firstMoveChecker.resetBoard();
     }
 
-    public void setSpecialMove(boolean specialMove) {
+    public void setSpecialMoves(boolean specialMove, ChessGame.TeamColor pieceColor) {
+        if(this.pieceColor != null) {
+            if(pieceColor != null){
+                if (this.pieceColor == pieceColor) {
+                setSpecialMove(specialMove);
+                }
+            }
+        }
+    }
+
+    private void setSpecialMove(boolean specialMove) {
         this.specialMove = specialMove;
     }
 
     //to make the lower functions work somewhat well, we need this (only call on the piece it represents!
-    public boolean shouldIActivateSpecialMove(Collection<ChessMove> movesToConsider) {
+    public boolean shouldIActivateSpecialMove(ChessMove movesToConsider) {
+        ChessPosition beginning = movesToConsider.getEndPosition();
+        ChessPosition end = movesToConsider.getStartPosition();
         switch (pieceColor) {
             case WHITE:
                 switch (type) {
                     case KING:
-                        for (ChessMove m : movesToConsider) {
-                            ChessPosition beginning = m.getEndPosition();
-                            ChessPosition end = m.getStartPosition();
+                        //if (movesToConsider) {
+                            //ChessPosition beginning = movesToConsider.getEndPosition();
+                            //ChessPosition end = movesToConsider.getStartPosition();
                             //may need to change for non-black/white characters, add a switch statement above to allow for sideways lineups, which will use .getColumn() instead
                             if (beginning.getRow() == end.getRow()) {
                                 return true;
                             }
-                        }
+                        //}
                         return false;
                     case PAWN:
-                        for (ChessMove m : movesToConsider) {
-                            ChessPosition beginning = m.getEndPosition();
-                            ChessPosition end = m.getStartPosition();
+                        //if (movesToConsider) {
+                           // ChessPosition beginning = movesToConsider.getEndPosition();
+                            //ChessPosition end = movesToConsider.getStartPosition();
                             //may need to change for non-black/white characters, add a switch statement above to allow for sideways lineups, which will use .getRow() instead
                             if (beginning.getRow() + 1 < end.getRow()) {
                                 return true;
                             }
-                        }
+                        //}
                         return false;
                     default:
                         break;
@@ -100,24 +113,24 @@ public class ChessPiece {
                 switch (type) {
                     case KING:
 
-                        for (ChessMove m : movesToConsider) {
-                            ChessPosition beginning = m.getEndPosition();
-                            ChessPosition end = m.getStartPosition();
+                        //for (ChessMove m : movesToConsider) {
+                            //ChessPosition beginning = movesToConsider.getEndPosition();
+                            //ChessPosition end = movesToConsider.getStartPosition();
                             //may need to change for non-black/white characters, add a switch statement above to allow for sideways lineups, which will use .getColumn() instead
                             if (beginning.getRow() == end.getRow()) {
                                 return true;
                             }
-                        }
+                        //}
                         return false;
                     case PAWN:
-                        for (ChessMove m : movesToConsider) {
-                            ChessPosition beginning = m.getEndPosition();
-                            ChessPosition end = m.getStartPosition();
+                       // for (ChessMove m : movesToConsider) {
+                            //ChessPosition beginning = m.getEndPosition();
+                            //ChessPosition end = m.getStartPosition();
                             //may need to change for non-black/white characters, add a switch statement above to allow for sideways lineups, which will use .getRow() instead
                             if (beginning.getRow() - 1 > end.getRow()) {
                                 return true;
                             }
-                        }
+                       // }
                         return false;
                 }
                 //other colors go here
@@ -139,7 +152,9 @@ public class ChessPiece {
                                    ChessPiece checkPiece = board.getInitalPiece(testPosition);
                                    if(checkPiece.getTeamColor() == this.getTeamColor()){
                                        if(checkPiece.getPieceType() == ROOK){
-                                           activateSpecialMove(board, testPosition, this.type, null);
+                                           if(!hasThisPieceMoved(testPosition,board)) {
+                                               setSpecialMoves(true, this.getTeamColor());
+                                           }
                                        }
                                    }
                                }
@@ -188,10 +203,20 @@ public class ChessPiece {
                    setSpecialMove(false);
                    return;
                 } else if(this.type == ROOK) {
-                    if(!this.hasThisPieceMoved(position, board)) {
-                        setSpecialMove(true);
-                    } else {
-                        setSpecialMove(false);
+                    if(this.specialMove == true) {
+                        if (activatingMove.getEndPosition().getColumn() > activatingMove.getStartPosition().getColumn()) {
+                                specialMoves = new ChessMove[1];
+                                int col = activatingMove.getEndPosition().getColumn() -1;
+                                int row = activatingMove.getEndPosition().getRow();
+                                ChessPosition endPosition = new ChessPosition(row,col);
+                                specialMoves[1] = new ChessMove(position, endPosition, null);
+                        } else if ((activatingMove.getEndPosition().getColumn() < activatingMove.getStartPosition().getColumn())){
+                            specialMoves = new ChessMove[1];
+                            int col = activatingMove.getEndPosition().getColumn() +1;
+                            int row = activatingMove.getEndPosition().getRow();
+                            ChessPosition endPosition = new ChessPosition(row,col);
+                            specialMoves[1] = new ChessMove(position, endPosition, null);
+                        }
                     }
                     return;
                 } else {
@@ -201,11 +226,24 @@ public class ChessPiece {
                 if(this.type != PAWN){
                     return;
                 } else{
+                    int col;
+                    int row;
                    ChessPosition placeItHappened = activatingMove.getEndPosition();
+                   ChessPosition placeItStarted = activatingMove.getStartPosition();
+                   if(placeItStarted.getColumn() == placeItHappened.getColumn()) {
+                       col = placeItStarted.getColumn();
+                   } else {
+                       col = abs(placeItStarted.getColumn() - placeItHappened.getColumn());
+                   }
+                    if(placeItStarted.getRow() == placeItHappened.getRow()) {
+                        row = placeItStarted.getRow();
+                    } else {
+                        row = abs(placeItStarted.getRow() - placeItHappened.getRow());
+                    }
                    ChessGame.TeamColor pieceLoyalty = board.getPiece(placeItHappened).getTeamColor();
                    if(pieceLoyalty != getTeamColor()){
                        //no room for opesant moves at end so null there, otherwise we know where to add the move
-                       ChessMove newMove = new ChessMove(position, placeItHappened, null);
+                       ChessMove newMove = new ChessMove(position, new ChessPosition(row, col), null);
                        if(getSpecialMove() == false){
                            specialMoves = new ChessMove[1];
                            specialMoves[0] = newMove;
@@ -606,19 +644,18 @@ public class ChessPiece {
     }
 
     /**
-     * Calculates the conditions for special movements based upon the whole board
+     * returns the special moves to be considered
      */
-    public Collection<ChessMove> specialPieceMoves(ChessBoard board, ChessPosition myPosition) {
-        ArrayList<ChessPosition> myMoves = new ArrayList<>();
-        if(specialMove) {
-            switch (type) {
-                case PAWN:
-                    if
-
-            }
-        } else {
-            return null;
+    public Collection<ChessMove> specialPieceMoves() {
+    if(specialMove) {
+        HashSet<ChessMove> myMoves = new HashSet<ChessMove>();
+        for (ChessMove m: specialMoves) {
+            myMoves.add(m);
         }
+        return myMoves;
+    } else {
+        return null;
+    }
 
     }
 

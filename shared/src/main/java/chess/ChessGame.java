@@ -118,6 +118,50 @@ public class ChessGame {
         BLACK
     }
 
+    //helper function to the function below it, takes parameters from it to see if they work only call it from that function and other functions that properly use team to check...
+    private Collection<ChessMove> validateMoves(HashSet<ChessPosition> rulingPieces, ChessPiece testedPiece, boolean needToCheckChecks, boolean checkMovedPiece, ChessBoard checkBoard, Collection<ChessMove> currentMoves){
+        Collection<ChessMove> finalMoves = new HashSet<ChessMove>();
+        for (ChessMove M: currentMoves) {
+            //keep track of if we should add this
+            boolean validMove = true;
+            //I think this is best done here in two similar calls, I will make an unpack subfunction
+            ChessPosition removePosition = M.getStartPosition();
+            ChessPosition addPosition = M.getEndPosition();
+            ChessPiece oldPiece = checkBoard.getPiece(addPosition);
+            ChessPiece checkedPiece = checkBoard.getPiece(removePosition);
+            //now unpack each one
+            checkBoard = unpack(removePosition, checkBoard, null);
+            checkBoard = unpack(addPosition, checkBoard, testedPiece);
+
+
+
+            //This particular setting will allow for moving into check a few turns later (just not the next turn)
+            if(needToCheckChecks) {
+                if(isInCheck(currentTeam, checkBoard, rulingPieces)){
+                    validMove = false;
+                }
+            }
+            if(checkMovedPiece){
+                HashSet<ChessPosition> rulerMoves = new HashSet<ChessPosition>();
+                rulerMoves.add(addPosition);
+                if(isInCheck(currentTeam, checkBoard, rulerMoves)){
+                    validMove = false;
+                } else {
+                    isInCheck(currentTeam, checkBoard, rulerMoves);
+                }
+            }
+            if(validMove){
+
+                finalMoves.add(M);
+            }
+            checkBoard = unpack(addPosition, checkBoard, oldPiece);
+            checkBoard = unpack(removePosition, checkBoard, checkedPiece);
+
+        }
+        return finalMoves;
+    }
+
+
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -125,26 +169,27 @@ public class ChessGame {
      * @return Set of valid moves for requested piece, or null if no piece at
      * startPosition
      */
+
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-    //this is for later
+        //this is for later
         TeamColor whoIsMoving = currentTeam;
         boolean needToCheckChecks = true;
         boolean checkMovedPiece = false;
         //Other than setting things up this first part (up until the else) fulfills the last speck requirement above.
         ChessPiece testedPiece = board.getPiece(startPosition);
-        if(testedPiece == null) {
+        if (testedPiece == null) {
             return null;
         } else {
             //We will need this later to see who to check for check on
             TeamColor teamToCheck = testedPiece.getTeamColor();
             //We need to know where the kings/similar pieces are for later
             HashSet<ChessPosition> rulingPieces = board.findRulingPieces(teamToCheck);
-            if(rulingPieces.isEmpty()) {
+            if (rulingPieces.isEmpty()) {
                 needToCheckChecks = false;
             } else if (rulingPieces.contains(startPosition)) {
                 checkMovedPiece = true;
                 rulingPieces.remove(startPosition);
-                if(rulingPieces.isEmpty()){
+                if (rulingPieces.isEmpty()) {
                     needToCheckChecks = false;
                 }
             }
@@ -154,10 +199,10 @@ public class ChessGame {
 
             //Now we have to unpack the return, we can keep ChessMove vauge here as we are just looking for chess positions right now.
             Collection<ChessMove> currentMoves = testedPiece.pieceMoves(board, startPosition);
-            Collection<ChessMove> finalMoves = new HashSet<ChessMove>();
+
 
             //Someone might want to do this at some point...
-            if(teamToCheck == null) {
+            if (teamToCheck == null) {
                 return currentMoves;
             } else {
                 setTeamTurn(teamToCheck);
@@ -165,48 +210,46 @@ public class ChessGame {
 
             //We will use this to update some start Positions
             ChessBoard checkBoard = setBoard(board, new ChessBoard());
-            for (ChessMove M: currentMoves) {
-                //keep track of if we should add this
-                boolean validMove = true;
-                //I think this is best done here in two similar calls, I will make an unpack subfunction
-                ChessPosition removePosition = M.getStartPosition();
-                ChessPosition addPosition = M.getEndPosition();
-                ChessPiece oldPiece = checkBoard.getPiece(addPosition);
-                ChessPiece checkedPiece = checkBoard.getPiece(removePosition);
-                //now unpack each one
-                checkBoard = unpack(removePosition, checkBoard, null);
-                checkBoard = unpack(addPosition, checkBoard, testedPiece);
-
-
-
-                //This particular setting will allow for moving into check a few turns later (just not the next turn)
-                if(needToCheckChecks) {
-                    if(isInCheck(currentTeam, checkBoard, rulingPieces)){
-                        validMove = false;
-                    }
-                }
-                if(checkMovedPiece){
-                    HashSet<ChessPosition> rulerMoves = new HashSet<ChessPosition>();
-                    rulerMoves.add(addPosition);
-                    if(isInCheck(currentTeam, checkBoard, rulerMoves)){
-                        validMove = false;
+            Collection<ChessMove> finalMoves = validateMoves(rulingPieces, testedPiece, needToCheckChecks, checkMovedPiece, checkBoard, currentMoves);
+            //throw new RuntimeException("Not implemented");
+            if(finalMoves.isEmpty()){
+                return finalMoves;
+            } else {
+                Collection<ChessMove> phaseTwo = specialMoves(finalMoves, checkBoard,startPosition);
+                if(phaseTwo.isEmpty()){
+                    return finalMoves;
+                } else {
+                    Collection<ChessMove> phaseTwoValidated = validateMoves(rulingPieces, testedPiece, needToCheckChecks, checkMovedPiece, checkBoard, phaseTwo);
+                    if(phaseTwoValidated.isEmpty()){
+                        return finalMoves;
                     } else {
-                        isInCheck(currentTeam, checkBoard, rulerMoves);
+                        for (ChessMove m: phaseTwoValidated) {
+                            finalMoves.add(m);
+                        }
+                        return finalMoves;
                     }
                 }
-                if(validMove){
-
-                    finalMoves.add(M);
-                }
-                checkBoard = unpack(addPosition, checkBoard, oldPiece);
-                checkBoard = unpack(removePosition, checkBoard, checkedPiece);
-
             }
-            currentTeam = whoIsMoving;
-            return finalMoves;
         }
-        //throw new RuntimeException("Not implemented");
     }
+
+    private Collection<ChessMove> specialMoves(Collection<ChessMove> validMoves, ChessBoard boardToBeModified, ChessPosition placePieceIs){
+       ChessPiece pieceToCheck = boardToBeModified.getPiece(placePieceIs);
+       boolean somethingWasAdded = false;
+        for (ChessMove m: validMoves) {
+            if(pieceToCheck.shouldIActivateSpecialMove(m)){
+                pieceToCheck.activateSpecialMove(boardToBeModified, placePieceIs, pieceToCheck.getPieceType(),m);
+                somethingWasAdded = true;
+            }
+        }
+        if(somethingWasAdded){
+            return pieceToCheck.specialPieceMoves();
+        } else {
+            return null;
+        }
+
+    }
+
 
     //Here is the unpack function used twice above (and perhaps elsewhere). (It could help modify boards for abnormal games).
     public ChessBoard unpack(ChessPosition unwindPosition, ChessBoard checkBoard, ChessPiece replacementPiece){
