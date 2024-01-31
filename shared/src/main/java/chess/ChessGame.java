@@ -216,7 +216,9 @@ public class ChessGame {
                 return finalMoves;
             } else {
                 Collection<ChessMove> phaseTwo = specialMoves(finalMoves, checkBoard,startPosition);
-                if(phaseTwo.isEmpty()){
+                if(phaseTwo == null){
+                    return finalMoves;
+                }else if(phaseTwo.isEmpty()){
                     return finalMoves;
                 } else {
                     Collection<ChessMove> phaseTwoValidated = validateMoves(rulingPieces, testedPiece, needToCheckChecks, checkMovedPiece, checkBoard, phaseTwo);

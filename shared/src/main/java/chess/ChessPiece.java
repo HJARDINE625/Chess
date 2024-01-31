@@ -18,19 +18,20 @@ public class ChessPiece {
     public boolean hasThisPieceMoved(ChessPosition currentPosition, ChessBoard currentBoard) {
         //first we need to get the rest board checker from currentBoard
         ChessPiece peiceToTestAgainst = currentBoard.getInitalPiece(currentPosition);
-        if(hasMoved) {
-            return hasMoved;
+        ChessPiece thisPiece = currentBoard.getPiece(currentPosition);
+        if(thisPiece.hasMoved) {
+            return thisPiece.hasMoved;
         } else if (peiceToTestAgainst == null) {
-            hasMoved = true;
-            return hasMoved;
-        } else if (this.type!=peiceToTestAgainst.getPieceType()){
-            hasMoved = true;
-            return hasMoved;
+            thisPiece.setHasMoved(true);
+            return thisPiece.hasMoved;
+        } else if (thisPiece.type!=peiceToTestAgainst.getPieceType()){
+            thisPiece.setHasMoved(true);
+            return thisPiece.hasMoved;
         } else if (this.pieceColor!=peiceToTestAgainst.getTeamColor()){
-            hasMoved = true;
-            return hasMoved;
+            thisPiece.setHasMoved(true);
+            return thisPiece.hasMoved;
         } else {
-            return hasMoved;
+            return thisPiece.hasMoved;
         }
     }
 
@@ -61,6 +62,27 @@ public class ChessPiece {
         this.type = type;
         this.pieceColor = pieceColor;
         //this.firstMoveChecker.resetBoard();
+    }
+
+    //an odd but nessisary helper function
+    public void setSpecialMoveTrue(ChessGame.TeamColor pieceColor, ChessBoard board, ChessPosition myPosition) {
+        if(myPosition != null && board != null) {
+            if(pieceColor != null){
+                if (board.getPiece(myPosition).getTeamColor() == pieceColor) {
+                    board.getPiece(myPosition).setSpecialMove(true);
+                }
+            }
+        }
+    }
+
+    public void setSpecialMoveFalse(ChessGame.TeamColor pieceColor, ChessBoard board, ChessPosition myPosition) {
+        if(myPosition != null && board != null) {
+            if(pieceColor != null){
+                if (board.getPiece(myPosition).getTeamColor() == pieceColor) {
+                    board.getPiece(myPosition).setSpecialMove(false);
+                }
+            }
+        }
     }
 
     public void setSpecialMoves(boolean specialMove, ChessGame.TeamColor pieceColor) {
@@ -143,7 +165,7 @@ public class ChessPiece {
     public void activateSpecialMove(ChessBoard board, ChessPosition position, ChessPiece.PieceType activatingPiece, ChessMove activatingMove) {
         switch(activatingPiece){
             case KING:
-                if(this.type == activatingPiece){
+                if(board.getPiece(position).getPieceType() == activatingPiece){
                    if(!hasThisPieceMoved(position, board)){
                        for (int i = 0; i <= board.getChessBoardSize(); i++) {
                            for (int j = 0; j <= board.getChessBoardSize(); j++) {
@@ -153,7 +175,36 @@ public class ChessPiece {
                                    if(checkPiece.getTeamColor() == this.getTeamColor()){
                                        if(checkPiece.getPieceType() == ROOK){
                                            if(!hasThisPieceMoved(testPosition,board)) {
-                                               setSpecialMoves(true, this.getTeamColor());
+                                               //the following algerthmy assumes you are black or white, this may need to be passed a reformated board if you should be able to castle up and down...
+                                               ChessPosition finalPosition = activatingMove.getEndPosition();
+                                               int finalCol = finalPosition.getColumn();
+                                               int finalRow = finalPosition.getRow();
+                                               if(finalRow == position.getRow()){
+                                                   if(finalCol == position.getColumn()+1){
+                                                       finalCol++;
+                                                       ChessMove finalMove = new ChessMove(position, new ChessPosition(finalRow, finalCol), null);
+                                                       setSpecialMoveTrue(checkPiece.getTeamColor(), board, testPosition);
+                                                       activateSpecialMove(board, testPosition, activatingPiece, finalMove);
+                                                       //now clean up if no moves were added
+                                                       //We need to recheck the peice at the position
+                                                       if(board.getPiece(testPosition).specialPieceMoves() == null){
+                                                           setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
+                                                       } else if(board.getPiece(position).specialPieceMoves().isEmpty()){
+                                                           setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
+                                                       }
+                                                   } else if (finalCol == position.getColumn()-1){
+                                                       finalCol--;
+                                                       ChessMove finalMove = new ChessMove(position, new ChessPosition(finalRow, finalCol), null);
+                                                       setSpecialMoveTrue(checkPiece.getTeamColor(), board, testPosition);
+                                                       activateSpecialMove(board, testPosition, activatingPiece, finalMove);
+                                                       //now clean up if no moves were added
+                                                       if(board.getPiece(testPosition).specialPieceMoves() == null){
+                                                           setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
+                                                       } else if(board.getPiece(testPosition).specialPieceMoves().isEmpty()){
+                                                           setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
+                                                       }
+                                                   }
+                                               }
                                            }
                                        }
                                    }
@@ -161,6 +212,8 @@ public class ChessPiece {
 
                            }
                        }
+
+
                        //Now that the rooks are activated check for activated rooks
                        int numberOfMoves = 0;
                        for (int i = 0; i <= board.getChessBoardSize(); i++) {
@@ -170,18 +223,34 @@ public class ChessPiece {
                                    ChessPiece checkPiece = board.getInitalPiece(testPosition);
                                    if(checkPiece.getTeamColor() == this.getTeamColor()){
                                        if(checkPiece.getPieceType() == ROOK){
-                                           if(checkPiece.getSpecialMove() == true) {
-                                               setSpecialMove(true);
-                                               numberOfMoves++;
-                                               if(numberOfMoves == 1){
-                                                   specialMoves = new ChessMove[1];
-                                                   specialMoves[0] =  new ChessMove(position,testPosition, null);
-                                               } else {
-                                                   //so far only works for two rooks, one to a side
-                                                   ChessMove oldMove = specialMoves[1];
-                                                   specialMoves = new ChessMove[2];
-                                                   specialMoves[0] = new ChessMove(position,testPosition, null);
-                                                   specialMoves[1] = oldMove;
+                                           if(board.getPiece(testPosition) != null) {
+                                               ChessPiece currentPiece = board.getPiece(testPosition);
+                                               if (currentPiece.getSpecialMove() == true) {
+                                                   setSpecialMove(true);
+                                                   numberOfMoves++;
+                                                   ChessPosition finalPosition = activatingMove.getEndPosition();
+                                                   int finalCol = finalPosition.getColumn();
+                                                   int finalRow = finalPosition.getRow();
+                                                   if(finalRow == position.getRow()) {
+                                                       if (finalCol == position.getColumn() + 1) {
+                                                           finalCol++;
+                                                       } else if (finalCol == position.getColumn() - 1) {
+                                                           finalCol--;
+                                                       }
+                                                   }
+                                                   //This currently only works for black and white, we can add more for sideways teams later...
+                                                   ChessMove finalMove = new ChessMove(position, new ChessPosition(finalRow, finalCol), null);
+                                                   //ChessPiece pieceToUpdate = board.getPiece(position);
+                                                   if (numberOfMoves == 1) {
+                                                       specialMoves = new ChessMove[1];
+                                                       specialMoves[0] = finalMove;
+                                                   } else {
+                                                       //so far only works for two rooks, one to a side
+                                                       ChessMove oldMove = specialMoves[0];
+                                                       specialMoves = new ChessMove[2];
+                                                       specialMoves[0] = finalMove;
+                                                       specialMoves[1] = oldMove;
+                                                   }
                                                }
                                            }
                                        }
@@ -202,20 +271,24 @@ public class ChessPiece {
                    }
                    setSpecialMove(false);
                    return;
-                } else if(this.type == ROOK) {
-                    if(this.specialMove == true) {
+                } else if(board.getPiece(position).getPieceType() == ROOK) {
+                    if(board.getPiece(position).getSpecialMove() == true) {
                         if (activatingMove.getEndPosition().getColumn() > activatingMove.getStartPosition().getColumn()) {
-                                specialMoves = new ChessMove[1];
-                                int col = activatingMove.getEndPosition().getColumn() -1;
+                            if(position.getColumn() > activatingMove.getEndPosition().getColumn()) {
+                                board.getPiece(position).specialMoves = new ChessMove[1];
+                                int col = activatingMove.getEndPosition().getColumn() - 1;
                                 int row = activatingMove.getEndPosition().getRow();
-                                ChessPosition endPosition = new ChessPosition(row,col);
-                                specialMoves[1] = new ChessMove(position, endPosition, null);
-                        } else if ((activatingMove.getEndPosition().getColumn() < activatingMove.getStartPosition().getColumn())){
-                            specialMoves = new ChessMove[1];
-                            int col = activatingMove.getEndPosition().getColumn() +1;
-                            int row = activatingMove.getEndPosition().getRow();
-                            ChessPosition endPosition = new ChessPosition(row,col);
-                            specialMoves[1] = new ChessMove(position, endPosition, null);
+                                ChessPosition endPosition = new ChessPosition(row, col);
+                                board.getPiece(position).specialMoves[0] = new ChessMove(position, endPosition, null);
+                            }
+                        } else if (activatingMove.getEndPosition().getColumn() < activatingMove.getStartPosition().getColumn()){
+                            if(position.getColumn() < activatingMove.getEndPosition().getColumn()) {
+                                board.getPiece(position).specialMoves = new ChessMove[1];
+                                int col = activatingMove.getEndPosition().getColumn() + 1;
+                                int row = activatingMove.getEndPosition().getRow();
+                                ChessPosition endPosition = new ChessPosition(row, col);
+                                board.getPiece(position).specialMoves[0] = new ChessMove(position, endPosition, null);
+                            }
                         }
                     }
                     return;
@@ -648,11 +721,16 @@ public class ChessPiece {
      */
     public Collection<ChessMove> specialPieceMoves() {
     if(specialMove) {
-        HashSet<ChessMove> myMoves = new HashSet<ChessMove>();
-        for (ChessMove m: specialMoves) {
-            myMoves.add(m);
+        //internal functions rely on this so we need to return null if something is wrong
+        if(specialMoves == null) {
+        return null;
         }
-        return myMoves;
+            HashSet<ChessMove> myMoves = new HashSet<ChessMove>();
+            for (ChessMove m : specialMoves) {
+                myMoves.add(m);
+            }
+            return myMoves;
+
     } else {
         return null;
     }
