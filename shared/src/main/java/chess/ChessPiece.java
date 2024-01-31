@@ -216,6 +216,12 @@ public class ChessPiece {
 
                        //Now that the rooks are activated check for activated rooks
                        int numberOfMoves = 0;
+                       if(board.getPiece(position).specialMoves == null) {
+                       } else {
+                           for (ChessMove m: board.getPiece(position).specialMoves) {
+                               numberOfMoves++;
+                           }
+                       }
                        for (int i = 0; i <= board.getChessBoardSize(); i++) {
                            for (int j = 0; j <= board.getChessBoardSize(); j++) {
                                ChessPosition testPosition = new ChessPosition(i,j);
@@ -246,10 +252,24 @@ public class ChessPiece {
                                                        specialMoves[0] = finalMove;
                                                    } else {
                                                        //so far only works for two rooks, one to a side
-                                                       ChessMove oldMove = specialMoves[0];
-                                                       specialMoves = new ChessMove[2];
-                                                       specialMoves[0] = finalMove;
-                                                       specialMoves[1] = oldMove;
+                                                       ChessMove [] specialMovesReplacement = new ChessMove[numberOfMoves];
+                                                       boolean notACopy = true;
+                                                       //only add new moves (this will lead to a lot of comparisions, but checking when adding will lead to much less...
+                                                       for(int k = numberOfMoves-2; k>=0; k--){
+                                                           ChessMove testMove = specialMoves[k];
+                                                           if(testMove.equals(finalMove)){
+                                                               notACopy = false;
+                                                               numberOfMoves--;
+                                                           }
+                                                       }
+                                                       if(notACopy) {
+                                                           //unfortunately another for loop, but this one is much less big-O significant, so it should be fine...
+                                                           for (int k = numberOfMoves - 1; k > 0; k--) {
+                                                               specialMovesReplacement[k] = specialMoves[k - 1];
+                                                           }
+                                                           specialMoves = specialMovesReplacement;
+                                                           specialMoves[0] = finalMove;
+                                                       }
                                                    }
                                                }
                                            }
