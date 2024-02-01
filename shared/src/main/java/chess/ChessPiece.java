@@ -165,71 +165,76 @@ public class ChessPiece {
     public void activateSpecialMove(ChessBoard board, ChessPosition position, ChessPiece.PieceType activatingPiece, ChessMove activatingMove) {
         switch(activatingPiece){
             case KING:
+                //First we have to see if we are telling the king to find his castling positions, or telling the rooks to...
                 if(board.getPiece(position).getPieceType() == activatingPiece){
-                   if(!hasThisPieceMoved(position, board)){
-                       for (int i = 0; i <= board.getChessBoardSize(); i++) {
-                           for (int j = 0; j <= board.getChessBoardSize(); j++) {
-                               ChessPosition testPosition = new ChessPosition(i,j);
-                               if(board.getInitalPiece(testPosition) != null){
-                                   ChessPiece checkPiece = board.getInitalPiece(testPosition);
-                                   if(checkPiece.getTeamColor() == this.getTeamColor()){
-                                       if(checkPiece.getPieceType() == ROOK){
-                                           if(!hasThisPieceMoved(testPosition,board)) {
-                                               //the following algerthmy assumes you are black or white, this may need to be passed a reformated board if you should be able to castle up and down...
-                                               ChessPosition finalPosition = activatingMove.getEndPosition();
-                                               int finalCol = finalPosition.getColumn();
-                                               int finalRow = finalPosition.getRow();
-                                               if(finalRow == position.getRow()){
-                                                   if(finalCol == position.getColumn()+1){
-                                                       finalCol++;
-                                                       ChessMove finalMove = new ChessMove(position, new ChessPosition(finalRow, finalCol), null);
-                                                       setSpecialMoveTrue(checkPiece.getTeamColor(), board, testPosition);
-                                                       activateSpecialMove(board, testPosition, activatingPiece, finalMove);
-                                                       //now clean up if no moves were added
-                                                       //We need to recheck the peice at the position
-                                                       if(board.getPiece(testPosition).specialPieceMoves() == null){
-                                                           setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
-                                                       } else if(board.getPiece(position).specialPieceMoves().isEmpty()){
-                                                           setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
-                                                       }
-                                                   } else if (finalCol == position.getColumn()-1){
-                                                       finalCol--;
-                                                       ChessMove finalMove = new ChessMove(position, new ChessPosition(finalRow, finalCol), null);
-                                                       setSpecialMoveTrue(checkPiece.getTeamColor(), board, testPosition);
-                                                       activateSpecialMove(board, testPosition, activatingPiece, finalMove);
-                                                       //now clean up if no moves were added
-                                                       if(board.getPiece(testPosition).specialPieceMoves() == null){
-                                                           setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
-                                                       } else if(board.getPiece(testPosition).specialPieceMoves().isEmpty()){
-                                                           setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
+                    //Do not castle moved pieces!
+                   if(!hasThisPieceMoved(position, board)) {
+                       //here I add a simple line that prevents castling that takes pieces
+                       if (board.getPiece(activatingMove.getEndPosition()) == null){
+                           //back to the formula to find rooks capable of castling
+                           for (int i = 0; i <= board.getChessBoardSize(); i++) {
+                               for (int j = 0; j <= board.getChessBoardSize(); j++) {
+                                   ChessPosition testPosition = new ChessPosition(i, j);
+                                   if (board.getInitalPiece(testPosition) != null) {
+                                       ChessPiece checkPiece = board.getInitalPiece(testPosition);
+                                       if (checkPiece.getTeamColor() == this.getTeamColor()) {
+                                           if (checkPiece.getPieceType() == ROOK) {
+                                               if (!hasThisPieceMoved(testPosition, board)) {
+                                                   //the following algerthmy assumes you are black or white, this may need to be passed a reformated board if you should be able to castle up and down...
+                                                   ChessPosition finalPosition = activatingMove.getEndPosition();
+                                                   int finalCol = finalPosition.getColumn();
+                                                   int finalRow = finalPosition.getRow();
+                                                   if (finalRow == position.getRow()) {
+                                                       if (finalCol == position.getColumn() + 1) {
+                                                           finalCol++;
+                                                           ChessMove finalMove = new ChessMove(position, new ChessPosition(finalRow, finalCol), null);
+                                                           setSpecialMoveTrue(checkPiece.getTeamColor(), board, testPosition);
+                                                           activateSpecialMove(board, testPosition, activatingPiece, finalMove);
+                                                           //now clean up if no moves were added
+                                                           //We need to recheck the peice at the position
+                                                           if (board.getPiece(testPosition).specialPieceMoves() == null) {
+                                                               setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
+                                                           } else if (board.getPiece(position).specialPieceMoves().isEmpty()) {
+                                                               setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
+                                                           }
+                                                       } else if (finalCol == position.getColumn() - 1) {
+                                                           finalCol--;
+                                                           ChessMove finalMove = new ChessMove(position, new ChessPosition(finalRow, finalCol), null);
+                                                           setSpecialMoveTrue(checkPiece.getTeamColor(), board, testPosition);
+                                                           activateSpecialMove(board, testPosition, activatingPiece, finalMove);
+                                                           //now clean up if no moves were added
+                                                           if (board.getPiece(testPosition).specialPieceMoves() == null) {
+                                                               setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
+                                                           } else if (board.getPiece(testPosition).specialPieceMoves().isEmpty()) {
+                                                               setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
+                                                           }
                                                        }
                                                    }
                                                }
                                            }
                                        }
                                    }
-                               }
 
+                               }
                            }
-                       }
 
 
                        //Now that the rooks are activated check for activated rooks
                        int numberOfMoves = 0;
-                       if(board.getPiece(position).specialMoves == null) {
+                       if (board.getPiece(position).specialMoves == null) {
                        } else {
-                           for (ChessMove m: board.getPiece(position).specialMoves) {
+                           for (ChessMove m : board.getPiece(position).specialMoves) {
                                numberOfMoves++;
                            }
                        }
                        for (int i = 0; i <= board.getChessBoardSize(); i++) {
                            for (int j = 0; j <= board.getChessBoardSize(); j++) {
-                               ChessPosition testPosition = new ChessPosition(i,j);
-                               if(board.getInitalPiece(testPosition) != null){
+                               ChessPosition testPosition = new ChessPosition(i, j);
+                               if (board.getInitalPiece(testPosition) != null) {
                                    ChessPiece checkPiece = board.getInitalPiece(testPosition);
-                                   if(checkPiece.getTeamColor() == this.getTeamColor()){
-                                       if(checkPiece.getPieceType() == ROOK){
-                                           if(board.getPiece(testPosition) != null) {
+                                   if (checkPiece.getTeamColor() == this.getTeamColor()) {
+                                       if (checkPiece.getPieceType() == ROOK) {
+                                           if (board.getPiece(testPosition) != null) {
                                                ChessPiece currentPiece = board.getPiece(testPosition);
                                                if (currentPiece.getSpecialMove() == true) {
                                                    setSpecialMove(true);
@@ -237,7 +242,7 @@ public class ChessPiece {
                                                    ChessPosition finalPosition = activatingMove.getEndPosition();
                                                    int finalCol = finalPosition.getColumn();
                                                    int finalRow = finalPosition.getRow();
-                                                   if(finalRow == position.getRow()) {
+                                                   if (finalRow == position.getRow()) {
                                                        if (finalCol == position.getColumn() + 1) {
                                                            finalCol++;
                                                        } else if (finalCol == position.getColumn() - 1) {
@@ -252,17 +257,17 @@ public class ChessPiece {
                                                        specialMoves[0] = finalMove;
                                                    } else {
                                                        //so far only works for two rooks, one to a side
-                                                       ChessMove [] specialMovesReplacement = new ChessMove[numberOfMoves];
+                                                       ChessMove[] specialMovesReplacement = new ChessMove[numberOfMoves];
                                                        boolean notACopy = true;
                                                        //only add new moves (this will lead to a lot of comparisions, but checking when adding will lead to much less...
-                                                       for(int k = numberOfMoves-2; k>=0; k--){
+                                                       for (int k = numberOfMoves - 2; k >= 0; k--) {
                                                            ChessMove testMove = specialMoves[k];
-                                                           if(testMove.equals(finalMove)){
+                                                           if (testMove.equals(finalMove)) {
                                                                notACopy = false;
                                                                numberOfMoves--;
                                                            }
                                                        }
-                                                       if(notACopy) {
+                                                       if (notACopy) {
                                                            //unfortunately another for loop, but this one is much less big-O significant, so it should be fine...
                                                            for (int k = numberOfMoves - 1; k > 0; k--) {
                                                                specialMovesReplacement[k] = specialMoves[k - 1];
@@ -287,19 +292,29 @@ public class ChessPiece {
                            setSpecialMove(false);
                            return;
                        }
+                   }
 
                    }
                    setSpecialMove(false);
                    return;
                 } else if(board.getPiece(position).getPieceType() == ROOK) {
+                    //For rooks we should only check for a castle if the king has already identified the possibility as the king will call the method
                     if(board.getPiece(position).getSpecialMove() == true) {
+                        //the next two sections of this method decide if either the king is castling left or right and which rooks we should care about and where they go as a result.
                         if (activatingMove.getEndPosition().getColumn() > activatingMove.getStartPosition().getColumn()) {
                             if(position.getColumn() > activatingMove.getEndPosition().getColumn()) {
                                 board.getPiece(position).specialMoves = new ChessMove[1];
                                 int col = activatingMove.getEndPosition().getColumn() - 1;
                                 int row = activatingMove.getEndPosition().getRow();
                                 ChessPosition endPosition = new ChessPosition(row, col);
-                                board.getPiece(position).specialMoves[0] = new ChessMove(position, endPosition, null);
+                                ChessMove newMove = new ChessMove(position, endPosition, null);
+                                //The bottom part of this formula prevents a castle through pieces from being legal.
+                                //however a castle unto an enemy is still possible, unless the king checks that his move is not a take...
+                                if(board.getPiece(position).pieceMoves(board,position) != null) {
+                                    if(board.getPiece(position).pieceMoves(board, position).contains(newMove)) {
+                                        board.getPiece(position).specialMoves[0] = newMove;
+                                    }
+                                }
                             }
                         } else if (activatingMove.getEndPosition().getColumn() < activatingMove.getStartPosition().getColumn()){
                             if(position.getColumn() < activatingMove.getEndPosition().getColumn()) {
@@ -307,7 +322,14 @@ public class ChessPiece {
                                 int col = activatingMove.getEndPosition().getColumn() + 1;
                                 int row = activatingMove.getEndPosition().getRow();
                                 ChessPosition endPosition = new ChessPosition(row, col);
-                                board.getPiece(position).specialMoves[0] = new ChessMove(position, endPosition, null);
+                                ChessMove newMove = new ChessMove(position, endPosition, null);
+                                //The bottom part of this formula prevents a castle through pieces from being legal.
+                                //however a castle unto an enemy is still possible, unless the king checks that his move is not a take...
+                                if(board.getPiece(position).pieceMoves(board,position) != null) {
+                                    if(board.getPiece(position).pieceMoves(board, position).contains(newMove)) {
+                                        board.getPiece(position).specialMoves[0] = newMove;
+                                    }
+                                }
                             }
                         }
                     }
