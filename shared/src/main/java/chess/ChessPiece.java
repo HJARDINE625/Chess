@@ -81,6 +81,19 @@ public class ChessPiece {
         }
     }
 
+    public boolean shouldIDie(ChessMove enemeyMove){
+        if(deathMoves == null){
+            return false;
+        } else if(deathMoves.isEmpty()){
+            return false;
+        } else if (deathMoves.contains(enemeyMove)){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
 
     //an odd but nessisary helper function
     public void setSpecialMoveTrue(ChessGame.TeamColor pieceColor, ChessBoard board, ChessPosition myPosition) {
@@ -184,10 +197,10 @@ public class ChessPiece {
                     return false;
                 } else {
                     //only update the position if it is where the event actually happened...
-                    if(myChessPositions.getFirst() != checkSpace){
+                    if(!myChessPositions.contains(checkSpace)){
                         return false;
                     } else {
-                        ChessMove addedMove = new ChessMove(myPosition, myChessPositions.getFirst(), null);
+                        ChessMove addedMove = new ChessMove(myPosition, myChessPositions.get(0), null);
                         //we need a little more work here...
                         if (specialMove = false) {
                             specialMove = true;
@@ -636,7 +649,9 @@ public class ChessPiece {
      * @return Collection of valid positions
      */
     private ArrayList<ChessPosition> whatIsMoving(ArrayList<ChessPosition> myMoves, ChessBoard board, ChessPosition myPosition, boolean canAttack, boolean canMove) {
-//First we need an array to store all the moves and a list of booleans to store all the kinds of moves.
+//To allow for moves caused by enemey moves we need to add this boolean (curently only pawn will activate it).
+        boolean addSpecialMoves = false;
+        //First we need an array to store all the moves and a list of booleans to store all the kinds of moves.
         boolean up = false;
         boolean down = false;
         boolean left = false;
@@ -720,7 +735,13 @@ public class ChessPiece {
                 Knightdldo++;
                 break;
             //Oddly enough the pawn can always only move to or attack to a space, never both to a space.
+            //however to implement enpesant, I will add the special moves at this point
             case PAWN:
+                if(specialPieceMoves() != null){
+                    if(!(specialPieceMoves().isEmpty())){
+                        addSpecialMoves = true;
+                    }
+                }
                 break;
             default:
                 break;
@@ -801,6 +822,12 @@ public class ChessPiece {
         //If we got here we either can attack, move or attack/move, so we should now execute the code to check where those moves send us.
     myMoves = whereCanIGoInfinite(myMoves, board, myPosition, canAttack, canMove, up, down, left, right, drup, dlup, drdo, dldo, knightup, knightdown, knightleft, knightright, knightdrup, knightdlup, knightdrdo, knightdldo);
     myMoves = whereCanIGoFinite(myMoves, board, myPosition, canAttack, canMove, Up, Down, Left, Right, Drup, Dlup, Drdo, Dldo, Knightup, Knightdown, Knightleft, Knightright, Knightdrup, Knightdlup, Knightdrdo, Knightdldo);
+    //now we can update upesant for the pawn...
+    if(addSpecialMoves){
+        for (ChessMove M: specialPieceMoves()) {
+            myMoves.add(M.getEndPosition());
+        }
+    }
     return myMoves;
     }
 

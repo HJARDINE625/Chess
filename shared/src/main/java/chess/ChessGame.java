@@ -429,15 +429,15 @@ public class ChessGame {
                                         if(!chessTeam.isEmpty()){
                                             for (ChessPosition teamMember : chessTeam) {
                                                 ChessPiece member = board.getPiece(teamMember);
+                                                if(member.shouldIDie(move)){
+                                                    //kill them
+                                                    board.addPiece(teamMember, null);
+                                                } else {
                                                 boolean keepItUp = member.shouldIActivateSpecialMove(move);
                                                 if(keepItUp){
-                                                    Collection<ChessMove> newMoves = member.specialPieceMoves();
-                                                    //There had better only be one of these, as the player cannot select from a list of them...
-                                                    for (ChessMove extra: newMoves) {
-                                                        //To allow for opesent mearly have the move given be a move from the square you are on to it and it will delete yourself.
-                                                        unpack(extra.getEndPosition(), board, member, true);
-                                                        unpack(extra.getStartPosition(), board, null, true);
-                                                    }
+                                                    //We might need to use it at some future date...
+                                                boolean unused = member.shouldIActivateSpecialMove(move, board, teamMember);
+                                                }
                                                 }
                                             }
                                         }
