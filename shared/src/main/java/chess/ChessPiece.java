@@ -19,6 +19,9 @@ public class ChessPiece {
         //first we need to get the rest board checker from currentBoard
         ChessPiece peiceToTestAgainst = currentBoard.getInitalPiece(currentPosition);
         ChessPiece thisPiece = currentBoard.getPiece(currentPosition);
+        if(thisPiece.getPieceType() == ROOK){
+            int j = 12;
+        }
         if(thisPiece.hasMoved) {
             return thisPiece.hasMoved;
         } else if (peiceToTestAgainst == null) {
@@ -218,7 +221,7 @@ public class ChessPiece {
                                                            //We need to recheck the peice at the position
                                                            if (board.getPiece(testPosition).specialPieceMoves() == null) {
                                                                setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
-                                                           } else if (board.getPiece(position).specialPieceMoves().isEmpty()) {
+                                                           } else if (board.getPiece(testPosition).specialPieceMoves().isEmpty()) {
                                                                setSpecialMoveFalse(checkPiece.getTeamColor(), board, testPosition);
                                                            }
                                                        } else if (finalCol == position.getColumn() - 1) {
@@ -260,8 +263,17 @@ public class ChessPiece {
                                        if (checkPiece.getPieceType() == ROOK) {
                                            if (board.getPiece(testPosition) != null) {
                                                ChessPiece currentPiece = board.getPiece(testPosition);
+                                               //I honestly kind of hate this code, but it does make sure that we do not get away with adding null pieces.
                                                if (currentPiece.getSpecialMove() == true) {
-                                                   setSpecialMove(true);
+                                                   if (currentPiece.specialMoves != null){
+                                                       boolean matchFound = false;
+                                                       for(int h = 0; h<currentPiece.specialMoves.length; h++){
+                                                           if(currentPiece.specialMoves[h] != null){
+                                                               matchFound = true;
+                                                           }
+                                                       }
+                                                       if(matchFound){
+                                                       setSpecialMove(true);
                                                    numberOfMoves++;
                                                    ChessPosition finalPosition = activatingMove.getEndPosition();
                                                    int finalCol = finalPosition.getColumn();
@@ -300,6 +312,12 @@ public class ChessPiece {
                                                            specialMoves[0] = finalMove;
                                                        }
                                                    }
+                                                       } else {
+                                                           currentPiece.setSpecialMoves(false, currentPiece.getTeamColor());
+                                                       }
+                                               } else {
+                                                       currentPiece.setSpecialMoves(false, currentPiece.getTeamColor());
+                                                   }
                                                }
                                            }
                                        }
@@ -336,7 +354,13 @@ public class ChessPiece {
                                 //however a castle unto an enemy is still possible, unless the king checks that his move is not a take...
                                 if(board.getPiece(position).pieceMoves(board,position) != null) {
                                     if(board.getPiece(position).pieceMoves(board, position).contains(newMove)) {
-                                        board.getPiece(position).specialMoves[0] = newMove;
+                                        if(!board.getPiece(position).hasThisPieceMoved(position, board)){
+                                            board.getPiece(position).specialMoves[0] = newMove;
+                                        } else {
+                                            board.getPiece(position).setSpecialMoves(false, board.getPiece(position).getTeamColor());
+                                        }
+                                    } else {
+                                        board.getPiece(position).setSpecialMoves(false, board.getPiece(position).getTeamColor());
                                     }
                                 }
                             }
@@ -350,8 +374,14 @@ public class ChessPiece {
                                 //The bottom part of this formula prevents a castle through pieces from being legal.
                                 //however a castle unto an enemy is still possible, unless the king checks that his move is not a take...
                                 if(board.getPiece(position).pieceMoves(board,position) != null) {
-                                    if(board.getPiece(position).pieceMoves(board, position).contains(newMove)) {
-                                        board.getPiece(position).specialMoves[0] = newMove;
+                                    if (board.getPiece(position).pieceMoves(board, position).contains(newMove)) {
+                                        if (!board.getPiece(position).hasThisPieceMoved(position, board)){
+                                            board.getPiece(position).specialMoves[0] = newMove;
+                                        } else {
+                                            board.getPiece(position).setSpecialMoves(false, board.getPiece(position).getTeamColor());
+                                        }
+                                    } else {
+                                        board.getPiece(position).setSpecialMoves(false, board.getPiece(position).getTeamColor());
                                     }
                                 }
                             }

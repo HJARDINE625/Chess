@@ -217,17 +217,21 @@ public class ChessGame {
             } else {
                 Collection<ChessMove> phaseTwo = specialMoves(finalMoves, checkBoard,startPosition);
                 if(phaseTwo == null){
+                    setTeamTurn(whoIsMoving);
                     return finalMoves;
                 }else if(phaseTwo.isEmpty()){
+                    setTeamTurn(whoIsMoving);
                     return finalMoves;
                 } else {
                     Collection<ChessMove> phaseTwoValidated = validateMoves(rulingPieces, testedPiece, needToCheckChecks, checkMovedPiece, checkBoard, phaseTwo);
                     if(phaseTwoValidated.isEmpty()){
+                        setTeamTurn(whoIsMoving);
                         return finalMoves;
                     } else {
                         for (ChessMove m: phaseTwoValidated) {
                             finalMoves.add(m);
                         }
+                        setTeamTurn(whoIsMoving);
                         return finalMoves;
                     }
                 }
@@ -256,6 +260,22 @@ public class ChessGame {
     //Here is the unpack function used twice above (and perhaps elsewhere). (It could help modify boards for abnormal games).
     public ChessBoard unpack(ChessPosition unwindPosition, ChessBoard checkBoard, ChessPiece replacementPiece){
         checkBoard.addPiece(unwindPosition, replacementPiece);
+        //Oddly enough we did not implement this well enough in our piece and board class, but it makes the most sense to implement here...
+        //As long as you are willing to look for it, this way hypothetical moves will not change has moved, but only real ones
+        //If you want to add a piece in the wrong place that has not moved use the next version of this
+        return checkBoard;
+    }
+
+    //For actual moves, include the boolean has moved as true!
+    public ChessBoard unpack(ChessPosition unwindPosition, ChessBoard checkBoard, ChessPiece replacementPiece, boolean hasMoved){
+        checkBoard.addPiece(unwindPosition, replacementPiece);
+        //Oddly enough we did not implement this well enough in our piece and board class, but it makes the most sense to implement here...
+        //As long as you are willing to look for it, this way hypothetical moves will not change has moved, but only real ones
+        //Use this version to set the hasMoved...
+        //only update the hasMoved on non-null pieces
+        if(checkBoard.getPiece(unwindPosition) != null) {
+            checkBoard.getPiece(unwindPosition).setHasMoved(hasMoved);
+        }
         return checkBoard;
     }
 
@@ -269,9 +289,11 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         //throw new RuntimeException("Not implemented");
         int teamToRemeber =  currentTeamLocation;
+        //currentTeam = moveOrder[teamToRemeber];
         try{
             ChessPosition piecePosition = move.getStartPosition();
             ChessPiece pieceToTest = board.getPiece(piecePosition);
+            //currentTeam = moveOrder[teamToRemeber];
             if(pieceToTest.getTeamColor() == currentTeam) {
             Collection<ChessMove> allowedMoves = validMoves(piecePosition);
             for (ChessMove m: allowedMoves) {
@@ -293,9 +315,11 @@ public class ChessGame {
                     }
                     //check if we made a special move first
                     boolean moveWasSpecial = false;
-                    for (ChessMove M: pieceToTest.specialPieceMoves()) {
-                        if(M.equals(move)){
-                            moveWasSpecial = true;
+                    if(pieceToTest.specialPieceMoves() != null) {
+                        for (ChessMove M : pieceToTest.specialPieceMoves()) {
+                            if (M.equals(move)) {
+                                moveWasSpecial = true;
+                            }
                         }
                     }
                     if(moveWasSpecial){
@@ -312,8 +336,8 @@ public class ChessGame {
                                         //There had better only be one of these, as the player cannot select from a list of them...
                                         for (ChessMove extra: newMoves) {
                                             //I unpack the movement before the removal so that self-deletion moves are possible.
-                                            unpack(extra.getEndPosition(), board, member);
-                                            unpack(extra.getStartPosition(), board, null);
+                                            unpack(extra.getEndPosition(), board, member, true);
+                                            unpack(extra.getStartPosition(), board, null, true);
                                         }
                                     }
                                 }
@@ -348,8 +372,8 @@ public class ChessGame {
                                                 //There had better only be one of these, as the player cannot select from a list of them...
                                                 for (ChessMove extra: newMoves) {
                                                     //To allow for opesent mearly have the move given be a move from the square you are on to it and it will delete yourself.
-                                                    unpack(extra.getEndPosition(), board, member);
-                                                    unpack(extra.getStartPosition(), board, null);
+                                                    unpack(extra.getEndPosition(), board, member, true);
+                                                    unpack(extra.getStartPosition(), board, null, true);
                                                 }
                                             }
                                         }
@@ -362,8 +386,8 @@ public class ChessGame {
                     }
 
                     //now unpack each one
-                    unpack(addPosition, board, checkedPiece);
-                    unpack(removePosition, board, null);
+                    unpack(addPosition, board, checkedPiece, true);
+                    unpack(removePosition, board, null, true);
                     //return;
                     //If this worked return before we throw an error.
                     //remeber where we were and update
@@ -391,13 +415,14 @@ public class ChessGame {
                 //throw new InvalidMoveException();
             }
         }
-        }catch (Exception e) {
+        }catch (Exception  InvalidMoveException) {
             //if we did not return yet we had an error and need to correct it.
             currentTeamLocation = (teamToRemeber);
             currentTeam = moveOrder[currentTeamLocation];
             throw new InvalidMoveException();
         }
-
+        currentTeamLocation = (teamToRemeber);
+        currentTeam = moveOrder[currentTeamLocation];
         throw new InvalidMoveException();
     }
 
