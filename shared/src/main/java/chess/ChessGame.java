@@ -400,12 +400,52 @@ public class ChessGame {
                             for(currentTeamLocation = currentTeamLocation; currentTeamLocation <= lastTeamLocation; currentTeamLocation++){
                                 if(moveOrder[currentTeamLocation] != null) {
                                     currentTeam = moveOrder[currentTeamLocation];
+
                                     return;
                                     //If this worked return before we throw an error.
                                 }
                             }
                         } else {
+                            if(moveWasSpecial) {
+                                do{
+                                    currentTeamLocation++;
+                                    if (currentTeamLocation > lastTeamLocation) {
+                                        currentTeamLocation = 0;
+                                    }
+                                    if (moveOrder[currentTeamLocation] == null) {
+                                        for (currentTeamLocation = currentTeamLocation; currentTeamLocation <= lastTeamLocation; currentTeamLocation++) {
+                                            if (moveOrder[currentTeamLocation] != null) {
+                                                currentTeam = moveOrder[currentTeamLocation];
+                                                break;
+                                                //If this worked return before we throw an error.
+                                            }
+                                        }
+                                    } else {
+                                        currentTeam = moveOrder[currentTeamLocation];
+                                        break;
+                                    }
+                                    Collection<ChessPosition> chessTeam = board.returnAllPiecesOnTeam(currentTeam);
+                                    if(chessTeam != null) {
+                                        if(!chessTeam.isEmpty()){
+                                            for (ChessPosition teamMember : chessTeam) {
+                                                ChessPiece member = board.getPiece(teamMember);
+                                                boolean keepItUp = member.shouldIActivateSpecialMove(move);
+                                                if(keepItUp){
+                                                    Collection<ChessMove> newMoves = member.specialPieceMoves();
+                                                    //There had better only be one of these, as the player cannot select from a list of them...
+                                                    for (ChessMove extra: newMoves) {
+                                                        //To allow for opesent mearly have the move given be a move from the square you are on to it and it will delete yourself.
+                                                        unpack(extra.getEndPosition(), board, member, true);
+                                                        unpack(extra.getStartPosition(), board, null, true);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } while(currentTeamLocation != teamToRemeber);
+                            }
                             currentTeam = moveOrder[currentTeamLocation];
+
                             return;
                         }
 

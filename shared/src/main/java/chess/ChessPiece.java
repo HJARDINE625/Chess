@@ -19,9 +19,9 @@ public class ChessPiece {
         //first we need to get the rest board checker from currentBoard
         ChessPiece peiceToTestAgainst = currentBoard.getInitalPiece(currentPosition);
         ChessPiece thisPiece = currentBoard.getPiece(currentPosition);
-        if(thisPiece.getPieceType() == ROOK){
-            int j = 12;
-        }
+        //if(thisPiece.getPieceType() == ROOK){
+           // int j = 12;
+       // }
         if(thisPiece.hasMoved) {
             return thisPiece.hasMoved;
         } else if (peiceToTestAgainst == null) {
@@ -101,6 +101,58 @@ public class ChessPiece {
     private void setSpecialMove(boolean specialMove) {
         this.specialMove = specialMove;
     }
+
+    //Unfortunately the most straightforward way to work this code for effecting enemey pieces is to add a new shouldIActivateSpecialMove for them
+    public boolean shouldIActivateSpecialMove(ChessMove movesToConsider, ChessBoard placeItHappened, ChessPosition myPosition) {
+        ChessPosition end = movesToConsider.getEndPosition();
+        ChessPosition beginning = movesToConsider.getStartPosition();
+        ChessPiece activator = placeItHappened.getPiece(beginning);
+        ArrayList<ChessPosition> myChessPositions = new ArrayList<ChessPosition>();
+
+        switch(activator.type) {
+            //so far the only piece type
+            case PAWN:
+                int deltaY;
+                int deltaX;
+                //only black and white right now, can add more to deltaX later...
+                switch (getTeamColor()){
+                    case WHITE:
+                        deltaY = 1;
+                        break;
+                    case BLACK:
+                        deltaY = -1;
+                        break;
+                    default:
+                        deltaY = 0;
+                        break;
+                }
+                deltaX = 1;
+                myChessPositions = Move(placeItHappened, true, true, deltaY, deltaX, myPosition, myChessPositions, 1);
+                deltaX = -1;
+                myChessPositions = Move(placeItHappened, true, true, deltaY, deltaX, myPosition, myChessPositions, 1);
+                if(myChessPositions.isEmpty()) {
+                    return false;
+                } else {
+                    //we need a little more work here...
+                    if(specialMove = false) {
+                        specialMove = true;
+                        specialMoves = new ChessMove[1];
+                        specialMoves[0] = new ChessMove(myPosition, myChessPositions.getFirst(), null);
+                    } else {
+                        ChessMove oldMove = specialMoves[0];
+                        specialMoves = new ChessMove[2];
+                        specialMoves[0] = new ChessMove(myPosition, myChessPositions.getFirst(), null);
+                        specialMoves[1] = oldMove;
+
+                    }
+                    return true;
+                }
+            default:
+                break;
+        }
+        return false;
+    }
+
 
     //to make the lower functions work somewhat well, we need this (only call on the piece it represents!
     public boolean shouldIActivateSpecialMove(ChessMove movesToConsider) {
@@ -413,6 +465,7 @@ public class ChessPiece {
                    if(pieceLoyalty != getTeamColor()){
                        //no room for opesant moves at end so null there, otherwise we know where to add the move
                        ChessMove newMove = new ChessMove(position, new ChessPosition(row, col), null);
+                       //oddly enough this far simpler one or two move lookup works just fine for opensant (as a pawn really can only take two ways).
                        if(getSpecialMove() == false){
                            specialMoves = new ChessMove[1];
                            specialMoves[0] = newMove;
