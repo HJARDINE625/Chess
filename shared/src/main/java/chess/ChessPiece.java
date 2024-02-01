@@ -45,6 +45,8 @@ public class ChessPiece {
     private boolean hasMoved = false;
     private ChessGame.TeamColor pieceColor;
 
+    private HashSet<ChessMove> deathMoves = new HashSet<ChessMove>();
+
     //this is one way that we can see if other multi-piece moves are avaible (with the getters and setters for this)
 
     private boolean specialMove;
@@ -66,6 +68,19 @@ public class ChessPiece {
         this.pieceColor = pieceColor;
         //this.firstMoveChecker.resetBoard();
     }
+
+    //This function needs to be called at the beginning of every turn to make sure that opesanted pieces die
+    public void resetDeathMoves(){
+        if(deathMoves == null){
+            return;
+        } else if (deathMoves.isEmpty()) {
+            return;
+        } else {
+            deathMoves = new HashSet<ChessMove>();
+            return;
+        }
+    }
+
 
     //an odd but nessisary helper function
     public void setSpecialMoveTrue(ChessGame.TeamColor pieceColor, ChessBoard board, ChessPosition myPosition) {
@@ -126,26 +141,68 @@ public class ChessPiece {
                         deltaY = 0;
                         break;
                 }
-                deltaX = 1;
-                myChessPositions = Move(placeItHappened, true, true, deltaY, deltaX, myPosition, myChessPositions, 1);
-                deltaX = -1;
+                int columnShift = abs(beginning.getColumn()-end.getColumn());
+                int columnToGoTo;
+                if(columnShift != 0){
+                    //Assuming opesnat will only be allowed for pawns that can only move up to two spaces, this should work
+                    if(beginning.getColumn()>end.getColumn()){
+                        columnToGoTo = beginning.getColumn() -1;
+                    } else {
+                        columnToGoTo = end.getColumn() -1;
+                    }
+                } else {
+                    //we did not change which column we were in so it should already work.
+                    columnToGoTo = beginning.getColumn();
+                }
+                //now do the same for rows
+                int rowShift = abs(beginning.getColumn()-end.getColumn());
+                int rowToGoTo;
+                if(rowShift != 0){
+                    //Assuming opesnat will only be allowed for pawns that can only move up to two spaces, this should work
+                    if(beginning.getRow()>end.getRow()){
+                        rowToGoTo = beginning.getRow() -1;
+                    } else {
+                        rowToGoTo = end.getRow() -1;
+                    }
+                } else {
+                    //we did not change which row we were in so it should already work.
+                    rowToGoTo = beginning.getRow();
+                }
+                //can we reach the position?
+                if(myPosition.getRow() == rowToGoTo + 1){
+                    deltaX = -1;
+                } else if(myPosition.getRow() == rowToGoTo -1) {
+                    deltaX = 1;
+            } else {
+                    //Pawn cannot go far enough, we might as well return now...
+                    return false;
+                }
+                ChessPosition checkSpace = new ChessPosition(rowToGoTo, columnToGoTo);
+
                 myChessPositions = Move(placeItHappened, true, true, deltaY, deltaX, myPosition, myChessPositions, 1);
                 if(myChessPositions.isEmpty()) {
                     return false;
                 } else {
-                    //we need a little more work here...
-                    if(specialMove = false) {
-                        specialMove = true;
-                        specialMoves = new ChessMove[1];
-                        specialMoves[0] = new ChessMove(myPosition, myChessPositions.getFirst(), null);
+                    //only update the position if it is where the event actually happened...
+                    if(myChessPositions.getFirst() != checkSpace){
+                        return false;
                     } else {
-                        ChessMove oldMove = specialMoves[0];
-                        specialMoves = new ChessMove[2];
-                        specialMoves[0] = new ChessMove(myPosition, myChessPositions.getFirst(), null);
-                        specialMoves[1] = oldMove;
+                        ChessMove addedMove = new ChessMove(myPosition, myChessPositions.getFirst(), null);
+                        //we need a little more work here...
+                        if (specialMove = false) {
+                            specialMove = true;
+                            specialMoves = new ChessMove[1];
+                            specialMoves[0] = addedMove;
+                        } else {
+                            ChessMove oldMove = specialMoves[0];
+                            specialMoves = new ChessMove[2];
+                            specialMoves[0] = addedMove;
+                            specialMoves[1] = oldMove;
 
+                        }
+                        deathMoves.add(addedMove);
+                        return true;
                     }
-                    return true;
                 }
             default:
                 break;
