@@ -291,9 +291,79 @@ public class ChessGame {
                         //if you want to implement early chess promote to enemy piece rules you will have to make a transforming piece type in piece (like a piece that calls set color on itself if it makes a move to the end of the board).
                     checkedPiece = new ChessPiece(checkedPiece.getTeamColor(), m.getPromotionPiece());
                     }
+                    //check if we made a special move first
+                    boolean moveWasSpecial = false;
+                    for (ChessMove M: pieceToTest.specialPieceMoves()) {
+                        if(M.equals(move)){
+                            moveWasSpecial = true;
+                        }
+                    }
+                    if(moveWasSpecial){
+                        //move the second piece in this move first for simplicity, as it does not matter the move order (it was already legally checked)
+                        //Iterate through the allied team looking for moves first...
+                        HashSet<ChessPosition> chessTeam = board.returnAllPiecesOnTeam(currentTeam);
+                        if(chessTeam != null) {
+                            if(!chessTeam.isEmpty()){
+                                for (ChessPosition teamMember : chessTeam) {
+                                    ChessPiece member = board.getPiece(teamMember);
+                                    boolean keepItUp = member.shouldIActivateSpecialMove(move);
+                                    if(keepItUp){
+                                        Collection<ChessMove> newMoves = member.specialPieceMoves();
+                                        //There had better only be one of these, as the player cannot select from a list of them...
+                                        for (ChessMove extra: newMoves) {
+                                            //I unpack the movement before the removal so that self-deletion moves are possible.
+                                            unpack(extra.getEndPosition(), board, member);
+                                            unpack(extra.getStartPosition(), board, null);
+                                        }
+                                    }
+                                }
+                            }
+                            //We will either update this team or every other team not both (this should only really be a problem in several player games...
+                        } else {
+                            do{
+                                currentTeamLocation++;
+                                if (currentTeamLocation > lastTeamLocation) {
+                                    currentTeamLocation = 0;
+                                }
+                                if (moveOrder[currentTeamLocation] == null) {
+                                    for (currentTeamLocation = currentTeamLocation; currentTeamLocation <= lastTeamLocation; currentTeamLocation++) {
+                                        if (moveOrder[currentTeamLocation] != null) {
+                                            currentTeam = moveOrder[currentTeamLocation];
+                                            break;
+                                            //If this worked return before we throw an error.
+                                        }
+                                    }
+                                } else {
+                                    currentTeam = moveOrder[currentTeamLocation];
+                                    break;
+                                }
+                                chessTeam = board.returnAllPiecesOnTeam(currentTeam);
+                                if(chessTeam != null) {
+                                    if(!chessTeam.isEmpty()){
+                                        for (ChessPosition teamMember : chessTeam) {
+                                            ChessPiece member = board.getPiece(teamMember);
+                                            boolean keepItUp = member.shouldIActivateSpecialMove(move);
+                                            if(keepItUp){
+                                                Collection<ChessMove> newMoves = member.specialPieceMoves();
+                                                //There had better only be one of these, as the player cannot select from a list of them...
+                                                for (ChessMove extra: newMoves) {
+                                                    //To allow for opesent mearly have the move given be a move from the square you are on to it and it will delete yourself.
+                                                    unpack(extra.getEndPosition(), board, member);
+                                                    unpack(extra.getStartPosition(), board, null);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } while(currentTeamLocation != teamToRemeber);
+                        }
+                        currentTeamLocation = teamToRemeber;
+                        currentTeam = moveOrder[currentTeamLocation];
+                    }
+
                     //now unpack each one
-                    unpack(removePosition, board, null);
                     unpack(addPosition, board, checkedPiece);
+                    unpack(removePosition, board, null);
                     //return;
                     //If this worked return before we throw an error.
                     //remeber where we were and update

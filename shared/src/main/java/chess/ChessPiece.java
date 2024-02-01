@@ -116,6 +116,19 @@ public class ChessPiece {
                             }
                         //}
                         return false;
+                            //We will ask this specifically outside of this class, so this will be asked by the game to see if the rook should go somewhere before the end...
+                    case ROOK:
+                        if(specialMove == true){
+                            //So far this only works assuming that the rook only has the castling special move with the king...
+                            int columnToLookAt = movesToConsider.getEndPosition().getColumn();
+                            int surrondingColumn1 = specialMoves[0].getEndPosition().getColumn();
+                            int surrondingColumn2 = specialMoves[0].getStartPosition().getColumn();
+                            //As long as it switches which side of the king it is on, this should work
+                            if(((surrondingColumn1 < columnToLookAt)&&(surrondingColumn2 > columnToLookAt))||((surrondingColumn1 > columnToLookAt) && (surrondingColumn2 < columnToLookAt))){
+                                return true;
+                            }
+                        }
+                        return false;
                     case PAWN:
                         //if (movesToConsider) {
                            // ChessPosition beginning = movesToConsider.getEndPosition();
@@ -144,6 +157,17 @@ public class ChessPiece {
                             }
                         //}
                         return false;
+                    case ROOK:
+                        if(specialMove == true){
+                            //So far this only works assuming that the rook only has the castling special move with the king...
+                            int columnToLookAt = movesToConsider.getEndPosition().getColumn();
+                            int surrondingColumn1 = specialMoves[0].getEndPosition().getColumn();
+                            int surrondingColumn2 = specialMoves[0].getStartPosition().getColumn();
+                            //As long as it switches which side of the king it is on, this should work
+                            if(((surrondingColumn1 < columnToLookAt)&&(surrondingColumn2 > columnToLookAt))||((surrondingColumn1 > columnToLookAt) && (surrondingColumn2 < columnToLookAt))){
+                                return true;
+                            }
+                        }
                     case PAWN:
                        // for (ChessMove m : movesToConsider) {
                             //ChessPosition beginning = m.getEndPosition();
