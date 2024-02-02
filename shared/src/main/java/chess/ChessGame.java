@@ -55,7 +55,7 @@ public class ChessGame {
     public void setTeamTurn(TeamColor team) {
         currentTeam = team;
         //might need to change last parameter to ++i to make the breaks below work, just need to be sure the last statement will still be accessible probably not...
-        for(int i = currentTeamLocation; i < lastTeamLocation; i++){
+        for(int i = currentTeamLocation; i <= lastTeamLocation; i++){
             //Remeber to check for valid move orders when a new game is started up, otherwise players will wait forever here
             if(moveOrder[i] == null){
                 i = 0;
@@ -291,6 +291,7 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         //throw new RuntimeException("Not implemented");
+        setTeamTurn(currentTeam);
         int teamToRemeber =  currentTeamLocation;
         //currentTeam = moveOrder[teamToRemeber];
         try{
@@ -429,9 +430,9 @@ public class ChessGame {
                                         //break;
                                     }
                                     Collection<ChessPosition> chessTeam = board.returnAllPiecesOnTeam(currentTeam);
-                                    if(currentTeam == TeamColor.WHITE){
-                                        int kul = 21;
-                                    }
+                                    //if(currentTeam == TeamColor.WHITE){
+                                        //int kul = 21;
+                                    //}
                                     if(chessTeam != null) {
                                         if(!chessTeam.isEmpty()){
                                             for (ChessPosition teamMember : chessTeam) {
