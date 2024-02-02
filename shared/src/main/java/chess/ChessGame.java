@@ -173,6 +173,9 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         //this is for later
         TeamColor whoIsMoving = currentTeam;
+        if(currentTeam == TeamColor.WHITE){
+            int j = 17;
+        }
         boolean needToCheckChecks = true;
         boolean checkMovedPiece = false;
         //Other than setting things up this first part (up until the else) fulfills the last speck requirement above.
@@ -392,21 +395,22 @@ public class ChessGame {
                     //If this worked return before we throw an error.
                     //remeber where we were and update
 
-                    currentTeamLocation++;
-                    if(currentTeamLocation > lastTeamLocation) {
-                        currentTeamLocation = 0;
-                    }
-                        if(moveOrder[currentTeamLocation] == null){
-                            for(currentTeamLocation = currentTeamLocation; currentTeamLocation <= lastTeamLocation; currentTeamLocation++){
-                                if(moveOrder[currentTeamLocation] != null) {
-                                    currentTeam = moveOrder[currentTeamLocation];
-
-                                    return;
-                                    //If this worked return before we throw an error.
-                                }
-                            }
-                        } else {
-                            if(moveWasSpecial) {
+//                    currentTeamLocation++;
+//                    if(currentTeamLocation > lastTeamLocation) {
+//                        currentTeamLocation = 0;
+//                    }
+//                        if(moveOrder[currentTeamLocation] == null){
+//                            for(currentTeamLocation = currentTeamLocation; currentTeamLocation <= lastTeamLocation; currentTeamLocation++){
+//                                if(moveOrder[currentTeamLocation] != null) {
+//                                    currentTeam = moveOrder[currentTeamLocation];
+//
+//                                    return;
+//                                    //If this worked return before we throw an error.
+//                                }
+//                            }
+//                        }
+//                        else {
+                            //if(moveWasSpecial) {
                                 do{
                                     currentTeamLocation++;
                                     if (currentTeamLocation > lastTeamLocation) {
@@ -422,9 +426,12 @@ public class ChessGame {
                                         }
                                     } else {
                                         currentTeam = moveOrder[currentTeamLocation];
-                                        break;
+                                        //break;
                                     }
                                     Collection<ChessPosition> chessTeam = board.returnAllPiecesOnTeam(currentTeam);
+                                    if(currentTeam == TeamColor.WHITE){
+                                        int kul = 21;
+                                    }
                                     if(chessTeam != null) {
                                         if(!chessTeam.isEmpty()){
                                             for (ChessPosition teamMember : chessTeam) {
@@ -443,11 +450,24 @@ public class ChessGame {
                                         }
                                     }
                                 } while(currentTeamLocation != teamToRemeber);
-                            }
-                            currentTeam = moveOrder[currentTeamLocation];
-
-                            return;
+                            //}
+                            currentTeam = moveOrder[teamToRemeber];
+                    currentTeamLocation++;
+                    if(currentTeamLocation > lastTeamLocation) {
+                        currentTeamLocation = 0;
+                    }
+                        if(moveOrder[currentTeamLocation] == null){
+                            for(currentTeamLocation = currentTeamLocation; currentTeamLocation <= lastTeamLocation; currentTeamLocation++){
+                                if(moveOrder[currentTeamLocation] != null) {
+                                    currentTeam = moveOrder[currentTeamLocation];
+                                    return;
+                                   //If this worked return before we throw an error.
+                               }
+                           }
                         }
+                            currentTeam = moveOrder[currentTeamLocation];
+                            return;
+  //                      }
 
 
 

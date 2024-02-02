@@ -134,7 +134,7 @@ public class ChessPiece {
     public boolean shouldIActivateSpecialMove(ChessMove movesToConsider, ChessBoard placeItHappened, ChessPosition myPosition) {
         ChessPosition end = movesToConsider.getEndPosition();
         ChessPosition beginning = movesToConsider.getStartPosition();
-        ChessPiece activator = placeItHappened.getPiece(beginning);
+        ChessPiece activator = placeItHappened.getPiece(movesToConsider.getEndPosition());
         ArrayList<ChessPosition> myChessPositions = new ArrayList<ChessPosition>();
 
         switch(activator.type) {
@@ -168,7 +168,7 @@ public class ChessPiece {
                     columnToGoTo = beginning.getColumn();
                 }
                 //now do the same for rows
-                int rowShift = abs(beginning.getColumn()-end.getColumn());
+                int rowShift = abs(beginning.getRow()-end.getRow());
                 int rowToGoTo;
                 if(rowShift != 0){
                     //Assuming opesnat will only be allowed for pawns that can only move up to two spaces, this should work
@@ -202,7 +202,7 @@ public class ChessPiece {
                     } else {
                         ChessMove addedMove = new ChessMove(myPosition, myChessPositions.get(0), null);
                         //we need a little more work here...
-                        if (specialMove = false) {
+                        if (specialMove == false) {
                             specialMove = true;
                             specialMoves = new ChessMove[1];
                             specialMoves[0] = addedMove;
@@ -213,7 +213,7 @@ public class ChessPiece {
                             specialMoves[1] = oldMove;
 
                         }
-                        deathMoves.add(addedMove);
+                        activator.deathMoves.add(addedMove);
                         return true;
                     }
                 }
