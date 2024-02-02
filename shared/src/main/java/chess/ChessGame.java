@@ -291,6 +291,10 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         //throw new RuntimeException("Not implemented");
+        if(move == null) {
+            throw new InvalidMoveException();
+        }
+        //set up for the turn in case other public functions were abused to change who's turn it is...
         setTeamTurn(currentTeam);
         int teamToRemeber =  currentTeamLocation;
         //currentTeam = moveOrder[teamToRemeber];
@@ -303,6 +307,13 @@ public class ChessGame {
             for (ChessMove m: allowedMoves) {
                 //If any move works we need to avoid implementing the stuff at the end (which throws an error).
                 if(m.equals(move)){
+                    //Before we do anything, it is our turn again so we can no longer have an in-passing move take us in between turns... unless we make a move that allows that
+                    //We should not have to worry about null HashSets, because the function above returned a move, so there must have been a piece on this team to move.
+                    HashSet<ChessPosition> piecePositions = board.returnAllPiecesOnTeam(currentTeam);
+                    for (ChessPosition p: piecePositions) {
+                        board.getPiece(p).resetDeathMoves();
+                    }
+
                     //This code is remarkably similar to the code in valid move.
                     //However rather than have valid move call this function that in turn calls valid move
                     //or having some strange third function to do the work for these two functions together,
@@ -445,6 +456,9 @@ public class ChessGame {
                                                 if(keepItUp){
                                                     //We might need to use it at some future date...
                                                 boolean unused = member.shouldIActivateSpecialMove(move, board, teamMember);
+                                                } else {
+                                                    member.setSpecialMoves(false, currentTeam);
+                                                    //member.resetDeathMoves();
                                                 }
                                                 }
                                             }
@@ -476,6 +490,8 @@ public class ChessGame {
                 //throw new InvalidMoveException();
             }
         }
+            //might want to change to exception e as we are most likely to have the null move passed exception...
+            //Now I have solved that with a simple if statement at the beginning of this function...
         }catch (Exception  InvalidMoveException) {
             //if we did not return yet we had an error and need to correct it.
             currentTeamLocation = (teamToRemeber);
