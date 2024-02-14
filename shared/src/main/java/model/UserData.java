@@ -2,4 +2,4 @@ package model;
 
 import java.util.Objects;
 
-record UserData(String username, String password, String email) {}
+public record UserData(String username, String password, String email) {}
