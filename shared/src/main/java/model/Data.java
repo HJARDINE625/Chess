@@ -1,6 +1,7 @@
 package model;
-
+import java.util.Objects;
 public class Data {
+    Data(){}
     public AuthData getMyAuthData() {
         return myAuthData;
     }

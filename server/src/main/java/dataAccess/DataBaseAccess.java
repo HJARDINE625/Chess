@@ -14,10 +14,30 @@ public Data Select(String findMe, String database){
 
 //find the selected data and then alter it, otherwise passup the not-found data error on the chain.
 public Data Alter(String findMe, String database, String becomeMe){
+
+    //call the other one effecting only the main selection line
+    return (Alter(findMe, database, becomeMe, 1));
+}
+
+//add to a new section in Alter
+public Data Alter(String findMe, String database, String becomeMe, int thisElement){
     Select(findMe, database);
 
     return null;
 }
+
+//this may be unessisary if we set up the database generation properties correctly
+public Data Generate(String findMe, String database){
+    Select(findMe, database);
+    //if this does not exist create it...
+    //Add(findMe, database);
+    //Now create a new Authentication associtated with it
+    //Add (or something)
+    //now return
+    return null;
+}
+
+
 
 //find and destory the selected data.
 
