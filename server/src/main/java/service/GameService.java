@@ -63,11 +63,11 @@ public class GameService {
     }
 
     //Finally join a game!
-    public GameData joinGame(AuthData authToken, String gameID){
+    public GameData joinGame(AuthData authToken, int gameID){
         //This line, BY ITSELF, should be able to verify if I can look at this data
         verify(authToken);
         //now I need to make sure that the game asked for exists.
-        Data test = myDataBaseAcess.Select(gameID, "Games");
+        Data test = myDataBaseAcess.Select(String<gameID>, "Games");
         if(test == null){
             return new Exception("Game does not exist");
         } else if(test.getMyGameData() == null) {
