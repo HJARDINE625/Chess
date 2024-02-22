@@ -6,18 +6,18 @@ import model.UserData;
 
 public interface DataAccesser {
     public boolean clear();
-    public UserData createUser();
-    public UserData getUser();
-    public GameData createGame();
-    public GameData getGame();
+    public UserData createUser(String username, String password, String email);
+    public UserData getUser(String username, String password);
+    public GameData createGame(String gameName);
+    public GameData getGame(int gameID);
     public GameData[] listGames();
-    public GameData updateGame();
-    public AuthData createAuth();
+    public GameData updateGame(String gameName);
+    public AuthData createAuth(String username, String password);
     public AuthData getAuth();
-    public boolean deleteAuth();
-    public boolean checkAuthorization();
-    public boolean noSuchColor();
-    public boolean colorTaken();
-    public boolean locateUsername();
-    public boolean locateGameID();
+    public boolean deleteAuth(AuthData authenticator);
+    public boolean checkAuthorization(AuthData authenticator);
+    public boolean noSuchColor(String color);
+    public boolean colorTaken(String color);
+    public boolean locateUsername(String username);
+    public boolean locateGameID(int gameID);
 }

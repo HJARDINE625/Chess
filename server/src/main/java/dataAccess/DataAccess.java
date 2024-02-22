@@ -12,10 +12,15 @@ public class DataAccess implements DataAccesser{
 
     private HashSet<AuthData> authentications = new HashSet<AuthData>();
 
-    private HashSet<GameData> Games = new HashSet<GameData>();
+    private HashSet<GameData> games = new HashSet<GameData>();
     @Override
     public boolean clear() {
-        return false;
+        //reset the three databases by defining them as new databases with nothing inside.
+        users = new HashSet<UserData>();
+        authentications = new HashSet<AuthData>();
+        games = new HashSet<GameData>();
+        //now it worked, so return.
+        return true;
     }
 
     @Override
