@@ -11,7 +11,7 @@ public interface DataAccesser {
     public GameData createGame(String gameName);
     public GameData getGame(int gameID);
     public GameData[] listGames();
-    public GameData updateGame(String gameName);
+    public GameData updateGame(int gameID, String clientColor, String username);
     public AuthData createAuth(String username);
     public AuthData getAuth();
     public boolean deleteAuth(AuthData authenticator);

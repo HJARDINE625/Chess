@@ -37,8 +37,8 @@ public class DataAccess implements DataAccesser{
     @Override
     public UserData getUser(String username, String password) {
         for (UserData user: users) {
-            if(user.username() == username){
-                if(user.password() == password){
+            if(user.username().equals(username)){
+                if(user.password().equals(password)){
                     return user;
                 }
                 //make the main method find this and if it is found throw incorrect password error...
@@ -49,25 +49,105 @@ public class DataAccess implements DataAccesser{
         return null;
     }
 
-    @Override
-    public GameData createGame(String gameName) {
-        return null;
-    }
+    //only call if locate game ID does not return an error
 
     @Override
+    public GameData createGame(String gameName) {
+        //some formula for making new games
+        boolean newUniqueValueFound = false;
+        //capitalized to prevent mix-up with element gameID
+        int GameID = 0;
+        while(newUniqueValueFound == false) {
+            GameID = UUID.randomUUID().hashCode();
+            newUniqueValueFound = true;
+            if (!games.isEmpty()){
+                for (GameData game: games) {
+                    if (game.gameID() == GameID) {
+                        newUniqueValueFound = false;
+                        break;
+                    }
+                }
+            }
+        }
+        //The game will be very incomplete so far as no-one has joined as white or black... but it will need a new ChessGame
+        ChessGame gameOfChess = new ChessGame();
+        GameData newGame = new GameData(GameID, null, null, gameName, gameOfChess);
+        games.add(newGame);
+        return newGame;
+    }
+
+    //call after proving game exists...
+    @Override
     public GameData getGame(int gameID) {
+        for (GameData game:games) {
+            if(game.gameID() == gameID){
+                return game;
+            }
+        }
+        //if we did not find it something went very wrong
         return null;
     }
 
     @Override
     public GameData[] listGames() {
-        return new GameData[0];
+        //look for null response and other response from this function
+        if(games.isEmpty()){
+            return null;
+        } else {
+            int sizeOfReturnArray = games.size();
+            GameData[] returnArray = new GameData[sizeOfReturnArray];
+            int currentArrayLocation = 0;
+            for (GameData game: games) {
+                returnArray[currentArrayLocation] = game;
+                currentArrayLocation++;
+            }
+            //we added every game
+            return returnArray;
+        }
     }
 
+    //First check this person is authorized then that the game exists then that color is available... Then call this function...
     @Override
-    public GameData updateGame(String gameName) {
-        return null;
+    public GameData updateGame(int gameID, String clientColor, String username) {
+        //add the new game to return
+        GameData newGame = new GameData(0, null, null, null, null);
+        //and the game to watch
+        GameData oldGame = new GameData(0, null, null, null, null);
+        //We have already checked that the username exists, so add them as the user...
+        for (GameData chessGame : games) {
+            //remember if we implemented everything else right, there should only be one of these!
+            if (chessGame.gameID() == gameID) {
+                //watch this game
+                oldGame = chessGame;
+                //add the otherplayer  string definition
+                String otherPlayer = null;
+                //so far this will work, update to add more players...
+                if (clientColor.equals("WHITE")) {
+                    //first get the black username (regardless of it is null)...
+                    if (chessGame.blackUsername() != null) {
+                        otherPlayer = chessGame.blackUsername();
+                    }
+                    //add a white player
+                    newGame = new GameData(gameID, username, otherPlayer, chessGame.gameName(), chessGame.implementation());
+                } else if (clientColor.equals("BLACK")) {
+                    //first get the white username (regardless of it is null)...
+                    if (chessGame.whiteUsername() != null) {
+                        otherPlayer = chessGame.whiteUsername();
+                    }
+                    //add a black player
+                    newGame = new GameData(gameID, otherPlayer, username, chessGame.gameName(), chessGame.implementation());
+                } else {
+                    //I am not sure that we need to do anything to add a new observer....
+                    return chessGame;
+                }
+            }
+        }
+        //we must not have changed nothing (otherwise we would have returned), so let us update the chart with one old game gone and a new one in the place of it.
+        games.remove(oldGame);
+        games.add(newGame);
+        return newGame;
     }
+
 
     //only call this after calling get user and checking for non-null responses...
     @Override
@@ -179,7 +259,7 @@ public class DataAccess implements DataAccesser{
         } else {
             //This will work just fine, as long as no one ever glitches the system to accept a faulty user with no username, assuming this will not happen should be a fine assumption.
             for (UserData user: users) {
-                if(user.username() == username){
+                if(user.username().equals(username)){
                     return true;
                 }
             }
