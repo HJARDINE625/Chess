@@ -1,11 +1,12 @@
 package service;
 
 import dataAccess.DataAccess;
+import dataAccess.DataAccesser;
 import model.Response;
 
 public class ContolServices {
     //ALL intentionally capitalized
-    public Response DeleteALL(DataAccess myDatabase){
+    public Response DeleteALL(DataAccesser myDatabase){
         //for now I will assume these are my databases
         myDatabase.clear();
         //add the Response
