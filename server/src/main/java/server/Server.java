@@ -27,13 +27,13 @@ public class Server {
         //First get request...
         //(will need to convert a json from gson and a json to gson to allow for the request and response type values in spark (not to be confused with my own requests and responses)...
         Spark.post("/user", this::addUser);
-        Spark.post("/user", this::loginUser);
-        Spark.post("/user", this::logoutUser);
-        Spark.post("/user", this::listGames);
-        Spark.post("/user", this::joinGame);
-        Spark.post("/user", this::createGame);
+        Spark.post("/session", this::loginUser);
+        Spark.delete("/session", this::logoutUser);
+        Spark.get("/game", this::listGames);
+        Spark.put("/game", this::joinGame);
+        Spark.post("/game", this::createGame);
         //I intentionally changed capitalization on this last one to emphasize how final it is...
-        Spark.post("/user", this::DeleteALL);
+        Spark.delete("/db", this::DeleteALL);
         //Set up rotes and get responses (turn my responses into a json string and give response class). and return them...
 
         // Register your endpoints and handle exceptions here.
