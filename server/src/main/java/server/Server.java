@@ -1,6 +1,9 @@
 package server;
 
+import chess.ChessGame;
+import com.google.gson.Gson;
 import dataAccess.DataAccess;
+import dataAccess.DataAccessException;
 import dataAccess.DataAccesser;
 import model.*;
 import service.ContolServices;
@@ -47,75 +50,125 @@ public class Server {
     }
 
     private Object addUser(Request req, Response res) {
-        UserData newUser = (UserData)Gson.fromJson(req, UserData.class);
+        //Get a serializer...
+        var serializer = new Gson();
 
-        RegistrationServices service = new RegistrationServices();
-        Responses response = service.register(newUser, myDataStorageDevice);
+        //now get the data we need for a response and then check it before passing it into a service...
+        UserData newUser = serializer.fromJson(req.body(), UserData.class);
+        Responses response;
+        if ((newUser.username() == null) || (newUser.password() == null) || (newUser.email() == null)) {
+            response = new Responses(400);
+            response.setMyException(new DataAccessException("Error: invalid request"));
+        } else {
 
-        return Gson.toJson(response);
+            RegistrationServices service = new RegistrationServices();
+            response = service.register(newUser, myDataStorageDevice);
+        }
+        return new Gson().toJson(response);
 
     }
 
     private Object loginUser(Request req, Response res) {
-        UserData newUser = (UserData)Gson.fromJson(req, UserData.class);
+        //Get a serializer...
+        var serializer = new Gson();
 
-        RegistrationServices service = new RegistrationServices();
-        Responses response = service.login(newUser.username(), newUser.password(), myDataStorageDevice);
-
-        return Gson.toJson(response);
+        //now get the data we need for a response and then check it before passing it into a service...
+        UserData newUser = serializer.fromJson(req.body(), UserData.class);
+        Responses response;
+        if ((newUser.username() == null) || (newUser.password() == null)) {
+            response = new Responses(400);
+            response.setMyException(new DataAccessException("Error: invalid request"));
+        } else {
+            RegistrationServices service = new RegistrationServices();
+            response = service.login(newUser.username(), newUser.password(), myDataStorageDevice);
+        }
+        return new Gson().toJson(response);
 
     }
 
     private Object logoutUser(Request req, Response res) {
-        AuthData oldAuthentication = (AuthData)Gson.fromJson(req, AuthData.class);
+        //Get a serializer...
+        var serializer = new Gson();
 
-        RegistrationServices service = new RegistrationServices();
-        Responses response = service.logout(oldAuthentication, myDataStorageDevice);
+        //now get the data we need for a response and then check it before passing it into a service...
+        Responses response;
+        AuthData oldAuthentication = serializer.fromJson(req.body(), AuthData.class);
+        if ((oldAuthentication.username() == null) || (oldAuthentication.authToken() == null)) {
+            response = new Responses(400);
+            response.setMyException(new DataAccessException("Error: invalid request"));
+        } else {
+            RegistrationServices service = new RegistrationServices();
+            response = service.logout(oldAuthentication, myDataStorageDevice);
+        }
 
-        return Gson.toJson(response);
+        return new Gson().toJson(response);
 
     }
 
     private Object listGames(Request req, Response res) {
-        AuthData authentication = (AuthData)Gson.fromJson(req, AuthData.class);
-
-        GameServices service = new GameServices();
-        Responses response = service.listGames(authentication, myDataStorageDevice);
-
-        return Gson.toJson(response);
+        var serializer = new Gson();
+        AuthData authentication = serializer.fromJson(req.body(), AuthData.class);
+        Responses response;
+        if ((authentication.username() == null) || (authentication.authToken() == null)) {
+            response = new Responses(400);
+            response.setMyException(new DataAccessException("Error: invalid request"));
+        } else {
+            GameServices service = new GameServices();
+            response = service.listGames(authentication, myDataStorageDevice);
+        }
+        return new Gson().toJson(response);
 
     }
 
     private Object joinGame(Request req, Response res) {
-        AuthDataName newGame = (AuthDataName)Gson.fromJson(req, AuthDataName.class);
+        var serializer = new Gson();
+        //This function needs to check for a null gameID passed in, so it is a little more complicated first
+        //making a "new game" with a string representing an int, then making the correct data type to take
+        //parts of to make a join game request.
+        AuthDataInt newGame = serializer.fromJson(req.body(), AuthDataInt.class);
 
-        GameServices service = new GameServices();
-        AuthData authentication = new AuthData(newGame.authToken(), newGame.username());
-        Responses response = service.joinGame(authentication, newGame.gameID(), newGame.color(), myDataStorageDevice);
+        Responses response;
 
-        return Gson.toJson(response);
+        if ((newGame.username() == null) || (newGame.authToken() == null) || (newGame.gameID() == null)) {
+            response = new Responses(400);
+            response.setMyException(new DataAccessException("Error: invalid request"));
+        } else {
+            GameServices service = new GameServices();
+            AuthDataName game = serializer.fromJson(req.body(), AuthDataName.class);
+            AuthData authentication = new AuthData(game.authToken(), game.username());
+            response = service.joinGame(authentication, game.gameID(), game.color(), myDataStorageDevice);
+        }
+        return new Gson().toJson(response);
 
     }
 
     private Object createGame(Request req, Response res) {
-        NewGame newGame = (NewGame)Gson.fromJson(req, NewGame.class);
-
-        GameServices service = new GameServices();
-        AuthData authentication = new AuthData(newGame.authToken(), newGame.username());
-        Responses response = service.createGame(authentication, newGame.gameName(), myDataStorageDevice);
-
-        return Gson.toJson(response);
+        var serializer = new Gson();
+        NewGame newGame = serializer.fromJson(req.body(), NewGame.class);
+        Responses response;
+        if ((newGame.username() == null) || (newGame.authToken() == null) || (newGame.gameName() == null)) {
+            response = new Responses(400);
+            response.setMyException(new DataAccessException("Error: invalid request"));
+        } else {
+            GameServices service = new GameServices();
+            AuthData authentication = new AuthData(newGame.authToken(), newGame.username());
+            response = service.createGame(authentication, newGame.gameName(), myDataStorageDevice);
+        }
+        return new Gson().toJson(response);
 
     }
 
     //The last and craziest of all the functions, this does not need to make anything with the input, making it the simplest as well...
     private Object DeleteALL(Request req, Response res) {
-        UserData newUser = (UserData)Gson.fromJson(req, UserData.class);
+
+        //I actually do not think I need to make any object here...
+        //var serializer = new Gson();
+        //UserData newUser = serializer.fromJson(req.body(), UserData.class);
 
         ContolServices service = new ContolServices();
         Responses response = service.DeleteALL(myDataStorageDevice);
 
-        return Gson.toJson(response);
+        return new Gson().toJson(response);
 
     }
 
