@@ -191,16 +191,20 @@ public class Server {
 
     private Object createGame(Request req, Response res) {
         var serializer = new Gson();
-        String newGame = serializer.fromJson(req.body(), String.class);
+        NewGame newGame = serializer.fromJson(req.body(), NewGame.class);
         String authentication = req.headers("authorization");
         Responses response;
         if ((authentication == null) || (newGame == null)) {
             response = new Responses(400);
             response.setMyException(new DataAccessException("Error: invalid request"));
-        } else {
+        } else if (newGame.gameName() != null){
             GameServices service = new GameServices();
             //AuthData authentication = new AuthData(authentication, newGame.username());
-            response = service.createGame(authentication, newGame, myDataStorageDevice);
+            response = service.createGame(authentication, newGame.gameName(), myDataStorageDevice);
+        } else {
+            //We have an empty thing, so we still did not find it...
+            response = new Responses(400);
+            response.setMyException(new DataAccessException("Error: invalid request"));
         }
         if(response.getMyException() == null) {
             //This new method implies implicitly knowing what kind of response does exist... but that is an okay amount
