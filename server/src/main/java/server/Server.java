@@ -24,6 +24,7 @@ public class Server {
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
+        //I appear to be getting an invalid path, invalid length/CHAR error here... I wonder if I should get my path some other way...
         var webDir = Paths.get(Server.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "web");
         Spark.externalStaticFileLocation(webDir.toString());
 

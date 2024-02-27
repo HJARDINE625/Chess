@@ -250,7 +250,25 @@ public class RegistrationTests {
             assertNotNull(cannotSeeWithoutAuth.getMyException());
             assertNotEquals(200, cannotSeeWithoutAuth.getNumericalCode());
         }
+
     @Order(12)
+    @Test
+    public void insertFail() throws DataAccessException {
+        // Start by inserting a user into the grid database.
+        myRegister.register(Kevin, myDataStorage);
+        // Let's try to login now (if we cannot we did not insert anything
+        Responses authDataHolder = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage);
+        // First lets see if our find method found anything at all. If it did then we know that we got
+        // something back from our database.
+        assertNotNull(authDataHolder.getMyAuthData());
+        assertNull(authDataHolder.getMyException());
+        //now insert him again!
+        Responses didItWorkAgain = myRegister.register(Kevin, myDataStorage);
+        assertNull(didItWorkAgain.getMyUserData());
+        assertNotNull(authDataHolder.getMyAuthData());
+        assertEquals(403, didItWorkAgain.getNumericalCode());
+    }
+    @Order(13)
         @Test
         public void destroyNothing() throws DataAccessException {
             // Start by inserting a user into the grid database.
@@ -264,7 +282,7 @@ public class RegistrationTests {
             //We deleted an empty database, so this should still exist...
             assertTrue(myDataStorage.locateUsername(Kevin.username()));
         }
-    @Order(13)
+    @Order(14)
         @Test
         public void destroy() throws DataAccessException {
             // Start by inserting a user into the grid database.
