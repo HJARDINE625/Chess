@@ -52,4 +52,6 @@ public class Responses {
     public void setMyAuthData(AuthData myAuthData) {
         this.myAuthData = myAuthData;
     }
+
+    public int getNumericalCode() {return numericalCode;}
 }

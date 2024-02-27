@@ -1,18 +1,15 @@
 package passoffTests.serverTests;
 
 import chess.ChessGame;
+import dataAccess.DataAccess;
 import dataAccess.DataAccessException;
-import model.UserData;
-import model.AuthData;
-import model.GameData;
-import model.Data;
+import dataAccess.DataAccesser;
+import model.*;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import service.ControlService;
-import service.GameService;
-import service.RegistrationService;
+import service.*;
 
 import java.sql.Connection;
 
@@ -25,13 +22,15 @@ public class RegistrationTests {
 
         //We will use this to test that our insert method is working and failing in the right ways
 
+        private DataAccesser myDataStorage = new DataAccess();
+
         private UserData Kevin;
 
-        private RegistrationService myRegister = new RegistrationService();
+        private RegistrationServices myRegister = new RegistrationServices();
 
-        private ControlService ender = new ControlService();
+        private ContolServices ender = new ContolServices();
 
-        private GameService myGameService = new GameService();
+        private GameServices myGameService = new GameServices();
 
         private UserData Clue;
 
@@ -64,33 +63,44 @@ public class RegistrationTests {
         @Test
         public void loginFail() throws DataAccessException {
             // Let's use a login method to find someone we have not entered.
-            AuthData compareTest = myRegister.login(Kevin);
+            Responses authDataHolder = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage);
             // First lets see if our find method found anything at all. If it did not then we know that we got
-            // nothing back from our database.
-            assertNull(compareTest);
+            // only an error back from our database.
+            assertNull(authDataHolder.getMyAuthData());
+            assertNotNull(authDataHolder.getMyException());
             // Now lets make sure that Kevin does exist, just not in the database.
-            assertNotEquals(Kevin, compareTest);
+            assertNotNull(Kevin);
+        }
+        @Test
+        public void logoutFail() throws DataAccessException {
+            //check that we cannot log out, before we login...
+            Responses authDataLessHolder = myRegister.logout(loginToken, myDataStorage);
+            //With a non-existant login and no one currently logged in, this should lead to an error
+            assertNull(authDataLessHolder.getMyAuthData());
+            assertNotNull(authDataLessHolder.getMyException());
+            assertEquals(authDataLessHolder.getNumericalCode(), 401);
         }
         @Test
         public void insertPass() throws DataAccessException {
             // Start by inserting a user into the grid database.
-            myRegister.register(Kevin);
+            myRegister.register(Kevin, myDataStorage);
             // Let's try to login now (if we cannot we did not insert anything
-            AuthData compareTest = myRegister.login(Kevin);
+            Responses authDataHolder = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage);
             // First lets see if our find method found anything at all. If it did then we know that we got
             // something back from our database.
-            assertNotNull(compareTest);
+            assertNotNull(authDataHolder.getMyAuthData());
+            assertNull(authDataHolder.getMyException());
         }
 
         @Test
         public void loginPass() throws DataAccessException {
             // Let's use a find method to get the user that we previously put in back out.
-            loginToken = myRegister.login(Kevin);
+            loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             // First lets see if our find method found anything at all. If it did then we know that we got
             // something back from our database.
             assertNotNull(loginToken);
             //now let us makesure that another login will not make the same login token
-            AuthData compareTest = myRegister.login(Kevin);
+            AuthData compareTest = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             //did we get a login?
             assertNotNull(compareTest);
             //Is it the same?
@@ -98,25 +108,27 @@ public class RegistrationTests {
         }
         //now let us add in the game tests
 
-        @Test
-        public void verifyPass() throws DataAccessException {
-            // Lets make sure verify has been working this whole time
-            assertDoesNotThrow(Throwable, myGameService.verify(loginToken));
-        }
-        //to continue
-        @Test
-        public void verifyFail() throws DataAccessException {
-            // Lets make sure verify has been working this whole time
-            //a null token should never work!
-            assertThrows(Throwable, myGameService.verify(null));
-        }
+    //We no longer use the subfunction verify in this implementation, so these are unnecessary...
+//        @Test
+//        public void verifyPass() throws DataAccessException {
+//            // Lets make sure verify has been working this whole time
+//            assertDoesNotThrow(Throwable, myGameService.verify(loginToken));
+//        }
+//        //to continue
+//        @Test
+//        public void verifyFail() throws DataAccessException {
+//            // Lets make sure verify has been working this whole time
+//            //a null token should never work!
+//            assertThrows(Throwable, myGameService.verify(null));
+//        }
         //here are the more straightforward tests
         @Test
         public void addGamePass() throws DataAccessException {
             // Lets try to have a new Game added
-            myGameService.createGame(loginToken, ChessGameName);
+            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
             // Let's make sure that there is a game now
-            GameData myGameTest = myGameService.listGames(loginToken)[0];
+            Responses gameList = myGameService.listGames(loginToken, myDataStorage);
+            GameData myGameTest = gameList.getAllGames()[0];
             assertNotNull(myGameTest);
             //now let us make sure it is the right one
             assertEquals(myGameTest.gameName(), ChessGameName);
@@ -127,27 +139,35 @@ public class RegistrationTests {
         @Test
         public void listGamePass() throws DataAccessException {
             // Lets check if we can list games again and get the same output
-            GameData myGameTest = myGameService.listGames(loginToken)[0];
+            Responses gameList = myGameService.listGames(loginToken, myDataStorage);
+            GameData myGameTest = gameList.getAllGames()[0];
             assertNotNull(myGameTest);
             //now let us make sure it is the right one
             assertEquals(myGameTest.gameName(), ChessGameName);
             //ok let us make sure the ID is still the same
             assertEquals(ChessGameID, myGameTest.gameID());
+            //Now make sure the response did not have an error token and gave 200
+            assertNull(gameList.getMyException());
+            assertEquals(gameList.getNumericalCode(), 200);
         }
 
         @Test
         public void joinGameFail() throws DataAccessException {
-            // Lets join a fake game now
-            GameData myGameTest = myGameService.joinGame(loginToken,"siliver");
-            assertNull(myGameTest);
+            // Lets join a game as a fake color now
+            Responses nonGame = myGameService.joinGame(loginToken, ChessGameID, "siliver", myDataStorage);
+            //Make sure we did not get any game and that there was no ok code.
+            assertNull(nonGame.getMyGameData());
+            assertNotEquals(200, nonGame.getNumericalCode());
         }
 
         @Test
         public void joinGamePass() throws DataAccessException {
             // Lets join the real game now
-            GameData myGameTest = myGameService.joinGame(loginToken,ChessGameID);
-            assertNotNull(myGameTest);
+            Responses game = myGameService.joinGame(loginToken,ChessGameID, null, myDataStorage);
+            assertNotNull(game.getMyGameData());
+            assertEquals(200, game.getNumericalCode());
             //now let us make sure it is the right one
+            GameData myGameTest = game.getMyGameData();
             assertEquals(myGameTest.gameName(), ChessGameName);
             //ok let us make sure the ID is still the same
             assertEquals(ChessGameID, myGameTest.gameID());
@@ -158,16 +178,25 @@ public class RegistrationTests {
             //check that Kevin is still logged in
             assertNotNull(loginToken);
             //now that we have logged in Kevin, lets log him out
-            myRegister.logout(loginToken);
+            Responses gettingOut = myRegister.logout(loginToken, myDataStorage);
+            //did we get out
+            assertEquals(gettingOut.getNumericalCode(), 200);
             //now make sure that he has logged out
             //I may need to ask for something from login token instead to make sure this works
-            assertNull(loginToken);
+            Responses alreadyOut = myRegister.logout(loginToken, myDataStorage);
+            //make sure they are different...
+            assertNotEquals(gettingOut, alreadyOut);
+            assertNotNull(alreadyOut.getMyException());
         }
 
         @Test
         public void addGameFail() throws DataAccessException {
             // Lets try to have a new Game added with a useless login token
-            assertThrows(Throwable, myGameService.createGame(loginToken, ChessGameName));
+            Responses cannotMakeWithoutAuth = myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            //Let us make sure it did not work
+            assertNull(cannotMakeWithoutAuth.getMyGameData());
+            assertNotNull(cannotMakeWithoutAuth.getMyException());
+            assertNotEquals(200, cannotMakeWithoutAuth.getNumericalCode());
 
         }
 
@@ -175,20 +204,31 @@ public class RegistrationTests {
         public void listGameFail() throws DataAccessException {
             // Lets check if we can list games with a null token this time
             //This should never work!!!
-            assertThrows(Throwable, myGameService.listGames(null, ChessGameName));
-
+            Responses cannotSeeWithoutAuth = myGameService.listGames(null, myDataStorage);
+            //Let us make sure it did not work
+            assertNull(cannotSeeWithoutAuth.getAllGames());
+            assertNotNull(cannotSeeWithoutAuth.getMyException());
+            assertNotEquals(200, cannotSeeWithoutAuth.getNumericalCode());
         }
 
         @Test
-        public void logoutFail() throws DataAccessException {
-            //check that we throw an error if we logout twice
-            assertThrows(DataAccessException, myRegister.logout(loginToken));
+        public void destroyNothing() throws DataAccessException {
+            Responses nonExistantEmptyDatabase = ender.DeleteALL(new DataAccess());
+            //Let us make sure that the delete of nothing worked... for the useless database...
+            assertEquals(nonExistantEmptyDatabase.getNumericalCode(), 200);
+            assertNull(nonExistantEmptyDatabase.getMyException());
+            //We deleted an empty database, so this should still exist...
+            assertTrue(myDataStorage.locateUsername(Kevin.username()));
         }
 
         @Test
         public void destroy() throws DataAccessException {
             //check that we can delete everything.
-            assertDoesNotThrow(Throwable, ender.DeleteALL());
+            Responses emptyDatabase = ender.DeleteALL(myDataStorage);
+            assertEquals(emptyDatabase.getNumericalCode(), 200);
+            assertFalse(myDataStorage.locateUsername(Kevin.username()));
+            assertFalse(myDataStorage.locateGameID(ChessGameID));
+            assertFalse(myDataStorage.checkAuthorization(loginToken));
         }
     }
 
