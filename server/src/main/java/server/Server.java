@@ -147,6 +147,8 @@ public class Server {
             //This new method implies implicitly knowing what kind of response does exist... but that is an okay amount
             //of coupling because it is implicit (I guess)...
             var finalReturn = new Gson().toJson(response.getAllGames());
+            //because I stored my values in a standard array, I need to add these Json signifiers after conversion...
+            finalReturn = "{ \"games\":" + finalReturn.toString() + "}";
             return finalReturn;
         } else {
             return errorHandler(response, req, res);
