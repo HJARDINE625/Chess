@@ -122,21 +122,23 @@ public class DataAccess implements DataAccesser{
                 //add the otherplayer  string definition
                 String otherPlayer = null;
                 //so far this will work, update to add more players...
-                if (clientColor.equals("WHITE")) {
-                    //first get the black username (regardless of it is null)...
-                    if (chessGame.blackUsername() != null) {
-                        otherPlayer = chessGame.blackUsername();
+                if(clientColor != null) {
+                    if (clientColor.equals("WHITE")) {
+                        //first get the black username (regardless of it is null)...
+                        if (chessGame.blackUsername() != null) {
+                            otherPlayer = chessGame.blackUsername();
+                        }
+                        //add a white player
+                        newGame = new GameData(gameID, username, otherPlayer, chessGame.gameName(), chessGame.implementation());
+                    } else if (clientColor.equals("BLACK")) {
+                        //first get the white username (regardless of it is null)...
+                        if (chessGame.whiteUsername() != null) {
+                            otherPlayer = chessGame.whiteUsername();
+                        }
+                        //add a black player
+                        newGame = new GameData(gameID, otherPlayer, username, chessGame.gameName(), chessGame.implementation());
                     }
-                    //add a white player
-                    newGame = new GameData(gameID, username, otherPlayer, chessGame.gameName(), chessGame.implementation());
-                } else if (clientColor.equals("BLACK")) {
-                    //first get the white username (regardless of it is null)...
-                    if (chessGame.whiteUsername() != null) {
-                        otherPlayer = chessGame.whiteUsername();
-                    }
-                    //add a black player
-                    newGame = new GameData(gameID, otherPlayer, username, chessGame.gameName(), chessGame.implementation());
-                } else {
+                }else {
                     //I am not sure that we need to do anything to add a new observer....
                     return chessGame;
                 }

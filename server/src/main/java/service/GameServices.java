@@ -9,7 +9,7 @@ public class GameServices {
     //return all games that are currently in the database.
     public Responses listGames(AuthData authToken, DataAccesser myDatabase){
         //This line, BY ITSELF, should be able to verify if I can look at this data
-        if(myDatabase.checkAuthorization(authToken)){
+        if(!myDatabase.checkAuthorization(authToken)){
             Responses faliureResponse = new Responses(401);
             faliureResponse.setMyException(new DataAccessException("Error: unauthorized"));
             return faliureResponse;
@@ -31,7 +31,7 @@ public class GameServices {
     //create a new game...
     public Responses createGame(AuthData authToken, String name, DataAccesser myDatabase){
         //This line, BY ITSELF, should be able to verify if I can look at this data
-        if(myDatabase.checkAuthorization(authToken)){
+        if(!myDatabase.checkAuthorization(authToken)){
             Responses faliureResponse = new Responses(401);
             faliureResponse.setMyException(new DataAccessException("Error: unauthorized"));
             return faliureResponse;
@@ -47,7 +47,7 @@ public class GameServices {
     //Finally join a game!
     public Responses joinGame(AuthData authToken, int gameID, String joinAsColor, DataAccesser myDatabase){
         //This line, BY ITSELF, should be able to verify if I can look at this data
-        if(myDatabase.checkAuthorization(authToken)){
+        if(!myDatabase.checkAuthorization(authToken)){
             Responses faliureResponse = new Responses(401);
             faliureResponse.setMyException(new DataAccessException("Error: unauthorized"));
             return faliureResponse;

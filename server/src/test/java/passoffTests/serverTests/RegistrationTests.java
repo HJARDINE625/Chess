@@ -6,16 +6,14 @@ import dataAccess.DataAccessException;
 import dataAccess.DataAccesser;
 import model.*;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import service.*;
 
 import java.sql.Connection;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNull;
-
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class RegistrationTests {
 
 
@@ -42,8 +40,7 @@ public class RegistrationTests {
 
         private String ChessGameName = "New";
 
-
-        @BeforeEach
+    @BeforeEach
         public void setUp() throws DataAccessException {
             // Here we can set up any classes or variables we will need for each test
 
@@ -57,9 +54,10 @@ public class RegistrationTests {
 
         @AfterEach
         public void tearDown() {
+            ender.DeleteALL(myDataStorage);
             //we do not need to do anything, here for now...
         }
-
+    @Order(1)
         @Test
         public void loginFail() throws DataAccessException {
             // Let's use a login method to find someone we have not entered.
@@ -71,7 +69,8 @@ public class RegistrationTests {
             // Now lets make sure that Kevin does exist, just not in the database.
             assertNotNull(Kevin);
         }
-        @Test
+    @Order(2)
+    @Test
         public void logoutFail() throws DataAccessException {
             //check that we cannot log out, before we login...
             Responses authDataLessHolder = myRegister.logout(loginToken, myDataStorage);
@@ -80,6 +79,7 @@ public class RegistrationTests {
             assertNotNull(authDataLessHolder.getMyException());
             assertEquals(authDataLessHolder.getNumericalCode(), 401);
         }
+        @Order(3)
         @Test
         public void insertPass() throws DataAccessException {
             // Start by inserting a user into the grid database.
@@ -91,9 +91,11 @@ public class RegistrationTests {
             assertNotNull(authDataHolder.getMyAuthData());
             assertNull(authDataHolder.getMyException());
         }
-
+    @Order(4)
         @Test
         public void loginPass() throws DataAccessException {
+            // Start by inserting a user into the grid database.
+            myRegister.register(Kevin, myDataStorage);
             // Let's use a find method to get the user that we previously put in back out.
             loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             // First lets see if our find method found anything at all. If it did then we know that we got
@@ -122,8 +124,13 @@ public class RegistrationTests {
 //            assertThrows(Throwable, myGameService.verify(null));
 //        }
         //here are the more straightforward tests
+    @Order(5)
         @Test
         public void addGamePass() throws DataAccessException {
+            // Start by inserting a user into the grid database.
+            myRegister.register(Kevin, myDataStorage);
+            // Let's use a find method to get the user that we previously put in back out.
+            loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             // Lets try to have a new Game added
             myGameService.createGame(loginToken, ChessGameName, myDataStorage);
             // Let's make sure that there is a game now
@@ -132,12 +139,16 @@ public class RegistrationTests {
             assertNotNull(myGameTest);
             //now let us make sure it is the right one
             assertEquals(myGameTest.gameName(), ChessGameName);
-            //ok let us save the ID for later
-            ChessGameID = myGameTest.gameID();
         }
-
+    @Order(6)
         @Test
         public void listGamePass() throws DataAccessException {
+            // Start by inserting a user into the grid database.
+            myRegister.register(Kevin, myDataStorage);
+            // Let's use a find method to get the user that we previously put in back out.
+            loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
+            // Lets try to have a new Game added
+            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
             // Lets check if we can list games again and get the same output
             Responses gameList = myGameService.listGames(loginToken, myDataStorage);
             GameData myGameTest = gameList.getAllGames()[0];
@@ -145,23 +156,48 @@ public class RegistrationTests {
             //now let us make sure it is the right one
             assertEquals(myGameTest.gameName(), ChessGameName);
             //ok let us make sure the ID is still the same
+            Responses list = myGameService.listGames(loginToken, myDataStorage);
+            GameData test = list.getAllGames()[0];
+            ChessGameID = test.gameID();
+            //the check...
             assertEquals(ChessGameID, myGameTest.gameID());
             //Now make sure the response did not have an error token and gave 200
             assertNull(gameList.getMyException());
             assertEquals(gameList.getNumericalCode(), 200);
         }
+    @Order(7)
 
         @Test
         public void joinGameFail() throws DataAccessException {
+            // Start by inserting a user into the grid database.
+            myRegister.register(Kevin, myDataStorage);
+            // Let's use a find method to get the user that we previously put in back out.
+            loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
+            // Lets try to have a new Game added
+            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            //now we update the ID
+            Responses list = myGameService.listGames(loginToken, myDataStorage);
+            GameData test = list.getAllGames()[0];
+            ChessGameID = test.gameID();
             // Lets join a game as a fake color now
             Responses nonGame = myGameService.joinGame(loginToken, ChessGameID, "siliver", myDataStorage);
             //Make sure we did not get any game and that there was no ok code.
             assertNull(nonGame.getMyGameData());
             assertNotEquals(200, nonGame.getNumericalCode());
         }
-
+    @Order(8)
         @Test
         public void joinGamePass() throws DataAccessException {
+            // Start by inserting a user into the grid database.
+            myRegister.register(Kevin, myDataStorage);
+            // Let's use a find method to get the user that we previously put in back out.
+            loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
+            // Lets try to have a new Game added
+            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            //now we update the ID
+            Responses list = myGameService.listGames(loginToken, myDataStorage);
+            GameData test = list.getAllGames()[0];
+            ChessGameID = test.gameID();
             // Lets join the real game now
             Responses game = myGameService.joinGame(loginToken,ChessGameID, null, myDataStorage);
             assertNotNull(game.getMyGameData());
@@ -172,11 +208,13 @@ public class RegistrationTests {
             //ok let us make sure the ID is still the same
             assertEquals(ChessGameID, myGameTest.gameID());
         }
-
+    @Order(9)
         @Test
         public void logoutPass() throws DataAccessException {
-            //check that Kevin is still logged in
-            assertNotNull(loginToken);
+            // Start by inserting a user into the grid database.
+            myRegister.register(Kevin, myDataStorage);
+            // Let's use a find method to get the user that we previously put in back out.
+            loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             //now that we have logged in Kevin, lets log him out
             Responses gettingOut = myRegister.logout(loginToken, myDataStorage);
             //did we get out
@@ -188,6 +226,7 @@ public class RegistrationTests {
             assertNotEquals(gettingOut, alreadyOut);
             assertNotNull(alreadyOut.getMyException());
         }
+    @Order(10)
 
         @Test
         public void addGameFail() throws DataAccessException {
@@ -199,6 +238,7 @@ public class RegistrationTests {
             assertNotEquals(200, cannotMakeWithoutAuth.getNumericalCode());
 
         }
+    @Order(11)
 
         @Test
         public void listGameFail() throws DataAccessException {
@@ -210,9 +250,13 @@ public class RegistrationTests {
             assertNotNull(cannotSeeWithoutAuth.getMyException());
             assertNotEquals(200, cannotSeeWithoutAuth.getNumericalCode());
         }
-
+    @Order(12)
         @Test
         public void destroyNothing() throws DataAccessException {
+            // Start by inserting a user into the grid database.
+            myRegister.register(Kevin, myDataStorage);
+            // Let's use a find method to get the user that we previously put in back out.
+            loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             Responses nonExistantEmptyDatabase = ender.DeleteALL(new DataAccess());
             //Let us make sure that the delete of nothing worked... for the useless database...
             assertEquals(nonExistantEmptyDatabase.getNumericalCode(), 200);
@@ -220,7 +264,7 @@ public class RegistrationTests {
             //We deleted an empty database, so this should still exist...
             assertTrue(myDataStorage.locateUsername(Kevin.username()));
         }
-
+    @Order(13)
         @Test
         public void destroy() throws DataAccessException {
             //check that we can delete everything.
