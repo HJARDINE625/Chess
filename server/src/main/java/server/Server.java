@@ -13,6 +13,7 @@ import spark.*;
 import spark.Response;
 
 import java.nio.file.Paths;
+import java.util.Map;
 
 public class Server {
 
@@ -98,8 +99,7 @@ public class Server {
             var finalReturn = new Gson().toJson(response.getMyAuthData());
             return finalReturn;
         } else {
-            var message = unpackException(response);
-            return message;
+            return errorHandler(response, req, res);
         }
 
     }
@@ -190,13 +190,22 @@ public class Server {
         return "{}";
 
     }
+// no longer needed, the errorHandler below makes the code work well it seems...
+//    private String unpackException(Responses response) {
+//        String errorString = response.getMyException().getMessage();
+//        int code = response.getNumericalCode();
+//        String myError = String.valueOf(code);
+//        String overallCode = "[" + myError + "] { message:" + errorString + " }";
+//        return overallCode;
+//    }
 
-    private String unpackException(Responses response) {
-        String errorString = response.getMyException().getMessage();
-        int code = response.getNumericalCode();
-        String myError = String.valueOf(code);
-        String overallCode = "[" + myError + "] { message:" + errorString + " }";
-        return overallCode;
+    public Object errorHandler(Responses response, Request req, Response res) {
+        Exception e = response.getMyException();
+        var body = new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()), "success", false));
+        res.type("application/json");
+        res.status(response.getNumericalCode());
+        res.body(body);
+        return body;
     }
 
 
