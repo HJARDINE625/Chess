@@ -267,6 +267,16 @@ public class RegistrationTests {
     @Order(13)
         @Test
         public void destroy() throws DataAccessException {
+            // Start by inserting a user into the grid database.
+            myRegister.register(Kevin, myDataStorage);
+            // Let's use a find method to get the user that we previously put in back out.
+            loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
+            // Lets try to have a new Game added
+            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            //now we update the ID
+            Responses list = myGameService.listGames(loginToken, myDataStorage);
+            GameData test = list.getAllGames()[0];
+            ChessGameID = test.gameID();
             //check that we can delete everything.
             Responses emptyDatabase = ender.DeleteALL(myDataStorage);
             assertEquals(emptyDatabase.getNumericalCode(), 200);
