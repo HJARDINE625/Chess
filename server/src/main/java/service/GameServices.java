@@ -7,7 +7,7 @@ import model.*;
 
 public class GameServices {
     //return all games that are currently in the database.
-    public Responses listGames(AuthData authToken, DataAccesser myDatabase){
+    public Responses listGames(String authToken, DataAccesser myDatabase){
         //This line, BY ITSELF, should be able to verify if I can look at this data
         if(!myDatabase.checkAuthorization(authToken)){
             Responses faliureResponse = new Responses(401);
@@ -29,7 +29,7 @@ public class GameServices {
     }
 
     //create a new game...
-    public Responses createGame(AuthData authToken, String name, DataAccesser myDatabase){
+    public Responses createGame(String authToken, String name, DataAccesser myDatabase){
         //This line, BY ITSELF, should be able to verify if I can look at this data
         if(!myDatabase.checkAuthorization(authToken)){
             Responses faliureResponse = new Responses(401);
@@ -45,7 +45,7 @@ public class GameServices {
     }
 
     //Finally join a game!
-    public Responses joinGame(AuthData authToken, int gameID, String joinAsColor, DataAccesser myDatabase){
+    public Responses joinGame(String authToken, int gameID, String joinAsColor, DataAccesser myDatabase){
         //This line, BY ITSELF, should be able to verify if I can look at this data
         if(!myDatabase.checkAuthorization(authToken)){
             Responses faliureResponse = new Responses(401);
@@ -76,7 +76,7 @@ public class GameServices {
             return faliureResponse;
         }
         //Apparently it is available... now I should return something...
-        GameData updatedGame = myDatabase.updateGame(gameID, joinAsColor, authToken.username());
+        GameData updatedGame = myDatabase.updateGame(gameID, joinAsColor, authToken);
         Responses successResponse = new Responses(200);
         successResponse.setMyGameData(updatedGame);
         return successResponse;

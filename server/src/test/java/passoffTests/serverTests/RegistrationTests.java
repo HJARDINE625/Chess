@@ -72,8 +72,13 @@ public class RegistrationTests {
     @Order(2)
     @Test
         public void logoutFail() throws DataAccessException {
-            //check that we cannot log out, before we login...
-            Responses authDataLessHolder = myRegister.logout(loginToken.authToken(), myDataStorage);
+            //add a new user and login...
+            Responses authDataHolder = myRegister.register(Kevin, myDataStorage);
+            //get the authToken String out
+            String loginCredentials = authDataHolder.getMyAuthData().authToken();
+            //check that we cannot log out, twice in a row with the same data...
+            myRegister.logout(loginCredentials, myDataStorage);
+            Responses authDataLessHolder = myRegister.logout(loginCredentials, myDataStorage);
             //With a non-existant login and no one currently logged in, this should lead to an error
             assertNull(authDataLessHolder.getMyAuthData());
             assertNotNull(authDataLessHolder.getMyException());
@@ -132,9 +137,9 @@ public class RegistrationTests {
             // Let's use a find method to get the user that we previously put in back out.
             loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             // Lets try to have a new Game added
-            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            myGameService.createGame(loginToken.authToken(), ChessGameName, myDataStorage);
             // Let's make sure that there is a game now
-            Responses gameList = myGameService.listGames(loginToken, myDataStorage);
+            Responses gameList = myGameService.listGames(loginToken.authToken(), myDataStorage);
             GameData myGameTest = gameList.getAllGames()[0];
             assertNotNull(myGameTest);
             //now let us make sure it is the right one
@@ -148,15 +153,15 @@ public class RegistrationTests {
             // Let's use a find method to get the user that we previously put in back out.
             loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             // Lets try to have a new Game added
-            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            myGameService.createGame(loginToken.authToken(), ChessGameName, myDataStorage);
             // Lets check if we can list games again and get the same output
-            Responses gameList = myGameService.listGames(loginToken, myDataStorage);
+            Responses gameList = myGameService.listGames(loginToken.authToken(), myDataStorage);
             GameData myGameTest = gameList.getAllGames()[0];
             assertNotNull(myGameTest);
             //now let us make sure it is the right one
             assertEquals(myGameTest.gameName(), ChessGameName);
             //ok let us make sure the ID is still the same
-            Responses list = myGameService.listGames(loginToken, myDataStorage);
+            Responses list = myGameService.listGames(loginToken.authToken(), myDataStorage);
             GameData test = list.getAllGames()[0];
             ChessGameID = test.gameID();
             //the check...
@@ -174,13 +179,13 @@ public class RegistrationTests {
             // Let's use a find method to get the user that we previously put in back out.
             loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             // Lets try to have a new Game added
-            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            myGameService.createGame(loginToken.authToken(), ChessGameName, myDataStorage);
             //now we update the ID
-            Responses list = myGameService.listGames(loginToken, myDataStorage);
+            Responses list = myGameService.listGames(loginToken.authToken(), myDataStorage);
             GameData test = list.getAllGames()[0];
             ChessGameID = test.gameID();
             // Lets join a game as a fake color now
-            Responses nonGame = myGameService.joinGame(loginToken, ChessGameID, "siliver", myDataStorage);
+            Responses nonGame = myGameService.joinGame(loginToken.authToken(), ChessGameID, "siliver", myDataStorage);
             //Make sure we did not get any game and that there was no ok code.
             assertNull(nonGame.getMyGameData());
             assertNotEquals(200, nonGame.getNumericalCode());
@@ -193,13 +198,13 @@ public class RegistrationTests {
             // Let's use a find method to get the user that we previously put in back out.
             loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             // Lets try to have a new Game added
-            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            myGameService.createGame(loginToken.authToken(), ChessGameName, myDataStorage);
             //now we update the ID
-            Responses list = myGameService.listGames(loginToken, myDataStorage);
+            Responses list = myGameService.listGames(loginToken.authToken(), myDataStorage);
             GameData test = list.getAllGames()[0];
             ChessGameID = test.gameID();
             // Lets join the real game now
-            Responses game = myGameService.joinGame(loginToken,ChessGameID, null, myDataStorage);
+            Responses game = myGameService.joinGame(loginToken.authToken(),ChessGameID, null, myDataStorage);
             assertNotNull(game.getMyGameData());
             assertEquals(200, game.getNumericalCode());
             //now let us make sure it is the right one
@@ -230,8 +235,8 @@ public class RegistrationTests {
 
         @Test
         public void addGameFail() throws DataAccessException {
-            // Lets try to have a new Game added with a useless login token
-            Responses cannotMakeWithoutAuth = myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            // Lets try to have a new Game added with a useless login token (no login tokens currently work, so it should be fine)...
+            Responses cannotMakeWithoutAuth = myGameService.createGame("abdhstfeig", ChessGameName, myDataStorage);
             //Let us make sure it did not work
             assertNull(cannotMakeWithoutAuth.getMyGameData());
             assertNotNull(cannotMakeWithoutAuth.getMyException());
@@ -290,9 +295,9 @@ public class RegistrationTests {
             // Let's use a find method to get the user that we previously put in back out.
             loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             // Lets try to have a new Game added
-            myGameService.createGame(loginToken, ChessGameName, myDataStorage);
+            myGameService.createGame(loginToken.authToken(), ChessGameName, myDataStorage);
             //now we update the ID
-            Responses list = myGameService.listGames(loginToken, myDataStorage);
+            Responses list = myGameService.listGames(loginToken.authToken(), myDataStorage);
             GameData test = list.getAllGames()[0];
             ChessGameID = test.gameID();
             //check that we can delete everything.
@@ -300,7 +305,7 @@ public class RegistrationTests {
             assertEquals(emptyDatabase.getNumericalCode(), 200);
             assertFalse(myDataStorage.locateUsername(Kevin.username()));
             assertFalse(myDataStorage.locateGameID(ChessGameID));
-            assertFalse(myDataStorage.checkAuthorization(loginToken));
+            assertFalse(myDataStorage.checkAuthorization(loginToken.authToken()));
         }
     }
 

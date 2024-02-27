@@ -108,7 +108,15 @@ public class DataAccess implements DataAccesser{
 
     //First check this person is authorized then that the game exists then that color is available... Then call this function...
     @Override
-    public GameData updateGame(int gameID, String clientColor, String username) {
+    public GameData updateGame(int gameID, String clientColor, String auth) {
+        //We only call this at appropriate times (when the user has been found), so I think it is fine to do this...
+        String username = "";
+        for (AuthData user: authentications) {
+            if(user.authToken().equals(auth)) {
+                username = user.username();
+                break;
+            }
+        }
         //add the new game to return
         GameData newGame = new GameData(0, null, null, null, null);
         //and the game to watch
@@ -205,15 +213,18 @@ public class DataAccess implements DataAccesser{
     }
 
     @Override
-    public boolean checkAuthorization(AuthData authenticator) {
+    public boolean checkAuthorization(String authenticator) {
         if(authentications.isEmpty()){
             return false;
         } else {
-            if (authentications.contains(authenticator)) {
-                return true;
-            } else {
-                return false;
+            boolean foundIt = false;
+            for (AuthData authenticate: authentications) {
+                if(authenticate.authToken().equals(authenticator)) {
+                    foundIt = true;
+                    break;
+                }
             }
+            return foundIt;
         }
     }
 

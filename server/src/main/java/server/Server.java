@@ -133,16 +133,24 @@ public class Server {
 
     private Object listGames(Request req, Response res) {
         var serializer = new Gson();
-        AuthData authentication = serializer.fromJson(req.body(), AuthData.class);
+        //AuthData authentication = serializer.fromJson(req.body(), AuthData.class);
+        String authentication = req.headers("authorization");
         Responses response;
-        if ((authentication.username() == null) || (authentication.authToken() == null)) {
+        if (authentication == null) {
             response = new Responses(400);
             response.setMyException(new DataAccessException("Error: invalid request"));
         } else {
             GameServices service = new GameServices();
             response = service.listGames(authentication, myDataStorageDevice);
         }
-        return new Gson().toJson(response);
+        if(response.getMyException() == null) {
+            //This new method implies implicitly knowing what kind of response does exist... but that is an okay amount
+            //of coupling because it is implicit (I guess)...
+            var finalReturn = new Gson().toJson(response.getAllGames());
+            return finalReturn;
+        } else {
+            return errorHandler(response, req, res);
+        }
 
     }
 
@@ -151,37 +159,58 @@ public class Server {
         //This function needs to check for a null gameID passed in, so it is a little more complicated first
         //making a "new game" with a string representing an int, then making the correct data type to take
         //parts of to make a join game request.
-        AuthDataInt newGame = serializer.fromJson(req.body(), AuthDataInt.class);
+        //we represent the int game in capitals to differentiate it from the string...
+        AuthDataInt Game = serializer.fromJson(req.body(), AuthDataInt.class);
         String auth = req.headers("authorization");
 
         Responses response;
 
-        if ((newGame.username() == null) || (newGame.authToken() == null) || (newGame.gameID() == null)) {
+        if ((auth == null) || (Game == null)) {
             response = new Responses(400);
             response.setMyException(new DataAccessException("Error: invalid request"));
-        } else {
+        } else if(Game.gameID() != null){
             GameServices service = new GameServices();
             AuthDataName game = serializer.fromJson(req.body(), AuthDataName.class);
-            AuthData authentication = new AuthData(game.authToken(), game.username());
-            response = service.joinGame(authentication, game.gameID(), game.color(), myDataStorageDevice);
+            //AuthData authentication = new AuthData(game.authToken(), game.username());
+            response = service.joinGame(auth, game.gameID(), game.color(), myDataStorageDevice);
+        } else {
+            //We actually still did not have everything we needed...
+            response = new Responses(400);
+            response.setMyException(new DataAccessException("Error: invalid request"));
         }
-        return new Gson().toJson(response);
+        if(response.getMyException() == null) {
+            //This new method implies implicitly knowing what kind of response does exist... but that is an okay amount
+            //of coupling because it is implicit (I guess)...
+            //var finalReturn = new Gson().toJson(response.getMyAuthData());
+            return "{}";
+        } else {
+            return errorHandler(response, req, res);
+        }
 
     }
 
     private Object createGame(Request req, Response res) {
         var serializer = new Gson();
-        NewGame newGame = serializer.fromJson(req.body(), NewGame.class);
+        String newGame = serializer.fromJson(req.body(), String.class);
+        String authentication = req.headers("authorization");
         Responses response;
-        if ((newGame.username() == null) || (newGame.authToken() == null) || (newGame.gameName() == null)) {
+        if ((authentication == null) || (newGame == null)) {
             response = new Responses(400);
             response.setMyException(new DataAccessException("Error: invalid request"));
         } else {
             GameServices service = new GameServices();
-            AuthData authentication = new AuthData(newGame.authToken(), newGame.username());
-            response = service.createGame(authentication, newGame.gameName(), myDataStorageDevice);
+            //AuthData authentication = new AuthData(authentication, newGame.username());
+            response = service.createGame(authentication, newGame, myDataStorageDevice);
         }
-        return new Gson().toJson(response);
+        if(response.getMyException() == null) {
+            //This new method implies implicitly knowing what kind of response does exist... but that is an okay amount
+            //of coupling because it is implicit (I guess)...
+            var finalReturn = new Gson().toJson(response.getMyGameData());
+            return finalReturn;
+        } else {
+            return errorHandler(response, req, res);
+        }
+
 
     }
 

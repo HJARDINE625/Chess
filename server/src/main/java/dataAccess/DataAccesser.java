@@ -11,11 +11,11 @@ public interface DataAccesser {
     public GameData createGame(String gameName);
     public GameData getGame(int gameID);
     public GameData[] listGames();
-    public GameData updateGame(int gameID, String clientColor, String username);
+    public GameData updateGame(int gameID, String clientColor, String auth);
     public AuthData createAuth(String username);
     public AuthData getAuth();
     public boolean deleteAuth(String authenticator);
-    public boolean checkAuthorization(AuthData authenticator);
+    public boolean checkAuthorization(String authenticator);
     public boolean colorExists(String color, int gameID);
     public boolean colorNotTaken(String color, int gameID);
     public boolean locateUsername(String username);
