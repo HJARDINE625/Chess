@@ -25,8 +25,12 @@ public class Server {
         Spark.port(desiredPort);
 
         //I appear to be getting an invalid path, invalid length/CHAR error here... I wonder if I should get my path some other way...
-        var webDir = Paths.get(Server.class.getProtectionDomain().getCodeSource().getLocation().getPath(), "web");
-        Spark.externalStaticFileLocation(webDir.toString());
+        var webDir =  "web";
+        //try this?
+        // Register a directory for hosting static files
+        //Spark.externalStaticFileLocation("public");
+        //this next code crashed the internet until I closed this program!
+        Spark.staticFiles.location(webDir.toString());
 
         //First get request...
         //(will need to convert a json from gson and a json to gson to allow for the request and response type values in spark (not to be confused with my own requests and responses)...
@@ -65,7 +69,9 @@ public class Server {
             RegistrationServices service = new RegistrationServices();
             response = service.register(newUser, myDataStorageDevice);
         }
-        return new Gson().toJson(response);
+
+        var cool = new Gson().toJson(response);
+        return "{}";
 
     }
 
@@ -127,6 +133,7 @@ public class Server {
         //making a "new game" with a string representing an int, then making the correct data type to take
         //parts of to make a join game request.
         AuthDataInt newGame = serializer.fromJson(req.body(), AuthDataInt.class);
+        //String authentication = req.headers("authentication");
 
         Responses response;
 
@@ -169,7 +176,7 @@ public class Server {
         ContolServices service = new ContolServices();
         Responses response = service.DeleteALL(myDataStorageDevice);
 
-        return new Gson().toJson(response);
+        return "{}";
 
     }
 
