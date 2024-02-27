@@ -14,7 +14,7 @@ public interface DataAccesser {
     public GameData updateGame(int gameID, String clientColor, String username);
     public AuthData createAuth(String username);
     public AuthData getAuth();
-    public boolean deleteAuth(AuthData authenticator);
+    public boolean deleteAuth(String authenticator);
     public boolean checkAuthorization(AuthData authenticator);
     public boolean colorExists(String color, int gameID);
     public boolean colorNotTaken(String color, int gameID);

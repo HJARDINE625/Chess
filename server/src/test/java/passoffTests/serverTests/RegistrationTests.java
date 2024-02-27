@@ -73,7 +73,7 @@ public class RegistrationTests {
     @Test
         public void logoutFail() throws DataAccessException {
             //check that we cannot log out, before we login...
-            Responses authDataLessHolder = myRegister.logout(loginToken, myDataStorage);
+            Responses authDataLessHolder = myRegister.logout(loginToken.authToken(), myDataStorage);
             //With a non-existant login and no one currently logged in, this should lead to an error
             assertNull(authDataLessHolder.getMyAuthData());
             assertNotNull(authDataLessHolder.getMyException());
@@ -216,12 +216,12 @@ public class RegistrationTests {
             // Let's use a find method to get the user that we previously put in back out.
             loginToken = myRegister.login(Kevin.username(), Kevin.password(), myDataStorage).getMyAuthData();
             //now that we have logged in Kevin, lets log him out
-            Responses gettingOut = myRegister.logout(loginToken, myDataStorage);
+            Responses gettingOut = myRegister.logout(loginToken.authToken(), myDataStorage);
             //did we get out
             assertEquals(gettingOut.getNumericalCode(), 200);
             //now make sure that he has logged out
             //I may need to ask for something from login token instead to make sure this works
-            Responses alreadyOut = myRegister.logout(loginToken, myDataStorage);
+            Responses alreadyOut = myRegister.logout(loginToken.authToken(), myDataStorage);
             //make sure they are different...
             assertNotEquals(gettingOut, alreadyOut);
             assertNotNull(alreadyOut.getMyException());

@@ -72,11 +72,12 @@ public class Server {
         }
     //Gson.toJson(response) is causing the errors...
         if(response.getMyException() == null) {
+            //This new method implies implicitly knowing what kind of response does exist... but that is an okay amount
+            //of coupling because it is implicit (I guess)...
             var finalReturn = new Gson().toJson(response.getMyAuthData());
             return finalReturn;
         } else {
-            var finalReturn = new Gson().toJson(response.getMyException());
-            return finalReturn;
+            return errorHandler(response, req, res);
         }
 
     }
@@ -96,6 +97,8 @@ public class Server {
             response = service.login(newUser.username(), newUser.password(), myDataStorageDevice);
         }
         if(response.getMyException() == null) {
+            //This new method implies implicitly knowing what kind of response does exist... but that is an okay amount
+            //of coupling because it is implicit (I guess)...
             var finalReturn = new Gson().toJson(response.getMyAuthData());
             return finalReturn;
         } else {
@@ -110,16 +113,21 @@ public class Server {
 
         //now get the data we need for a response and then check it before passing it into a service...
         Responses response;
-        AuthData oldAuthentication = serializer.fromJson(req.body(), AuthData.class);
-        if ((oldAuthentication.username() == null) || (oldAuthentication.authToken() == null)) {
+        //AuthData oldAuthentication = serializer.fromJson(req.body(), AuthData.class);
+        String authentication = req.headers("authorization");
+        if (authentication == null) {
             response = new Responses(400);
             response.setMyException(new DataAccessException("Error: invalid request"));
         } else {
             RegistrationServices service = new RegistrationServices();
-            response = service.logout(oldAuthentication, myDataStorageDevice);
+            response = service.logout(authentication, myDataStorageDevice);
         }
-
-        return new Gson().toJson(response);
+        if(response.getMyException() == null) {
+            //no real return value here...
+            return "{}";
+        } else {
+            return errorHandler(response, req, res);
+        }
 
     }
 
@@ -144,7 +152,7 @@ public class Server {
         //making a "new game" with a string representing an int, then making the correct data type to take
         //parts of to make a join game request.
         AuthDataInt newGame = serializer.fromJson(req.body(), AuthDataInt.class);
-        //String authentication = req.headers("authentication");
+        String auth = req.headers("authorization");
 
         Responses response;
 
@@ -187,7 +195,11 @@ public class Server {
         ContolServices service = new ContolServices();
         Responses response = service.DeleteALL(myDataStorageDevice);
 
-        return "{}";
+        if(response.getMyException() == null) {
+            return "{}";
+        } else {
+            return errorHandler(response, req, res);
+        }
 
     }
 // no longer needed, the errorHandler below makes the code work well it seems...

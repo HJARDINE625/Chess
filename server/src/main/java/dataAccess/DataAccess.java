@@ -183,14 +183,22 @@ public class DataAccess implements DataAccesser{
 
     //Can call this function without calling function below...
     @Override
-    public boolean deleteAuth(AuthData authenticator) {
+    public boolean deleteAuth(String authenticator) {
         if(authentications.isEmpty()){
             return false;
         } else {
-            if (authentications.contains(authenticator)) {
-                authentications.remove(authenticator);
-                return true;
-            } else {
+            boolean foundIt = false;
+            AuthData authTokenToDelete = new AuthData(null, null);
+            for (AuthData authenticate: authentications) {
+                if(authenticate.authToken().equals(authenticator)) {
+                    foundIt = true;
+                    authTokenToDelete = authenticate;
+                    break;
+                }
+            } if (foundIt) {
+                    authentications.remove(authTokenToDelete);
+                    return true;
+            }else {
                 return false;
             }
         }

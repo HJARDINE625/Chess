@@ -51,10 +51,11 @@ public class RegistrationServices {
     }
 
     //this destroys an authtoken...
-    public Responses logout(AuthData authToken, DataAccesser myDatabase){
-        //We need to make sure that the authToken is real and really applies to the person
+    public Responses logout(String authentication, DataAccesser myDatabase){
+        //We need to make sure that the authToken is real and really applies to the person... cancel the second part...
+        //they do not seem to care about mentioning the person beyond authentication...
         //We can do this at the same time as removing that authorization by using a special DataAccessor function
-        if(myDatabase.deleteAuth(authToken)){
+        if(myDatabase.deleteAuth(authentication)){
             return new Responses(200);
         } else {
             //clearly we could not find the thing to delete
