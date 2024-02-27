@@ -60,14 +60,22 @@ public class DataAccess implements DataAccesser{
         while(newUniqueValueFound == false) {
             GameID = UUID.randomUUID().hashCode();
             newUniqueValueFound = true;
-            if (!games.isEmpty()){
-                for (GameData game: games) {
+            //negative and zero hashes are invalid, for some reason...
+            if (GameID <= 0) {
+                //this is an odd way to do this, but it seems efficient enough...
+                newUniqueValueFound = false;
+                //we will only continue if we have a valid hashcode...
+            } else {
+                //now we need to make sure that this hash does not already exist in the database...
+                if (!games.isEmpty()) {
+                for (GameData game : games) {
                     if (game.gameID() == GameID) {
                         newUniqueValueFound = false;
                         break;
                     }
                 }
             }
+        }
         }
         //The game will be very incomplete so far as no-one has joined as white or black... but it will need a new ChessGame
         ChessGame gameOfChess = new ChessGame();
