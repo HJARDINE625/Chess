@@ -69,9 +69,14 @@ public class Server {
             RegistrationServices service = new RegistrationServices();
             response = service.register(newUser, myDataStorageDevice);
         }
-
-        var cool = new Gson().toJson(response);
-        return "{}";
+    //Gson.toJson(response) is causing the errors...
+        if(response.getMyException() == null) {
+            var finalReturn = new Gson().toJson(response.getMyAuthData());
+            return finalReturn;
+        } else {
+            var finalReturn = new Gson().toJson(response.getMyException());
+            return finalReturn;
+        }
 
     }
 
@@ -89,7 +94,13 @@ public class Server {
             RegistrationServices service = new RegistrationServices();
             response = service.login(newUser.username(), newUser.password(), myDataStorageDevice);
         }
-        return new Gson().toJson(response);
+        if(response.getMyException() == null) {
+            var finalReturn = new Gson().toJson(response.getMyAuthData());
+            return finalReturn;
+        } else {
+            var message = unpackException(response);
+            return message;
+        }
 
     }
 
@@ -179,5 +190,14 @@ public class Server {
         return "{}";
 
     }
+
+    private String unpackException(Responses response) {
+        String errorString = response.getMyException().getMessage();
+        int code = response.getNumericalCode();
+        String myError = String.valueOf(code);
+        String overallCode = "[" + myError + "] { message:" + errorString + " }";
+        return overallCode;
+    }
+
 
 }
