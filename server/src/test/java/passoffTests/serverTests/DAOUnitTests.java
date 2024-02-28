@@ -38,6 +38,8 @@ public class DAOUnitTests {
 
     private String otherGame;
 
+    private int antiGameID = -1111;
+
     @BeforeEach
     public void setUp() throws DataAccessException {
         // Here we can set up any classes or variables we will need for each test
@@ -54,12 +56,9 @@ public class DAOUnitTests {
 
     }
     //Here are the methods I still need to implement positives and negative for (these are actually easier... as they are the code that checks for errors in inputs with booleans, so they have clear fail states).
-    public boolean deleteAuth(String authenticator);
-    public boolean checkAuthorization(String authenticator);
+
     public boolean colorExists(String color, int gameID);
     public boolean colorNotTaken(String color, int gameID);
-    public boolean locateUsername(String username);
-    public boolean locateGameID(int gameID);
 
     @AfterEach
     public void tearDown() {
@@ -283,6 +282,118 @@ public class DAOUnitTests {
         assertEquals(theGreatGame, myDataStorage.getGame(theGreatGame.gameID()));
     }
 
+    //These functions are much easier to check, because they are meant to return a boolean signifying that they worked.
+    //ie: they are the actual functions called to test for errors before the others are called.
+    @Order(15)
+    @Test
+    public void checkAuthorizationPass() throws DataAccessException {
+        //create our user and log him in
+        myDataStorage.createUser(Kevin.username(), Kevin.password(), Kevin.email());
+        AuthData user = myDataStorage.createAuth(Kevin.username());
+        //now see if he exists
+        assertNotNull(user);
+        //because he exists we should be able to find him...
+        assertTrue(myDataStorage.checkAuthorization(user.authToken()));
+    }
+
+    @Order(16)
+    @Test
+    public void deleteAuthFail() throws DataAccessException {
+        //create our user and log him in
+        myDataStorage.createUser(Kevin.username(), Kevin.password(), Kevin.email());
+        AuthData user = myDataStorage.createAuth(Kevin.username());
+        //now see if he exists
+        assertNotNull(user);
+        //and his authentication
+        assertNotNull(user.authToken());
+        //Now crash the grid
+        myDataStorage.clear();
+        //Now see if we can delete an authentication that no longer exists
+        myDataStorage.deleteAuth(user.authToken());
+    }
+
+    @Order(17)
+    @Test
+    public void checkAuthorizationFail() throws DataAccessException {
+        //create our user but do not log him in (he is actually a program who does not think he needs to).
+        UserData program = myDataStorage.createUser(Clue.username(), Clue.password(), Clue.email());
+        //let's make sure there is a program in the database and that it is the same as what we put in...
+        assertNotNull(program);
+        assertEquals(program, Clue);
+        //let's check his authorization using the data he gave
+        assertFalse(myDataStorage.checkAuthorization(Clue.username()));
+        assertFalse(myDataStorage.checkAuthorization(Clue.password()));
+        assertFalse(myDataStorage.checkAuthorization(Clue.email()));
+    }
+
+    @Order(18)
+    @Test
+    public void deleteAuthPass() throws DataAccessException {
+        //well this guy is a faker, so we will log him in, but then expel him.
+        UserData program = myDataStorage.createUser(Clue.username(), Clue.password(), Clue.email());
+        AuthData soCalledUser = myDataStorage.createAuth(Clue.username());
+        //let's make sure there is a program in the database and that it is the same as what we put in...
+        assertNotNull(program);
+        assertEquals(program, Clue);
+        //also check the AuthData
+        assertNotNull(soCalledUser);
+        assertNotNull(soCalledUser.authToken());
+        assertNotNull(soCalledUser.username());
+        //alright, he is in, kick him out and check it worked
+        assertTrue(myDataStorage.deleteAuth(soCalledUser.authToken()));
+        //we should not be able to find him now
+        assertFalse(myDataStorage.checkAuthorization(soCalledUser.authToken()));
+    }
+
+    @Order(19)
+    @Test
+    public void locateUsernamePass() throws DataAccessException {
+        //get a new user...
+        UserData user = myDataStorage.createUser(Kevin.username(), Kevin.password(), Kevin.email());
+        //let's make sure there is a user in the database and that it is the same as what we put in...
+        assertNotNull(user);
+        assertEquals(user, Kevin);
+        //now lets see if we can find him
+        assertTrue(myDataStorage.locateUsername(Kevin.username()));
+    }
+
+    @Order(20)
+    @Test
+    public void locateGameIDFail() throws DataAccessException {
+        //fill up our games
+        myDataStorage.createGame(otherGame);
+        myDataStorage.createGame(ChessGameName);
+        //Now lets see if we can find a game from a game id that cannot exist based upon creation rules
+        assertFalse(myDataStorage.locateGameID(antiGameID));
+
+    }
+
+    @Order(21)
+    @Test
+    public void locateGameIDPass() throws DataAccessException {
+        //fill up our games
+        GameData gameOne = myDataStorage.createGame(otherGame);
+        GameData gameTwo = myDataStorage.createGame(ChessGameName);
+        //lets make sure we have something
+        assertNotNull(gameOne);
+        assertNotNull(gameTwo);
+        assertNotNull(gameOne.gameID());
+        assertNotNull(gameTwo.gameID());
+        //make sure they are different (they should be if createGame is working right...)
+        assertNotEquals(gameOne, gameTwo);
+        assertNotEquals(gameOne.gameID(), gameTwo.gameID());
+        //Now lets see if we can find the games based upon their ID's...
+        assertEquals(gameOne, myDataStorage.getGame(gameOne.gameID()));
+        assertEquals(gameTwo, myDataStorage.getGame(gameTwo.gameID()));
+        assertNotEquals(myDataStorage.getGame(gameOne.gameID()), myDataStorage.getGame(gameTwo.gameID()));
+    }
+
+    @Order(22)
+    @Test
+    public void locateUsernameFail() throws DataAccessException {
+        //Lets try to find a username in an empty datastorage
+        assertFalse(myDataStorage.locateUsername(Clue.username()));
+    }
 
 
 
