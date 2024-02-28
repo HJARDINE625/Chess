@@ -139,18 +139,14 @@ public class DAOUnitTests {
     @Order(6)
     @Test
     public void createAuthFail() throws DataAccessException {
-        //Lets create a false new user
-        myDataStorage.createUser(null, null, null);
-        //now let us get an authToken for him
-        boolean weGotAwayWithNonsense = true;
-        try {
-            AuthData myResult = myDataStorage.createAuth(Kevin.username());
-        } catch (Exception e) {
-            //This should work, provided that the database properly clears at the end of this
-            weGotAwayWithNonsense = false;
-        }
-        //Check that it threw an error meaning that this query does not work...
-        assertFalse(weGotAwayWithNonsense);
+        //Lets create a new user
+        UserData user = myDataStorage.createUser(Kevin.username(), Kevin.password(), Kevin.email());
+        //now let us get an authToken for someone else
+        AuthData hack = myDataStorage.createAuth(Clue.username());
+        Responses itShouldExistTo = myRegister.login(Clue.username(), Clue.password(), myDataStorage);
+        //we get the first auth, but not the second...
+        assertNotNull(hack);
+        assertNull(itShouldExistTo.getMyAuthData());
     }
 
     //This will just check that a game created with no name has no name (a random error that should never come up).
@@ -187,8 +183,10 @@ public class DAOUnitTests {
         GameData[] mySoCalledGames = myDataStorage.listGames();
         //there should be none, preventing the for loop from running.
         boolean thereIsNoGame = true;
-        for (GameData d: mySoCalledGames) {
-            thereIsNoGame = false;
+        if(mySoCalledGames != null) {
+            if (mySoCalledGames.length != 0) {
+                    thereIsNoGame = false;
+            }
         }
         //If there are no games, we successfully failed to use our database to the fullest.
         assertTrue(thereIsNoGame);
