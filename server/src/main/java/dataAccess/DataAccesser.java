@@ -13,7 +13,7 @@ public interface DataAccesser {
     public GameData[] listGames();
     public GameData updateGame(int gameID, String clientColor, String auth);
     public AuthData createAuth(String username);
-    public AuthData getAuth();
+    //public AuthData getAuth();
     public boolean deleteAuth(String authenticator);
     public boolean checkAuthorization(String authenticator);
     public boolean colorExists(String color, int gameID);

@@ -192,10 +192,10 @@ public class DataAccess implements DataAccesser{
     }
 
     //Might not be necessary in this implementation...
-    @Override
-    public AuthData getAuth() {
-        return null;
-    }
+    //@Override
+    //public AuthData getAuth() {
+       // return null;
+   // }
 
     //Can call this function without calling function below...
     @Override
