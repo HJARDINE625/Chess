@@ -57,8 +57,7 @@ public class DAOUnitTests {
     }
     //Here are the methods I still need to implement positives and negative for (these are actually easier... as they are the code that checks for errors in inputs with booleans, so they have clear fail states).
 
-    public boolean colorExists(String color, int gameID);
-    public boolean colorNotTaken(String color, int gameID);
+    //None!
 
     @AfterEach
     public void tearDown() {
@@ -143,7 +142,7 @@ public class DAOUnitTests {
         //Lets create a false new user
         myDataStorage.createUser(null, null, null);
         //now let us get an authToken for him
-        boolean weGotAwayWithNonsense = true
+        boolean weGotAwayWithNonsense = true;
         try {
             AuthData myResult = myDataStorage.createAuth(Kevin.username());
         } catch (Exception e) {
@@ -395,11 +394,65 @@ public class DAOUnitTests {
         assertFalse(myDataStorage.locateUsername(Clue.username()));
     }
 
-
-
-
-
     @Order(23)
+    @Test
+    public void colorExistsPass() throws DataAccessException {
+        //fill up our games
+        GameData test = myDataStorage.createGame(otherGame);
+        //make sure we have something
+        assertNotNull(test);
+        assertNotNull(test.gameID());
+        //now see if the null color is allowed in the game (it always should be based upon my logic)
+        assertTrue(myDataStorage.colorExists(null, test.gameID()));
+    }
+
+    @Order(24)
+    @Test
+    public void colorExistsFail() throws DataAccessException {
+        //Let's try to find a color that does not exist in base Chess after setting up a base Chess game... specifically a lowercase color...
+        //fill up our games
+        GameData test = myDataStorage.createGame(otherGame);
+        //make sure we have something
+        assertNotNull(test);
+        assertNotNull(test.gameID());
+        //now see if the lowercase "white" is allowed... it should not be the way I set up the indicators and methods...
+        assertFalse(myDataStorage.colorExists("white", test.gameID()));
+    }
+
+    @Order(25)
+    @Test
+    public void colorNotTakenPass() throws DataAccessException {
+        //fill up our games
+        GameData greatGame = myDataStorage.createGame(otherGame);
+        UserData user = myDataStorage.createUser(Kevin.username(), Kevin.password(), Kevin.email());
+        UserData program = myDataStorage.createUser(Clue.username(), Clue.password(), Clue.email());
+        //make sure we have something
+        assertNotNull(greatGame);
+        assertNotNull(greatGame.gameID());
+        assertNotNull(user);
+        assertNotNull(program);
+        //the game should be empty (ready for adding players, check that WHITE exists and is not taken yet... as no one has joined...
+        assertTrue(myDataStorage.colorExists("WHITE", greatGame.gameID()));
+        assertTrue(myDataStorage.colorNotTaken("WHITE", greatGame.gameID()));
+        //add Kevin then see if white is still not taken afterwords
+        myDataStorage.updateGame(greatGame.gameID(),"WHITE", Kevin.username());
+        assertTrue(myDataStorage.colorExists("WHITE", greatGame.gameID()));
+        assertFalse(myDataStorage.colorNotTaken("WHITE", greatGame.gameID()));
+    }
+
+    @Order(26)
+    @Test
+    public void colorNotTakenFail() throws DataAccessException {
+        //fill up our games and players
+        GameData test = myDataStorage.createGame(otherGame);
+        //make sure we have something
+        assertNotNull(test);
+        assertNotNull(test.gameID());
+    }
+
+
+
+    @Order(27)
     @Test
     public void failDestroy() throws DataAccessException {
         // Start by inserting a user into the grid database.
@@ -422,7 +475,7 @@ public class DAOUnitTests {
         assertTrue(myDataStorage.locateGameID(ChessGameID));
         assertTrue(myDataStorage.checkAuthorization(loginToken.authToken()));
     }
-    @Order(24)
+    @Order(28)
     @Test
     public void destroy() throws DataAccessException {
         // Start by inserting a user into the grid database.
