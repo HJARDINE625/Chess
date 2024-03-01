@@ -7,6 +7,7 @@ import java.sql.SQLException;
 //to be in another one...
 public class RowManager {
 
+
     //use this function to add the first name/identifier in a table...
     void insert(String name, int updatePoint, Connection conn, String table) throws DataAccessException {
 

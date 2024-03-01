@@ -7,6 +7,7 @@ import model.GameData;
 import model.UserData;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.UUID;
@@ -30,6 +31,14 @@ public class DataBaseAccesser implements DataAccesser{
     private String userTable = "user";
     private String authTable = "auth";
     private String gameTable = "game";
+
+    //This will have to be directly implemented everywhere as the return type is unknown...
+    SELECT columns_to_return
+    FROM table_to_query
+    WHERE search_condition;
+    void get;
+    String statementBuilder = "SELECT " + " FROM " + " WHERE ";
+    var statement = statementBuilder;
 
 
     public DataBaseAccesser(){
@@ -83,17 +92,53 @@ public class DataBaseAccesser implements DataAccesser{
 
     @Override
     public UserData getUser(String username, String password) {
-        for (UserData user: users) {
-            if(user.username().equals(username)){
-                if(user.password().equals(password)){
-                    return user;
-                }
+        boolean exists = false;
+        String email;
+        //for (UserData user: users) {
+            //if(user.username().equals(username)){
+                //if(user.password().equals(password)){
+                    //return user;
+                //}
                 //make the main method find this and if it is found throw incorrect password error...
-                return null;
-            }
-        }
+                //return null;
+            //}
+       // }
         //make the main method find this and if it is found throw incorrect password error...
-        return null;
+        //SELECT username FROM table_to_query
+        //WHERE search_condition;
+        if(username.matches("[a-zA-Z]+/\"")) {
+            String statementBuilder = "SELECT email FROM " + userTable + " WHERE " + " (username) VALUES(?)";
+            var statement = statementBuilder;
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, username);
+                email = preparedStatement.executeUpdate();
+                //should not return an int... above...
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        } else {
+            return null;
+        }
+        if(password.matches("[a-zA-Z]+/\"")) {
+            String statementBuilder = "SELECT email FROM " + userTable + " WHERE " + " (password) VALUES(?)";
+            var statement = statementBuilder;
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, username);
+                if(email == preparedStatement.executeUpdate()){
+                    exists = true;
+                }
+                //should not return an int... above...
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        } else {
+            return null;
+        }
+        if(!exists){
+            return null;
+        } else {
+            return new UserData(username, password, email);
+        }
     }
 
     //only call if locate game ID does not return an error
@@ -114,15 +159,27 @@ public class DataBaseAccesser implements DataAccesser{
                 //we will only continue if we have a valid hashcode...
             } else {
                 //now we need to make sure that this hash does not already exist in the database...
-                if (!games.isEmpty()) {
-                    for (GameData game : games) {
-                        if (game.gameID() == GameID) {
+//                if (!games.isEmpty()) {
+//                    for (GameData game : games) {
+//                        if (game.gameID() == GameID) {
+//                            newUniqueValueFound = false;
+//                            break;
+//                        }
+//                    }
+//                }
+                //if(password.matches("[a-zA-Z]+/\"")) {
+                    String statementBuilder = "SELECT gameID FROM " + gameTable + " WHERE " + " (gameID) VALUES(GameID)";
+                    var statement = statementBuilder;
+                    try (var preparedStatement = conn.prepareStatement(statement)) {
+                        preparedStatement.setInt(1, GameID);
+                        if(preparedStatement.executeUpdate() != null) {
                             newUniqueValueFound = false;
-                            break;
                         }
+                        //should not return an int... above...
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e.getMessage());
                     }
-                }
-            }
+           }
         }
         //The game will be very incomplete so far as no-one has joined as white or black... but it will need a new ChessGame
         ChessGame gameOfChess = new ChessGame();
@@ -143,30 +200,115 @@ public class DataBaseAccesser implements DataAccesser{
     //call after proving game exists...
     @Override
     public GameData getGame(int gameID) {
-        for (GameData game:games) {
-            if(game.gameID() == gameID){
-                return game;
+        //Get a serializer...
+        var serializer = new Gson();
+        //now declare a ChessGame and componets
+        ChessGame returnedChessGame;
+        String black;
+        String white;
+        String name;
+
+        //now get the data we need for a response and then check it before passing it into a service...
+        if(username.matches("[a-zA-Z]+/\"")) {
+            String statementBuilder = "SELECT implementation FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
+            var statement = statementBuilder;
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setInt(5, gameID);
+                returnedChessGame = serializer.fromJson(preparedStatement.executeUpdate(), ChessGame.class);
+                //should not return an int... above...
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
             }
+        } else {
+            return null;
         }
+        if(username.matches("[a-zA-Z]+/\"")) {
+            String statementBuilder = "SELECT blackUsername FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
+            var statement = statementBuilder;
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setInt(1, gameID);
+                black = preparedStatement.executeUpdate();
+                //should not return an int... above...
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        } else {
+            return null;
+        }
+        if(username.matches("[a-zA-Z]+/\"")) {
+            String statementBuilder = "SELECT whiteUsername FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
+            var statement = statementBuilder;
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setInt(1, gameID);
+                white = preparedStatement.executeUpdate();
+                //should not return an int... above...
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        } else {
+            return null;
+        }
+        if(username.matches("[a-zA-Z]+/\"")) {
+            String statementBuilder = "SELECT gameName FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
+            var statement = statementBuilder;
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setInt(1, gameID);
+                name = preparedStatement.executeUpdate();
+                //should not return an int... above...
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
+            }
+        } else {
+            return null;
+        }
+
+        GameData myNewChessGame = new GameData(gameID, white, black, name, returnedChessGame);
+        return myNewChessGame;
+        //for (GameData game:games) {
+            //if(game.gameID() == gameID){
+               // return game;
+           // }
+      //  }
         //if we did not find it something went very wrong
-        return null;
+        //return null;
     }
 
     @Override
     public GameData[] listGames() {
-        //look for null response and other response from this function
-        if(games.isEmpty()){
+        HashSet<Integer> gameIDs = new HashSet<Integer>();
+        String statementBuilder = "SELECT gameID FROM " + gameTable;
+        var statement = statementBuilder;
+        try (var preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.setInt(1, gameID);
+            gameIDs = Integer.parseInt(preparedStatement.executeUpdate());
+            //should not return an int... above...
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        if(gameIDs.size() == 0) {
             return null;
         } else {
-            int sizeOfReturnArray = games.size();
-            GameData[] returnArray = new GameData[sizeOfReturnArray];
-            int currentArrayLocation = 0;
-            for (GameData game: games) {
-                returnArray[currentArrayLocation] = game;
-                currentArrayLocation++;
+            GameData[] returnArray = new GameData[gameIDs.size()];
+            int currentIndex = 0;
+            for (Integer i : gameIDs) {
+                returnArray[currentIndex] = getGame(i.intValue());
             }
-            //we added every game
             return returnArray;
+        }
+
+        //look for null response and other response from this function
+        //if(games.isEmpty()){
+           // return null;
+      //  } else {
+          //  int sizeOfReturnArray = games.size();
+         //   GameData[] returnArray = new GameData[sizeOfReturnArray];
+         //   int currentArrayLocation = 0;
+          //  for (GameData game: games) {
+         //       returnArray[currentArrayLocation] = game;
+        //        currentArrayLocation++;
+        //    }
+            //we added every game
+        // return returnArray;
         }
     }
 
@@ -175,20 +317,33 @@ public class DataBaseAccesser implements DataAccesser{
     public GameData updateGame(int gameID, String clientColor, String auth) {
         //We only call this at appropriate times (when the user has been found), so I think it is fine to do this...
         String username = "";
-        for (AuthData user: authentications) {
-            if(user.authToken().equals(auth)) {
-                username = user.username();
-                break;
-            }
+        //for (AuthData user: authentications) {
+            //if(user.authToken().equals(auth)) {
+               // username = user.username();
+               // break;
+           // }
+     //   }
+        String statementBuilder = "SELECT username FROM " + userTable + " WHERE " + " (auth) VALUES(?)";
+        var statement = statementBuilder;
+        //This should not throw an error as the string has been previously checked in another code that called it...
+        try (var preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.setInt(1, gameID);
+            username = preparedStatement.executeUpdate();
+            //should not return an int... above...
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
         }
+
         //add the new game to return
         GameData newGame = new GameData(0, null, null, null, null);
         //and the game to watch
         GameData oldGame = new GameData(0, null, null, null, null);
+
+        GameData chessGame = getGame(gameID);
         //We have already checked that the username exists, so add them as the user...
-        for (GameData chessGame : games) {
+       // for (GameData chessGame : games) {
             //remember if we implemented everything else right, there should only be one of these!
-            if (chessGame.gameID() == gameID) {
+            //if (chessGame.gameID() == gameID) {
                 //watch this game
                 oldGame = chessGame;
                 //add the otherplayer  string definition
@@ -223,8 +378,8 @@ public class DataBaseAccesser implements DataAccesser{
                 }else {
                     //I am not sure that we need to do anything to add a new observer....
                     return chessGame;
-                }
-            }
+                //}
+           // }
         }
         //we must not have changed nothing (otherwise we would have returned), so let us update the chart with one old game gone and a new one in the place of it.
         //games.remove(oldGame);
