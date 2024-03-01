@@ -548,15 +548,29 @@ public class DataBaseAccesser implements DataAccesser{
 
     @Override
     public boolean locateUsername(String username) {
-        if(users.isEmpty()){
-            return false;
-        } else {
-            //This will work just fine, as long as no one ever glitches the system to accept a faulty user with no username, assuming this will not happen should be a fine assumption.
-            for (UserData user: users) {
-                if(user.username().equals(username)){
-                    return true;
-                }
+        //if(users.isEmpty()){
+        // return false;
+        //} else {
+        //This will work just fine, as long as no one ever glitches the system to accept a faulty user with no username, assuming this will not happen should be a fine assumption.
+        //  for (UserData user: users) {
+        //    if(user.username().equals(username)){
+        //  return true;
+        //   }
+        // }
+        // return false;
+        // }
+
+        if (username.matches("[a-zA-Z]+/\"")) {
+            String statementBuilder = "SELECT username FROM " + userTable + " WHERE " + " (username) VALUES(?)";
+            var statement = statementBuilder;
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, username);
+                return (preparedStatement.executeUpdate() != null);
+                //should not return an int... above...
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
             }
+        } else {
             return false;
         }
     }
@@ -564,15 +578,28 @@ public class DataBaseAccesser implements DataAccesser{
 
     @Override
     public boolean locateGameID(int gameID) {
-        if(games.isEmpty()){
-            return false;
-        } else {
+        //if(games.isEmpty()){
+            //return false;
+      //  } else {
             //This will work just fine, as long as no one ever glitches the system to accept a faulty game with no ID, assuming this will not happen should be a fine assumption.
-            for (GameData game: games) {
-                if(game.gameID() == gameID){
-                    return true;
-                }
+         //   for (GameData game: games) {
+         //       if(game.gameID() == gameID){
+          //          return true;
+          //      }
+          //  }
+          //  return false;
+       // }
+        if (username.matches("[a-zA-Z]+/\"")) {
+            String statementBuilder = "SELECT username FROM " + userTable + " WHERE " + " (username) VALUES(?)";
+            var statement = statementBuilder;
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, username);
+                return (preparedStatement.executeUpdate() != null);
+                //should not return an int... above...
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
             }
+        } else {
             return false;
         }
     }
