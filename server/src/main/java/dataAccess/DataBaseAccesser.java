@@ -398,13 +398,25 @@ public class DataBaseAccesser implements DataAccesser{
         while(newUniqueValueFound == false) {
             authValue = UUID.randomUUID().toString();
             newUniqueValueFound = true;
-            if (!authentications.isEmpty()){
-                for (AuthData authenticator: authentications) {
-                    if (authenticator.authToken().equals(authValue)) {
-                        newUniqueValueFound = false;
-                        break;
-                    }
+            //if (!authentications.isEmpty()){
+               // for (AuthData authenticator: authentications) {
+                   // if (authenticator.authToken().equals(authValue)) {
+                      //  newUniqueValueFound = false;
+                     //   break;
+                   // }
+              //  }
+           // }
+            String statementBuilder = "SELECT authToken FROM " + authTable + " WHERE " + " (username) VALUES(?)";
+            var statement = statementBuilder;
+            //This should not throw an error as the string has been previously checked in another code that called it...
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setInt(1, gameID);
+                if(preparedStatement.executeUpdate() != null) {
+                newUniqueValueFound = false;
                 }
+                //should not return an int... above...
+            } catch (SQLException e) {
+                throw new RuntimeException(e.getMessage());
             }
         }
         AuthData authenticator = new AuthData(authValue, username);
@@ -428,18 +440,19 @@ public class DataBaseAccesser implements DataAccesser{
     //Can call this function without calling function below...
     @Override
     public boolean deleteAuth(String authenticator) {
-        if(authentications.isEmpty()){
-            return false;
-        } else {
-            boolean foundIt = false;
-            AuthData authTokenToDelete = new AuthData(null, null);
-            for (AuthData authenticate: authentications) {
-                if(authenticate.authToken().equals(authenticator)) {
-                    foundIt = true;
-                    authTokenToDelete = authenticate;
-                    break;
-                }
-            } if (foundIt) {
+//        if(authentications.isEmpty()){
+//            return false;
+//        } else {
+//            boolean foundIt = false;
+//            AuthData authTokenToDelete = new AuthData(null, null);
+//            for (AuthData authenticate: authentications) {
+//                if(authenticate.authToken().equals(authenticator)) {
+//                    foundIt = true;
+//                    authTokenToDelete = authenticate;
+//                    break;
+//                }
+//            }
+            if (checkAuthorization(authenticator)) {
                 try {
                     rowUpdater.delete(authenticator, 1, conn, authTable);
                 } catch (DataAccessException e) {
@@ -447,25 +460,42 @@ public class DataBaseAccesser implements DataAccesser{
                 }
                 //authentications.remove(authTokenToDelete);
                 return true;
-            }else {
+            } else {
                 return false;
             }
         }
-    }
+    //}
 
     @Override
     public boolean checkAuthorization(String authenticator) {
-        if(authentications.isEmpty()){
-            return false;
-        } else {
-            boolean foundIt = false;
-            for (AuthData authenticate: authentications) {
-                if(authenticate.authToken().equals(authenticator)) {
-                    foundIt = true;
-                    break;
-                }
+        //if(authentications.isEmpty()){
+           // return false;
+      //  } else {
+         //   boolean foundIt = false;
+       //     for (AuthData authenticate: authentications) {
+      //          if(authenticate.authToken().equals(authenticator)) {
+            //        foundIt = true;
+         //    //       break;
+            //    }
+           // }
+        if(authenticator.matches("[a-zA-Z]+-")) {
+        boolean foundIt = false;
+        String statementBuilder = "SELECT authToken FROM " + authTable + " WHERE " + " (authenticator) VALUES(?)";
+        var statement = statementBuilder;
+        //This should not throw an error as the string has been previously checked in another code that called it...
+        try (var preparedStatement = conn.prepareStatement(statement)) {
+            preparedStatement.setInt(1, gameID);
+            if(preparedStatement.executeUpdate() != null) {
+                foundIt = true;
             }
+            //should not return an int... above...
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage());
+        }
             return foundIt;
+        } else {
+            //this authtentication cannot exist...
+        return false;
         }
     }
 
@@ -485,16 +515,18 @@ public class DataBaseAccesser implements DataAccesser{
         }
     }
 
-    //call this check last...
+    //call this check last... so gameID exists...
     @Override
     public boolean colorNotTaken(String color, int gameID) {
         if(color == null){
             return true;
         } else {
-            for (GameData chessGame: games) {
+            //for (GameData chessGame: games) {
                 //remember if we implemented everything else right, there should only be one of these!
-                if(chessGame.gameID() == gameID){
+                //if(chessGame.gameID() == gameID){
                     //so far this will work, update to add more players...
+
+            GameData chessGame = getGame(gameID);
                     if(color.equals("WHITE")){
                         if(chessGame.whiteUsername() == null){
                             return true;
@@ -508,8 +540,8 @@ public class DataBaseAccesser implements DataAccesser{
                             return false;
                         }
                     }
-                }
-            }
+               // }
+           // }
             return false;
         }
     }
