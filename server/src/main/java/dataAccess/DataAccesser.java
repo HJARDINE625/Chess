@@ -12,9 +12,9 @@ public interface DataAccesser {
     public GameData getGame(int gameID);
     public GameData[] listGames();
     public GameData updateGame(int gameID, String clientColor, String auth);
-    public AuthData createAuth(String username);
+    public AuthData createAuth(String username) throws DataAccessException;
     //public AuthData getAuth();
-    public boolean deleteAuth(String authenticator);
+    public boolean deleteAuth(String authenticator) throws DataAccessException;
     public boolean checkAuthorization(String authenticator);
     public boolean colorExists(String color, int gameID);
     public boolean colorNotTaken(String color, int gameID);

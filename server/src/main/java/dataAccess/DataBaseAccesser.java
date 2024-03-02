@@ -7,10 +7,14 @@ import model.GameData;
 import model.UserData;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.UUID;
+
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
+import static java.sql.Types.NULL;
 
 public class DataBaseAccesser implements DataAccesser{
 
@@ -32,6 +36,8 @@ public class DataBaseAccesser implements DataAccesser{
     private String authTable = "auth";
     private String gameTable = "game";
 
+    private SQLInterface implementer;
+
     //This will have to be directly implemented everywhere as the return type is unknown...
     SELECT columns_to_return
     FROM table_to_query
@@ -49,7 +55,7 @@ public class DataBaseAccesser implements DataAccesser{
             DatabaseManager.createDatabase();
             conn = DatabaseManager.getConnection();
             tableCreator = new TableManager();
-            tableCreator.configureDatabase(conn,props.getProperty("db.name"));
+            tableCreator.configureDatabase(conn);
             rowUpdater = new RowManager();
         } catch (DataAccessException e) {
             throw new RuntimeException(e.getMessage());
@@ -65,7 +71,7 @@ public class DataBaseAccesser implements DataAccesser{
                 if (propStream == null) throw new Exception("Unable to laod db.properties");
                 Properties props = new Properties();
                 props.load(propStream);
-                tableCreator.truncateALLTables(conn,props.getProperty("db.name"));
+                tableCreator.truncateALLTables(conn);
             } catch (DataAccessException e) {
                 throw new RuntimeException(e.getMessage());
             } catch (Exception e) {
@@ -107,11 +113,11 @@ public class DataBaseAccesser implements DataAccesser{
         //SELECT username FROM table_to_query
         //WHERE search_condition;
         if(username.matches("[a-zA-Z]+/\"")) {
-            String statementBuilder = "SELECT email FROM " + userTable + " WHERE " + " (username) VALUES(?)";
+            String statementBuilder = "SELECT * FROM " + userTable + " WHERE " + " username = ?";
             var statement = statementBuilder;
             try (var preparedStatement = conn.prepareStatement(statement)) {
                 preparedStatement.setString(1, username);
-                email = preparedStatement.executeUpdate();
+                email = preparedStatement.executeQuery();
                 //should not return an int... above...
             } catch (SQLException e) {
                 throw new RuntimeException(e.getMessage());
@@ -186,6 +192,7 @@ public class DataBaseAccesser implements DataAccesser{
         GameData newGame = new GameData(GameID, null, null, gameName, gameOfChess);
         var chessGame = new Gson().toJson(gameOfChess);
         try {
+            var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, implementation) VALUES (?, ?, ?)";
             rowUpdater.insert(GameID, 1, conn, gameTable);
             rowUpdater.update(null, 2, GameID, conn, gameTable);
             rowUpdater.update(null, 3, GameID, conn, gameTable);
@@ -391,13 +398,13 @@ public class DataBaseAccesser implements DataAccesser{
 
     //only call this after calling get user and checking for non-null responses...
     @Override
-    public AuthData createAuth(String username) {
+    public AuthData createAuth(String username) throws DataAccessException {
         //some formula for making new authentications
         boolean newUniqueValueFound = false;
         String authValue = new String();
         while(newUniqueValueFound == false) {
             authValue = UUID.randomUUID().toString();
-            newUniqueValueFound = true;
+            newUniqueValueFound = implementer.exists(authValue, "authToken", authTable);
             //if (!authentications.isEmpty()){
                // for (AuthData authenticator: authentications) {
                    // if (authenticator.authToken().equals(authValue)) {
@@ -406,27 +413,28 @@ public class DataBaseAccesser implements DataAccesser{
                    // }
               //  }
            // }
-            String statementBuilder = "SELECT authToken FROM " + authTable + " WHERE " + " (username) VALUES(?)";
-            var statement = statementBuilder;
+            //String statementBuilder = "SELECT authToken FROM " + authTable + " WHERE " + " (username) VALUES(?)";
+            //var statement = statementBuilder;
             //This should not throw an error as the string has been previously checked in another code that called it...
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setInt(1, gameID);
-                if(preparedStatement.executeUpdate() != null) {
-                newUniqueValueFound = false;
-                }
-                //should not return an int... above...
-            } catch (SQLException e) {
-                throw new RuntimeException(e.getMessage());
-            }
+//            try (var preparedStatement = conn.prepareStatement(statement)) {
+//                preparedStatement.setInt(1, gameID);
+//                if(preparedStatement.executeUpdate() != null) {
+//                newUniqueValueFound = false;
+//                }
+//                //should not return an int... above...
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e.getMessage());
+//            }
         }
         AuthData authenticator = new AuthData(authValue, username);
-        try {
-            rowUpdater.insert(authValue, 1, conn, authTable);
-            rowUpdater.update(username, 2, authValue, conn, gameTable);
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e.getMessage());
-        }
+//        try {
+//            rowUpdater.insert(authValue, 1, conn, authTable);
+//            rowUpdater.update(username, 2, authValue, conn, gameTable);
+//        } catch (DataAccessException e) {
+//            throw new RuntimeException(e.getMessage());
+//        }
         //uthentications.add(authenticator);
+        implementer.
         return authenticator;
 
     }
@@ -439,7 +447,7 @@ public class DataBaseAccesser implements DataAccesser{
 
     //Can call this function without calling function below...
     @Override
-    public boolean deleteAuth(String authenticator) {
+    public boolean deleteAuth(String authenticator) throws DataAccessException {
 //        if(authentications.isEmpty()){
 //            return false;
 //        } else {
@@ -454,7 +462,8 @@ public class DataBaseAccesser implements DataAccesser{
 //            }
             if (checkAuthorization(authenticator)) {
                 try {
-                    rowUpdater.delete(authenticator, 1, conn, authTable);
+                    implementer.delete(authenticator, "authToken", authTable);
+                    //rowUpdater.delete(authenticator, 1, conn, authTable);
                 } catch (DataAccessException e) {
                     throw new RuntimeException(e.getMessage());
                 }
@@ -467,7 +476,7 @@ public class DataBaseAccesser implements DataAccesser{
     //}
 
     @Override
-    public boolean checkAuthorization(String authenticator) {
+    public boolean checkAuthorization(String authenticator) throws DataAccessException {
         //if(authentications.isEmpty()){
            // return false;
       //  } else {
@@ -478,24 +487,29 @@ public class DataBaseAccesser implements DataAccesser{
          //    //       break;
             //    }
            // }
-        if(authenticator.matches("[a-zA-Z]+-")) {
-        boolean foundIt = false;
-        String statementBuilder = "SELECT authToken FROM " + authTable + " WHERE " + " (authenticator) VALUES(?)";
-        var statement = statementBuilder;
-        //This should not throw an error as the string has been previously checked in another code that called it...
-        try (var preparedStatement = conn.prepareStatement(statement)) {
-            preparedStatement.setInt(1, gameID);
-            if(preparedStatement.executeUpdate() != null) {
-                foundIt = true;
-            }
-            //should not return an int... above...
-        } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-            return foundIt;
+        //if(authenticator.matches("[a-zA-Z]+-")) {
+//        //boolean foundIt = false;
+//        String statementBuilder = "SELECT authToken FROM " + authTable + " WHERE " + " (authenticator) VALUES(?)";
+//        var statement = statementBuilder;
+//        //This should not throw an error as the string has been previously checked in another code that called it...
+//        try (var preparedStatement = conn.prepareStatement(statement)) {
+//            preparedStatement.setInt(1, gameID);
+//            if(preparedStatement.executeUpdate() != null) {
+//                foundIt = true;
+//            }
+//            //should not return an int... above...
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e.getMessage());
+//        }
+//            return foundIt;
+//        } else {
+//            //this authtentication cannot exist...
+//        return false;
+//        }
+        if(implementer.allowedChars(authenticator)) {
+            return implementer.exists(authenticator, "authToken", authTable);
         } else {
-            //this authtentication cannot exist...
-        return false;
+            throw new DataAccessException("error: illegal name");
         }
     }
 
@@ -547,7 +561,7 @@ public class DataBaseAccesser implements DataAccesser{
     }
 
     @Override
-    public boolean locateUsername(String username) {
+    public boolean locateUsername(String username) throws DataAccessException {
         //if(users.isEmpty()){
         // return false;
         //} else {
@@ -559,50 +573,46 @@ public class DataBaseAccesser implements DataAccesser{
         // }
         // return false;
         // }
-
-        if (username.matches("[a-zA-Z]+/\"")) {
-            String statementBuilder = "SELECT username FROM " + userTable + " WHERE " + " (username) VALUES(?)";
-            var statement = statementBuilder;
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setString(1, username);
-                return (preparedStatement.executeUpdate() != null);
-                //should not return an int... above...
-            } catch (SQLException e) {
-                throw new RuntimeException(e.getMessage());
-            }
+        if(implementer.allowedChars(username)) {
+            return implementer.exists(username, "username", userTable);
         } else {
-            return false;
+            throw new DataAccessException("error: illegal name");
         }
+
+//        if (username.matches("[a-zA-Z]+/\"")) {
+//            String statementBuilder = "SELECT username FROM " + userTable + " WHERE " + " (username) VALUES(?)";
+//            var statement = statementBuilder;
+//            try (var preparedStatement = conn.prepareStatement(statement)) {
+//                preparedStatement.setString(1, username);
+//                return (preparedStatement.executeUpdate() != null);
+//                //should not return an int... above...
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e.getMessage());
+//            }
+//        } else {
+//            return false;
+//        }
+//    }
     }
     //repitiious to what is above, but the Professor said that repition here was fine...
 
     @Override
-    public boolean locateGameID(int gameID) {
+    public boolean locateGameID(int gameID) throws DataAccessException {
         //if(games.isEmpty()){
-            //return false;
-      //  } else {
-            //This will work just fine, as long as no one ever glitches the system to accept a faulty game with no ID, assuming this will not happen should be a fine assumption.
-         //   for (GameData game: games) {
-         //       if(game.gameID() == gameID){
-          //          return true;
-          //      }
-          //  }
-          //  return false;
-       // }
-        if (username.matches("[a-zA-Z]+/\"")) {
-            String statementBuilder = "SELECT username FROM " + userTable + " WHERE " + " (username) VALUES(?)";
-            var statement = statementBuilder;
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setString(1, username);
-                return (preparedStatement.executeUpdate() != null);
-                //should not return an int... above...
-            } catch (SQLException e) {
-                throw new RuntimeException(e.getMessage());
-            }
-        } else {
-            return false;
-        }
+        //return false;
+        //  } else {
+        //This will work just fine, as long as no one ever glitches the system to accept a faulty game with no ID, assuming this will not happen should be a fine assumption.
+        //   for (GameData game: games) {
+        //       if(game.gameID() == gameID){
+        //          return true;
+        //      }
+        //  }
+        //  return false;
+        // }
+        //implementer.allowedChars(gameID) no need to worry with ints...
+        return implementer.exists(gameID, "gameID", gameTable);
     }
+
 
 
 }

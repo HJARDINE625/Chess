@@ -4,10 +4,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class TableManager {
-    void configureDatabase(Connection conn, String db) throws DataAccessException {
-    try{
+    void configureDatabase(Connection conn) throws DataAccessException {
+    try(conn){
         //use the connection passed in based upon database manager to access the database database manager looked up...
-        conn.setCatalog(db);
+        //conn.setCatalog(db);
 
         //here we create our three tables... they should have correct primary and secondary keys and rules...
         var createUserTable = """
@@ -49,10 +49,9 @@ public class TableManager {
         throw new DataAccessException(e.getMessage());
     }
     }
-    void truncateALLTables(Connection conn, String db) throws DataAccessException {
-            try{
+    void truncateALLTables(Connection conn) throws DataAccessException {
+            try(conn){
                 //use the connection passed in based upon database manager to access the database database manager looked up...
-                conn.setCatalog(db);
 
                 //here we create our three tables... they should have correct primary and secondary keys and rules...
                 var recreateUserTable = """
