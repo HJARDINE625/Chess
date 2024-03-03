@@ -7,6 +7,7 @@ import model.GameData;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
@@ -114,6 +115,37 @@ public class SQLInterface {    //to delete stuff
         } catch (Exception e) {
             throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
         }
+    }
+    //this one gets all games
+    public GameData[] getGames(String table) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            String StatementBuilder = "SELECT gameID, blackUsername, whiteUsername, gameName, implementation FROM " + table;
+            var statement = StatementBuilder;
+            try (var ps = conn.prepareStatement(statement)) {
+                try (var rs = ps.executeQuery()) {
+                    HashSet<GameData> games = new HashSet<GameData>();
+                    while (rs.next()) {
+                        games.add(readGame(rs));
+                    }
+                    int totalSize = games.size();
+                    if(totalSize > 0) {
+                        GameData[] Games = new GameData[totalSize];
+                        int currentGame = 0;
+                        for (GameData game : games) {
+                            Games[currentGame] = game;
+                            currentGame++;
+                        }
+
+                        return Games;
+                    } else {
+                        return null;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
+        //return null;
     }
 
     //These two functions together get the game for the get game function...

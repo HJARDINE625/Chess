@@ -108,6 +108,10 @@ public class DataBaseAccesser implements DataAccesser{
     public UserData getUser(String username, String password) {
         boolean exists = false;
         String email;
+        if(implementer.exists("username", username, userTable)){
+            String statementBuilder = "SELECT username, password, email FROM " + userTable + " WHERE " + " (password) VALUES(?)";
+            implementer.executeUpdate(statementBuilder, DatabaseManager.getConnection(), username);
+        }
         //for (UserData user: users) {
             //if(user.username().equals(username)){
                 //if(user.password().equals(password)){
@@ -120,34 +124,34 @@ public class DataBaseAccesser implements DataAccesser{
         //make the main method find this and if it is found throw incorrect password error...
         //SELECT username FROM table_to_query
         //WHERE search_condition;
-        if(username.matches("[a-zA-Z]+/\"")) {
-            String statementBuilder = "SELECT * FROM " + userTable + " WHERE " + " username = ?";
-            var statement = statementBuilder;
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setString(1, username);
-                email = preparedStatement.executeQuery();
-                //should not return an int... above...
-            } catch (SQLException e) {
-                throw new RuntimeException(e.getMessage());
-            }
-        } else {
-            return null;
-        }
-        if(password.matches("[a-zA-Z]+/\"")) {
-            String statementBuilder = "SELECT email FROM " + userTable + " WHERE " + " (password) VALUES(?)";
-            var statement = statementBuilder;
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setString(1, username);
-                if(email == preparedStatement.executeUpdate()){
-                    exists = true;
-                }
-                //should not return an int... above...
-            } catch (SQLException e) {
-                throw new RuntimeException(e.getMessage());
-            }
-        } else {
-            return null;
-        }
+//        if(username.matches("[a-zA-Z]+/\"")) {
+//            String statementBuilder = "SELECT * FROM " + userTable + " WHERE " + " username = ?";
+//            var statement = statementBuilder;
+//            try (var preparedStatement = conn.prepareStatement(statement)) {
+//                preparedStatement.setString(1, username);
+//                email = preparedStatement.executeQuery();
+//                //should not return an int... above...
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e.getMessage());
+//            }
+//        } else {
+//            return null;
+//        }
+//        if(password.matches("[a-zA-Z]+/\"")) {
+//            String statementBuilder = "SELECT email FROM " + userTable + " WHERE " + " (password) VALUES(?)";
+//            var statement = statementBuilder;
+//            try (var preparedStatement = conn.prepareStatement(statement)) {
+//                preparedStatement.setString(1, username);
+//                if(email == preparedStatement.executeUpdate()){
+//                    exists = true;
+//                }
+//                //should not return an int... above...
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e.getMessage());
+//            }
+//        } else {
+//            return null;
+//        }
         if(!exists){
             return null;
         } else {
@@ -158,21 +162,22 @@ public class DataBaseAccesser implements DataAccesser{
     //only call if locate game ID does not return an error
 
     @Override
-    public GameData createGame(String gameName) {
-        //some formula for making new games
-        boolean newUniqueValueFound = false;
-        //capitalized to prevent mix-up with element gameID
-        int GameID = 0;
-        while(newUniqueValueFound == false) {
-            GameID = UUID.randomUUID().hashCode();
-            newUniqueValueFound = true;
-            //negative and zero hashes are invalid, for some reason...
-            if (GameID <= 0) {
-                //this is an odd way to do this, but it seems efficient enough...
-                newUniqueValueFound = false;
-                //we will only continue if we have a valid hashcode...
-            } else {
-                //now we need to make sure that this hash does not already exist in the database...
+    public GameData createGame(String gameName) throws DataAccessException {
+        if(implementer.allowedChars(gameName)) {
+            //some formula for making new games
+            boolean newUniqueValueFound = false;
+            //capitalized to prevent mix-up with element gameID
+            int GameID = 0;
+            while (newUniqueValueFound == false) {
+                GameID = UUID.randomUUID().hashCode();
+                newUniqueValueFound = true;
+                //negative and zero hashes are invalid, for some reason...
+                if (GameID <= 0) {
+                    //this is an odd way to do this, but it seems efficient enough...
+                    newUniqueValueFound = false;
+                    //we will only continue if we have a valid hashcode...
+                } else {
+                    //now we need to make sure that this hash does not already exist in the database...
 //                if (!games.isEmpty()) {
 //                    for (GameData game : games) {
 //                        if (game.gameID() == GameID) {
@@ -181,104 +186,116 @@ public class DataBaseAccesser implements DataAccesser{
 //                        }
 //                    }
 //                }
-                //if(password.matches("[a-zA-Z]+/\"")) {
-                    String statementBuilder = "SELECT gameID FROM " + gameTable + " WHERE " + " (gameID) VALUES(GameID)";
-                    var statement = statementBuilder;
-                    try (var preparedStatement = conn.prepareStatement(statement)) {
-                        preparedStatement.setInt(1, GameID);
-                        if(preparedStatement.executeUpdate() != null) {
-                            newUniqueValueFound = false;
-                        }
-                        //should not return an int... above...
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e.getMessage());
+                    //if(password.matches("[a-zA-Z]+/\"")) {
+//                    String statementBuilder = "SELECT gameID FROM " + gameTable + " WHERE " + " (gameID) VALUES(GameID)";
+//                    var statement = statementBuilder;
+//                    try (var preparedStatement = conn.prepareStatement(statement)) {
+//                        preparedStatement.setInt(1, GameID);
+//                        if(preparedStatement.executeUpdate() != null) {
+//                            newUniqueValueFound = false;
+//                        }
+//                        //should not return an int... above...
+//                    } catch (SQLException e) {
+//                        throw new RuntimeException(e.getMessage());
+//                    }
+                    if (implementer.exists("gameName", gameName, gameTable)) {
+                        newUniqueValueFound = false;
                     }
-           }
+                }
+            }
+            //The game will be very incomplete so far as no-one has joined as white or black... but it will need a new ChessGame
+            ChessGame gameOfChess = new ChessGame();
+            GameData newGame = new GameData(GameID, null, null, gameName, gameOfChess);
+            var chessGame = new Gson().toJson(gameOfChess);
+//            try {
+//                var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, implementation) VALUES (?, ?, ?)";
+//                rowUpdater.insert(GameID, 1, conn, gameTable);
+//                rowUpdater.update(null, 2, GameID, conn, gameTable);
+//                rowUpdater.update(null, 3, GameID, conn, gameTable);
+//                rowUpdater.update(gameName, 4, GameID, conn, gameTable);
+//                rowUpdater.update(chessGame, 5, GameID, conn, gameTable);
+//            } catch (DataAccessException e) {
+//                throw new RuntimeException(e.getMessage());
+//            }
+            implementer.newGame(newGame);
+            return newGame;
+        } else {
+            //or throw an exception
+            return null;
         }
-        //The game will be very incomplete so far as no-one has joined as white or black... but it will need a new ChessGame
-        ChessGame gameOfChess = new ChessGame();
-        GameData newGame = new GameData(GameID, null, null, gameName, gameOfChess);
-        var chessGame = new Gson().toJson(gameOfChess);
-        try {
-            var statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, implementation) VALUES (?, ?, ?)";
-            rowUpdater.insert(GameID, 1, conn, gameTable);
-            rowUpdater.update(null, 2, GameID, conn, gameTable);
-            rowUpdater.update(null, 3, GameID, conn, gameTable);
-            rowUpdater.update(gameName, 4, GameID, conn, gameTable);
-            rowUpdater.update(chessGame, 5, GameID, conn, gameTable);
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-        return newGame;
     }
 
     //call after proving game exists...
     @Override
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID) throws DataAccessException {
         //Get a serializer...
-        var serializer = new Gson();
-        //now declare a ChessGame and componets
-        ChessGame returnedChessGame;
-        String black;
-        String white;
-        String name;
-
-        //now get the data we need for a response and then check it before passing it into a service...
-        if(username.matches("[a-zA-Z]+/\"")) {
-            String statementBuilder = "SELECT implementation FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
-            var statement = statementBuilder;
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setInt(5, gameID);
-                returnedChessGame = serializer.fromJson(preparedStatement.executeUpdate(), ChessGame.class);
-                //should not return an int... above...
-            } catch (SQLException e) {
-                throw new RuntimeException(e.getMessage());
-            }
+//        var serializer = new Gson();
+//        //now declare a ChessGame and componets
+//        ChessGame returnedChessGame;
+//        String black;
+//        String white;
+//        String name;
+//
+//        //now get the data we need for a response and then check it before passing it into a service...
+//        if(username.matches("[a-zA-Z]+/\"")) {
+//            String statementBuilder = "SELECT implementation FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
+//            var statement = statementBuilder;
+//            try (var preparedStatement = conn.prepareStatement(statement)) {
+//                preparedStatement.setInt(5, gameID);
+//                returnedChessGame = serializer.fromJson(preparedStatement.executeUpdate(), ChessGame.class);
+//                //should not return an int... above...
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e.getMessage());
+//            }
+//        } else {
+//            return null;
+//        }
+//        if(username.matches("[a-zA-Z]+/\"")) {
+//            String statementBuilder = "SELECT blackUsername FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
+//            var statement = statementBuilder;
+//            try (var preparedStatement = conn.prepareStatement(statement)) {
+//                preparedStatement.setInt(1, gameID);
+//                black = preparedStatement.executeUpdate();
+//                //should not return an int... above...
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e.getMessage());
+//            }
+//        } else {
+//            return null;
+//        }
+//        if(username.matches("[a-zA-Z]+/\"")) {
+//            String statementBuilder = "SELECT whiteUsername FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
+//            var statement = statementBuilder;
+//            try (var preparedStatement = conn.prepareStatement(statement)) {
+//                preparedStatement.setInt(1, gameID);
+//                white = preparedStatement.executeUpdate();
+//                //should not return an int... above...
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e.getMessage());
+//            }
+//        } else {
+//            return null;
+//        }
+//        if(username.matches("[a-zA-Z]+/\"")) {
+//            String statementBuilder = "SELECT gameName FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
+//            var statement = statementBuilder;
+//            try (var preparedStatement = conn.prepareStatement(statement)) {
+//                preparedStatement.setInt(1, gameID);
+//                name = preparedStatement.executeUpdate();
+//                //should not return an int... above...
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e.getMessage());
+//            }
+//        } else {
+//            return null;
+//        }
+        if(implementer.allowedChars(gameID)) {
+            GameData myNewChessGame = implementer.getGame(gameID, gameTable);
+            return myNewChessGame;
         } else {
+            //or throw an exception here...
             return null;
         }
-        if(username.matches("[a-zA-Z]+/\"")) {
-            String statementBuilder = "SELECT blackUsername FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
-            var statement = statementBuilder;
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setInt(1, gameID);
-                black = preparedStatement.executeUpdate();
-                //should not return an int... above...
-            } catch (SQLException e) {
-                throw new RuntimeException(e.getMessage());
-            }
-        } else {
-            return null;
-        }
-        if(username.matches("[a-zA-Z]+/\"")) {
-            String statementBuilder = "SELECT whiteUsername FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
-            var statement = statementBuilder;
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setInt(1, gameID);
-                white = preparedStatement.executeUpdate();
-                //should not return an int... above...
-            } catch (SQLException e) {
-                throw new RuntimeException(e.getMessage());
-            }
-        } else {
-            return null;
-        }
-        if(username.matches("[a-zA-Z]+/\"")) {
-            String statementBuilder = "SELECT gameName FROM " + gameTable + " WHERE " + " (gameID) VALUES(?)";
-            var statement = statementBuilder;
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.setInt(1, gameID);
-                name = preparedStatement.executeUpdate();
-                //should not return an int... above...
-            } catch (SQLException e) {
-                throw new RuntimeException(e.getMessage());
-            }
-        } else {
-            return null;
-        }
-
-        GameData myNewChessGame = new GameData(gameID, white, black, name, returnedChessGame);
-        return myNewChessGame;
         //for (GameData game:games) {
             //if(game.gameID() == gameID){
                // return game;
@@ -289,27 +306,28 @@ public class DataBaseAccesser implements DataAccesser{
     }
 
     @Override
-    public GameData[] listGames() {
+    public GameData[] listGames() throws DataAccessException {
         HashSet<Integer> gameIDs = new HashSet<Integer>();
-        String statementBuilder = "SELECT gameID FROM " + gameTable;
-        var statement = statementBuilder;
-        try (var preparedStatement = conn.prepareStatement(statement)) {
-            preparedStatement.setInt(1, gameID);
-            gameIDs = Integer.parseInt(preparedStatement.executeUpdate());
-            //should not return an int... above...
-        } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-        if(gameIDs.size() == 0) {
-            return null;
-        } else {
-            GameData[] returnArray = new GameData[gameIDs.size()];
-            int currentIndex = 0;
-            for (Integer i : gameIDs) {
-                returnArray[currentIndex] = getGame(i.intValue());
-            }
-            return returnArray;
-        }
+        //String statementBuilder = "SELECT gameID FROM " + gameTable;
+        //var statement = statementBuilder;
+//        try (var preparedStatement = conn.prepareStatement(statement)) {
+//            preparedStatement.setInt(1, gameID);
+//            gameIDs = Integer.parseInt(preparedStatement.executeUpdate());
+//            //should not return an int... above...
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e.getMessage());
+//        }
+        return implementer.getGames(gameTable);
+//        if(gameIDs.size() == 0) {
+//            return null;
+//        } else {
+//            GameData[] returnArray = new GameData[gameIDs.size()];
+//            int currentIndex = 0;
+//            for (Integer i : gameIDs) {
+//                returnArray[currentIndex] = getGame(i.intValue());
+//            }
+//            return returnArray;
+//        }
 
         //look for null response and other response from this function
         //if(games.isEmpty()){
@@ -325,7 +343,7 @@ public class DataBaseAccesser implements DataAccesser{
             //we added every game
         // return returnArray;
         }
-    }
+    //}
 
     //First check this person is authorized then that the game exists then that color is available... Then call this function...
     @Override
@@ -400,6 +418,7 @@ public class DataBaseAccesser implements DataAccesser{
         //games.remove(oldGame);
         //games.add(newGame);
         //done above...
+       implementer.updateGame(gameID, newGame);
         return newGame;
     }
 
