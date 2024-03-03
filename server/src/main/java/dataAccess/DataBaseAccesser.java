@@ -330,20 +330,20 @@ public class DataBaseAccesser implements DataAccesser{
                // break;
            // }
      //   }
-        String statementBuilder = "SELECT username FROM " + userTable + " WHERE " + " (auth) VALUES(?)";
-        var statement = statementBuilder;
-        //This should not throw an error as the string has been previously checked in another code that called it...
-        try (var preparedStatement = conn.prepareStatement(statement)) {
-            preparedStatement.setInt(1, gameID);
-            username = preparedStatement.executeUpdate();
-            //should not return an int... above...
-        } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage());
-        }
-
-        //add the new game to return
+//        String statementBuilder = "SELECT username FROM " + userTable + " WHERE " + " (auth) VALUES(?)";
+//        var statement = statementBuilder;
+//        //This should not throw an error as the string has been previously checked in another code that called it...
+//        try (var preparedStatement = conn.prepareStatement(statement)) {
+//            preparedStatement.setInt(1, gameID);
+//            username = preparedStatement.executeUpdate();
+//            //should not return an int... above...
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e.getMessage());
+//        }
+//
+//        //add the new game to return
         GameData newGame = new GameData(0, null, null, null, null);
-        //and the game to watch
+//        //and the game to watch
         GameData oldGame = new GameData(0, null, null, null, null);
 
         GameData chessGame = getGame(gameID);
@@ -364,11 +364,11 @@ public class DataBaseAccesser implements DataAccesser{
                         }
                         //add a white player
                         newGame = new GameData(gameID, username, otherPlayer, chessGame.gameName(), chessGame.implementation());
-                        try {
-                            rowUpdater.update(username, 2, gameID, conn, gameTable);
-                        } catch (DataAccessException e) {
-                            throw new RuntimeException(e.getMessage());
-                        }
+//                        try {
+//                            rowUpdater.update(username, 2, gameID, conn, gameTable);
+//                        } catch (DataAccessException e) {
+//                            throw new RuntimeException(e.getMessage());
+//                        }
                     } else if (clientColor.equals("BLACK")) {
                         //first get the white username (regardless of it is null)...
                         if (chessGame.whiteUsername() != null) {
@@ -376,11 +376,11 @@ public class DataBaseAccesser implements DataAccesser{
                         }
                         //add a black player
                         newGame = new GameData(gameID, otherPlayer, username, chessGame.gameName(), chessGame.implementation());
-                        try {
-                            rowUpdater.update(username, 3, gameID, conn, gameTable);
-                        } catch (DataAccessException e) {
-                            throw new RuntimeException(e.getMessage());
-                        }
+//                        try {
+//                            rowUpdater.update(username, 3, gameID, conn, gameTable);
+//                        } catch (DataAccessException e) {
+//                            throw new RuntimeException(e.getMessage());
+//                        }
                     }
                 }else {
                     //I am not sure that we need to do anything to add a new observer....

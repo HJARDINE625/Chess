@@ -143,4 +143,41 @@ public class SQLInterface {    //to delete stuff
         var chess = new Gson().fromJson(game, ChessGame.class);
         return new GameData(id, black, white, name, chess);
     }
+
+    //update this function
+    public void updateGame(int id, GameData newGame) throws DataAccessException {
+        GameData oldGame = getGame(id, "game");
+        if(oldGame == null){
+            //maybe throw an exception here...
+            return;
+        }
+        if(newGame.whiteUsername() != oldGame.whiteUsername()) {
+            String statement = "UPDATE game SET (whiteUsername) VALUES(?) WHERE (id)=?";
+            executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername());
+        }
+        if(oldGame.blackUsername() != newGame.blackUsername()) {
+            String statement = "UPDATE game SET (blackUsername) VALUES(?) WHERE (id)=?";
+            executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername());
+        }
+        if(oldGame.gameName() != newGame.gameName()) {
+            String statement = "UPDATE game SET (gameName) VALUES(?) WHERE (id)=?";
+            executeUpdate(DatabaseManager.getConnection(), statement, newGame.gameName());
+        }
+
+        if(oldGame.gameName() != newGame.gameName()) {
+            var chess = new Gson().toJson(newGame.implementation());
+            String statement = "UPDATE game SET (implementation) VALUES(?) WHERE (id)=?";
+            executeUpdate(DatabaseManager.getConnection(), statement, chess);
+        }
+        //That should be all the changes a user can make.
+    }
+
+    //get a new column
+    public int newGame(GameData newGame) throws DataAccessException{
+        //if written correctly these two statements should ensure a good return.
+        String statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, implementation) VALUES (?, ?, ?, ?)";
+        return executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername(), newGame.blackUsername(), newGame.gameName(), newGame.implementation());
+    }
+
+
 }
