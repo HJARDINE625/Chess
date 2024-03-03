@@ -83,17 +83,25 @@ public class DataBaseAccesser implements DataAccesser{
 
     //I am using the booleans later to check for errors, so this will only be called if it can work...
     @Override
-    public UserData createUser(String username, String password, String email) {
-        UserData newUser = new UserData(username, password, email);
-        try {
-            rowUpdater.insert(username, 1, conn, userTable);
-            rowUpdater.update(password, 2, username, conn, userTable);
-            rowUpdater.update(email, 3, username, conn, userTable);
-        } catch (DataAccessException e) {
-            throw new RuntimeException(e.getMessage());
+    public UserData createUser(String username, String password, String email) throws DataAccessException {
+        //Before we called this we checked if the username was valid
+        if((implementer.allowedChars(password)) && (implementer.allowedChars(email))) {
+            UserData newUser = new UserData(username, password, email);
+            String statement = "INSERT INTO " + userTable + " (username, password, email) VALUES (?, ?, ?)";
+            implementer.executeUpdate(statement, DatabaseManager.getConnection(), username, password, email);
+//        try {
+//            rowUpdater.insert(username, 1, conn, userTable);
+//            rowUpdater.update(password, 2, username, conn, userTable);
+//            rowUpdater.update(email, 3, username, conn, userTable);
+//        } catch (DataAccessException e) {
+//            throw new RuntimeException(e.getMessage());
+//        }
+            return newUser;
+            //now call login separately in RegistrationService...
+        } else {
+            //look for this return value to determine if the game was allowed by char name...
+            return null;
         }
-        return newUser;
-        //now call login separately in RegistrationService...
     }
 
     @Override
@@ -434,7 +442,9 @@ public class DataBaseAccesser implements DataAccesser{
 //            throw new RuntimeException(e.getMessage());
 //        }
         //uthentications.add(authenticator);
-        implementer.
+        //We checked in another function if the username was valid and we are making the authToken to be valid, so we do not need to check here...
+        String statement =  "INSERT INTO " + authTable + " (username, authToken) VALUES (?, ?)";
+        implementer.executeUpdate(statement, DatabaseManager.getConnection(), username, authValue);
         return authenticator;
 
     }

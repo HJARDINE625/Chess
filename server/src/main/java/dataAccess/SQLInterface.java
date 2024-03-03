@@ -153,21 +153,21 @@ public class SQLInterface {    //to delete stuff
         }
         if(newGame.whiteUsername() != oldGame.whiteUsername()) {
             String statement = "UPDATE game SET (whiteUsername) VALUES(?) WHERE (id)=?";
-            executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername());
+            executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername(), newGame.gameID());
         }
         if(oldGame.blackUsername() != newGame.blackUsername()) {
             String statement = "UPDATE game SET (blackUsername) VALUES(?) WHERE (id)=?";
-            executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername());
+            executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername(), newGame.gameID());
         }
         if(oldGame.gameName() != newGame.gameName()) {
             String statement = "UPDATE game SET (gameName) VALUES(?) WHERE (id)=?";
-            executeUpdate(DatabaseManager.getConnection(), statement, newGame.gameName());
+            executeUpdate(DatabaseManager.getConnection(), statement, newGame.gameName(), newGame.gameID());
         }
 
         if(oldGame.gameName() != newGame.gameName()) {
             var chess = new Gson().toJson(newGame.implementation());
             String statement = "UPDATE game SET (implementation) VALUES(?) WHERE (id)=?";
-            executeUpdate(DatabaseManager.getConnection(), statement, chess);
+            executeUpdate(DatabaseManager.getConnection(), statement, chess, newGame.gameID());
         }
         //That should be all the changes a user can make.
     }
