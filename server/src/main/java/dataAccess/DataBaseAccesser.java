@@ -39,12 +39,12 @@ public class DataBaseAccesser implements DataAccesser{
     private SQLInterface implementer;
 
     //This will have to be directly implemented everywhere as the return type is unknown...
-    SELECT columns_to_return
-    FROM table_to_query
-    WHERE search_condition;
-    void get;
-    String statementBuilder = "SELECT " + " FROM " + " WHERE ";
-    var statement = statementBuilder;
+//    SELECT columns_to_return
+//    FROM table_to_query
+//    WHERE search_condition;
+//    void get;
+    //String statementBuilder = "SELECT " + " FROM " + " WHERE ";
+    //var statement = statementBuilder;
 
 
     public DataBaseAccesser(){
@@ -71,6 +71,7 @@ public class DataBaseAccesser implements DataAccesser{
                 if (propStream == null) throw new Exception("Unable to laod db.properties");
                 Properties props = new Properties();
                 props.load(propStream);
+                conn = DatabaseManager.getConnection();
                 tableCreator.truncateALLTables(conn);
             } catch (DataAccessException e) {
                 throw new RuntimeException(e.getMessage());
@@ -105,25 +106,55 @@ public class DataBaseAccesser implements DataAccesser{
     }
 
     @Override
-    public UserData getUser(String username, String password) {
+    public UserData getUser(String username, String password) throws DataAccessException {
+        if(!((implementer.allowedChars(username)) && (implementer.allowedChars(password)))){
+            return null;
+            //after checking this it is fine to go on...
+        }
         boolean exists = false;
         String email;
-        if(implementer.exists("username", username, userTable)){
+        if (implementer.exists("username", username, userTable)) {
             String statementBuilder = "SELECT username, password, email FROM " + userTable + " WHERE " + " (password) VALUES(?)";
-            implementer.executeUpdate(statementBuilder, DatabaseManager.getConnection(), username);
-        }
-        //for (UserData user: users) {
+            //return implementer.executeUpdate(DatabaseManager.getConnection(), statementBuilder, username);
+            try (Connection conn = DatabaseManager.getConnection()) {
+                try (var ps = conn.prepareStatement(statementBuilder)) {
+                    ps.setString(1, password);
+                    try (var rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            if (rs.getString("username") != null) {
+                                if (username.equals(rs.getString("username"))) {
+                                    email = rs.getString("email");
+                                    return new UserData(username, password, email);
+                                } else {
+                                    return null;
+                                }
+                            } else {
+                                return null;
+                            }
+                        } else {
+                            return null;
+                        }
+                    } catch (Exception e) {
+                        throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+                    }
+                } catch (Exception e) {
+                    throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+                }
+            } catch (Exception e) {
+                throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+            }
+            //for (UserData user: users) {
             //if(user.username().equals(username)){
-                //if(user.password().equals(password)){
-                    //return user;
-                //}
-                //make the main method find this and if it is found throw incorrect password error...
-                //return null;
+            //if(user.password().equals(password)){
+            //return user;
             //}
-       // }
-        //make the main method find this and if it is found throw incorrect password error...
-        //SELECT username FROM table_to_query
-        //WHERE search_condition;
+            //make the main method find this and if it is found throw incorrect password error...
+            //return null;
+            //}
+            // }
+            //make the main method find this and if it is found throw incorrect password error...
+            //SELECT username FROM table_to_query
+            //WHERE search_condition;
 //        if(username.matches("[a-zA-Z]+/\"")) {
 //            String statementBuilder = "SELECT * FROM " + userTable + " WHERE " + " username = ?";
 //            var statement = statementBuilder;
@@ -152,11 +183,14 @@ public class DataBaseAccesser implements DataAccesser{
 //        } else {
 //            return null;
 //        }
-        if(!exists){
-            return null;
-        } else {
-            return new UserData(username, password, email);
+//            if (!exists) {
+//                return null;
+//            } else {
+//                return new UserData(username, password, email);
+//            }
+//        }
         }
+        else return null;
     }
 
     //only call if locate game ID does not return an error
@@ -289,13 +323,14 @@ public class DataBaseAccesser implements DataAccesser{
 //        } else {
 //            return null;
 //        }
-        if(implementer.allowedChars(gameID)) {
+        //no need for int ids...
+        //if(implementer.allowedChars(gameID)) {
             GameData myNewChessGame = implementer.getGame(gameID, gameTable);
             return myNewChessGame;
-        } else {
+        //} else {
             //or throw an exception here...
-            return null;
-        }
+            //return null;
+        //}
         //for (GameData game:games) {
             //if(game.gameID() == gameID){
                // return game;
@@ -347,7 +382,7 @@ public class DataBaseAccesser implements DataAccesser{
 
     //First check this person is authorized then that the game exists then that color is available... Then call this function...
     @Override
-    public GameData updateGame(int gameID, String clientColor, String auth) {
+    public GameData updateGame(int gameID, String clientColor, String auth) throws DataAccessException {
         //We only call this at appropriate times (when the user has been found), so I think it is fine to do this...
         String username = "";
         //for (AuthData user: authentications) {
@@ -494,7 +529,7 @@ public class DataBaseAccesser implements DataAccesser{
                     implementer.delete(authenticator, "authToken", authTable);
                     //rowUpdater.delete(authenticator, 1, conn, authTable);
                 } catch (DataAccessException e) {
-                    throw new RuntimeException(e.getMessage());
+                    throw new DataAccessException(e.getMessage());
                 }
                 //authentications.remove(authTokenToDelete);
                 return true;
@@ -560,7 +595,7 @@ public class DataBaseAccesser implements DataAccesser{
 
     //call this check last... so gameID exists...
     @Override
-    public boolean colorNotTaken(String color, int gameID) {
+    public boolean colorNotTaken(String color, int gameID) throws DataAccessException {
         if(color == null){
             return true;
         } else {
