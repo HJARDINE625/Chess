@@ -5,16 +5,12 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.UUID;
-
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static java.sql.Types.NULL;
 
 public class DataBaseAccesser implements DataAccesser{
 
@@ -38,6 +34,8 @@ public class DataBaseAccesser implements DataAccesser{
 
     private SQLInterface implementer;
 
+    private BCryptPasswordEncoder encoder;
+
     //This will have to be directly implemented everywhere as the return type is unknown...
 //    SELECT columns_to_return
 //    FROM table_to_query
@@ -48,6 +46,7 @@ public class DataBaseAccesser implements DataAccesser{
 
 
     public DataBaseAccesser(){
+        encoder = new BCryptPasswordEncoder();
         try (var propStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("db.properties")) {
             if (propStream == null) throw new Exception("Unable to laod db.properties");
             Properties props = new Properties();
@@ -88,8 +87,9 @@ public class DataBaseAccesser implements DataAccesser{
         //Before we called this we checked if the username was valid
         if((implementer.allowedChars(password)) && (implementer.allowedChars(email))) {
             UserData newUser = new UserData(username, password, email);
+            String secretPassword = interpreter(password);
             String statement = "INSERT INTO " + userTable + " (username, password, email) VALUES (?, ?, ?)";
-            implementer.executeUpdate(statement, DatabaseManager.getConnection(), username, password, email);
+            implementer.executeUpdate(statement, DatabaseManager.getConnection(), username, secretPassword, email);
 //        try {
 //            rowUpdater.insert(username, 1, conn, userTable);
 //            rowUpdater.update(password, 2, username, conn, userTable);
@@ -113,12 +113,13 @@ public class DataBaseAccesser implements DataAccesser{
         }
         boolean exists = false;
         String email;
+        String secretPassword = interpreter(password);
         if (implementer.exists("username", username, userTable)) {
-            String statementBuilder = "SELECT username, password, email FROM " + userTable + " WHERE " + " (password) VALUES(?)";
+            String statementBuilder = "SELECT username, password, email FROM " + userTable + " WHERE " + " password=?";
             //return implementer.executeUpdate(DatabaseManager.getConnection(), statementBuilder, username);
             try (Connection conn = DatabaseManager.getConnection()) {
                 try (var ps = conn.prepareStatement(statementBuilder)) {
-                    ps.setString(1, password);
+                    ps.setString(1, secretPassword);
                     try (var rs = ps.executeQuery()) {
                         if (rs.next()) {
                             if (rs.getString("username") != null) {
@@ -251,8 +252,9 @@ public class DataBaseAccesser implements DataAccesser{
 //            } catch (DataAccessException e) {
 //                throw new RuntimeException(e.getMessage());
 //            }
-            implementer.newGame(newGame);
-            return newGame;
+            int newGameID = implementer.newGame(newGame);
+            //We generate a new game of chessID when we add it to the table, so we add that here...
+            return new GameData(newGameID, null, null, newGame.gameName(), newGame.implementation());
         } else {
             //or throw an exception
             return null;
@@ -676,6 +678,34 @@ public class DataBaseAccesser implements DataAccesser{
         //implementer.allowedChars(gameID) no need to worry with ints...
         return implementer.exists(gameID, "gameID", gameTable);
     }
+
+    //This encodes stuff into non-illegal strings... I may need to simply invalidate them if the encode illegally, but for now I will use this...
+
+    private String interpreter(String normalString){
+        boolean workingString = false;
+        String finalString = null;
+        while(!workingString) {
+            String testString = encoder.encode(normalString);
+            if (implementer.allowedChars(testString)) {
+                    workingString = true;
+                    finalString = testString;
+            }
+        }
+        return finalString;
+    }
+
+    //This decodes the strings...
+    private boolean normalizer(String encoded, String normal){
+        String equals = encoder.matches(normal, encoded) ? "==" : "!=";
+        if(equals.equals("==")){
+            return true;
+        } if(equals.equals("!=")){
+            return false;
+        } else {
+            throw new RuntimeException("unecriptable");
+        }
+    }
+
 
 
 
