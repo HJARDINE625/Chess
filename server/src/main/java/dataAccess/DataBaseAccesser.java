@@ -575,11 +575,11 @@ public class DataBaseAccesser implements DataAccesser{
 //            //this authtentication cannot exist...
 //        return false;
 //        }
-        if(implementer.allowedChars(authenticator)) {
-            return implementer.exists(authenticator, "authToken", authTable);
-        } else {
-            throw new DataAccessException("error: illegal name");
-        }
+        //if(implementer.allowedChars(authenticator)) {
+            return implementer.exists("authToken", authenticator, authTable);
+        //} else {
+           // throw new DataAccessException("error: illegal name");
+       // }
     }
 
     //only call the color checkers after calling locate game id, and call first noSuchColor then colorTaken...

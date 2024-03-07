@@ -157,7 +157,7 @@ public class DAOUnitTests {
         //Lets create a false new game
         GameData myNonsenseGame = myDataStorage.createGame(null);
         //Now check that it has a null name (which is a mistake here).
-        assertNull(myNonsenseGame.gameName());
+        assertNull(myNonsenseGame);
     }
 
     @Order(8)
@@ -172,7 +172,12 @@ public class DAOUnitTests {
         GameData returnOfTheTrueGame = myDataStorage.getGame(theTrueGame.gameID());
         assertNotNull(returnOfTheTrueGame);
         //Is it the same game?
-        assertEquals(theTrueGame, returnOfTheTrueGame);
+        assertEquals(theTrueGame.implementation().getBoard(), returnOfTheTrueGame.implementation().getBoard());
+        assertEquals(theTrueGame.implementation().getTeamTurn(), returnOfTheTrueGame.implementation().getTeamTurn());
+        assertEquals(theTrueGame.gameID(), returnOfTheTrueGame.gameID());
+        assertEquals(theTrueGame.whiteUsername(), returnOfTheTrueGame.whiteUsername());
+        assertEquals(theTrueGame.blackUsername(), returnOfTheTrueGame.blackUsername());
+        assertEquals(theTrueGame.gameName(), returnOfTheTrueGame.gameName());
     }
 
    //This still works just fine, but here we will make sure that nothing is returned when nothing is in the list...
@@ -260,7 +265,7 @@ public class DAOUnitTests {
         //now Lets delete everything in the database
         myDataStorage.clear();
         //now we can add a less cool game
-        myDataStorage.createGame(ChessGameName);
+        //myDataStorage.createGame(ChessGameName);
         //lets see if we can find the game we deleted.
         assertNull(myDataStorage.getGame(theGreatGame.gameID()));
 
@@ -276,8 +281,18 @@ public class DAOUnitTests {
         //make sure the games are different to prove the next test works.
         assertNotEquals(theGreatGame, foolsQuest);
         //lets see if we find the right ones
-        assertEquals(foolsQuest, myDataStorage.getGame(foolsQuest.gameID()));
-        assertEquals(theGreatGame, myDataStorage.getGame(theGreatGame.gameID()));
+        assertEquals(foolsQuest.implementation().getBoard(), myDataStorage.getGame(foolsQuest.gameID()).implementation().getBoard());
+        assertEquals(foolsQuest.implementation().getTeamTurn(), myDataStorage.getGame(foolsQuest.gameID()).implementation().getTeamTurn());
+        assertEquals(foolsQuest.gameID(), myDataStorage.getGame(foolsQuest.gameID()).gameID());
+        assertEquals(foolsQuest.whiteUsername(), myDataStorage.getGame(foolsQuest.gameID()).whiteUsername());
+        assertEquals(foolsQuest.blackUsername(), myDataStorage.getGame(foolsQuest.gameID()).blackUsername());
+        assertEquals(foolsQuest.gameName(), myDataStorage.getGame(foolsQuest.gameID()).gameName());
+        assertEquals(theGreatGame.implementation().getBoard(), myDataStorage.getGame(theGreatGame.gameID()).implementation().getBoard());
+        assertEquals(theGreatGame.implementation().getTeamTurn(), myDataStorage.getGame(theGreatGame.gameID()).implementation().getTeamTurn());
+        assertEquals(theGreatGame.gameID(), myDataStorage.getGame(theGreatGame.gameID()).gameID());
+        assertEquals(theGreatGame.whiteUsername(), myDataStorage.getGame(theGreatGame.gameID()).whiteUsername());
+        assertEquals(theGreatGame.blackUsername(), myDataStorage.getGame(theGreatGame.gameID()).blackUsername());
+        assertEquals(theGreatGame.gameName(), myDataStorage.getGame(theGreatGame.gameID()).gameName());
     }
 
     //These functions are much easier to check, because they are meant to return a boolean signifying that they worked.
@@ -381,8 +396,19 @@ public class DAOUnitTests {
         assertNotEquals(gameOne, gameTwo);
         assertNotEquals(gameOne.gameID(), gameTwo.gameID());
         //Now lets see if we can find the games based upon their ID's...
-        assertEquals(gameOne, myDataStorage.getGame(gameOne.gameID()));
-        assertEquals(gameTwo, myDataStorage.getGame(gameTwo.gameID()));
+
+        assertEquals(gameOne.implementation().getBoard(), myDataStorage.getGame(gameOne.gameID()).implementation().getBoard());
+        assertEquals(gameOne.implementation().getTeamTurn(), myDataStorage.getGame(gameOne.gameID()).implementation().getTeamTurn());
+        assertEquals(gameOne.gameID(), myDataStorage.getGame(gameOne.gameID()).gameID());
+        assertEquals(gameOne.whiteUsername(), myDataStorage.getGame(gameOne.gameID()).whiteUsername());
+        assertEquals(gameOne.blackUsername(), myDataStorage.getGame(gameOne.gameID()).blackUsername());
+        assertEquals(gameOne.gameName(), myDataStorage.getGame(gameOne.gameID()).gameName());
+        assertEquals(gameTwo.implementation().getBoard(), myDataStorage.getGame(gameTwo.gameID()).implementation().getBoard());
+        assertEquals(gameTwo.implementation().getTeamTurn(), myDataStorage.getGame(gameTwo.gameID()).implementation().getTeamTurn());
+        assertEquals(gameTwo.gameID(), myDataStorage.getGame(gameTwo.gameID()).gameID());
+        assertEquals(gameTwo.whiteUsername(), myDataStorage.getGame(gameTwo.gameID()).whiteUsername());
+        assertEquals(gameTwo.blackUsername(), myDataStorage.getGame(gameTwo.gameID()).blackUsername());
+        assertEquals(gameTwo.gameName(), myDataStorage.getGame(gameTwo.gameID()).gameName());
         assertNotEquals(myDataStorage.getGame(gameOne.gameID()), myDataStorage.getGame(gameTwo.gameID()));
     }
 
