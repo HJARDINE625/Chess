@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import dataAccess.DataAccess;
 import dataAccess.DataAccessException;
 import dataAccess.DataAccesser;
+import dataAccess.DataBaseAccesser;
 import model.*;
 import service.ContolServices;
 import service.GameServices;
@@ -17,7 +18,7 @@ import java.util.Map;
 
 public class Server {
 
-    private DataAccesser myDataStorageDevice = new DataAccess();
+    private DataBaseAccesser myDataStorageDevice = new DataBaseAccesser();
     private ContolServices reset = new ContolServices();
     private RegistrationServices loginStuff = new RegistrationServices();
     private GameServices gameDataAccess = new GameServices();

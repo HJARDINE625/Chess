@@ -98,10 +98,10 @@ public class SQLInterface {    //to delete stuff
     //same but for chars...
     public boolean exists(String id, String idName, String table) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
-            String StatementBuilder = "SELECT " + id + " FROM " + table + " WHERE "+ idName+"=?";
+            String StatementBuilder = "SELECT " + id + " FROM " + table + " WHERE "+ id+"=?";
             var statement = StatementBuilder;
             try (var ps = conn.prepareStatement(statement)) {
-                ps.setString(1, id);
+                ps.setString(1, idName);
                 try (var rs = ps.executeQuery()) {
                     if (rs.next()) {
                         return true;
@@ -208,7 +208,8 @@ public class SQLInterface {    //to delete stuff
     public int newGame(GameData newGame) throws DataAccessException{
         //if written correctly these two statements should ensure a good return.
         String statement = "INSERT INTO game (whiteUsername, blackUsername, gameName, implementation) VALUES (?, ?, ?, ?)";
-        return executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername(), newGame.blackUsername(), newGame.gameName(), newGame.implementation());
+        var chess = new Gson().toJson(newGame.implementation());
+        return executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername(), newGame.blackUsername(), newGame.gameName(), chess);
     }
 
 

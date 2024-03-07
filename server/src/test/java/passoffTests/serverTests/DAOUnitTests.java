@@ -4,6 +4,7 @@ import chess.ChessGame;
 import dataAccess.DataAccess;
 import dataAccess.DataAccessException;
 import dataAccess.DataAccesser;
+import dataAccess.DataBaseAccesser;
 import model.*;
 
 import org.junit.jupiter.api.*;
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 
 public class DAOUnitTests {
-    private DataAccesser myDataStorage = new DataAccess();
+    private DataAccesser myDataStorage = new DataBaseAccesser();
 
     private UserData Kevin;
 

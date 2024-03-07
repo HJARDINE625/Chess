@@ -55,13 +55,13 @@ public class TableManager {
 
                 //here we create our three tables... they should have correct primary and secondary keys and rules...
                 var recreateUserTable = """
-            TRUNCATE TABLE  IF EXISTS user""";
+            TRUNCATE TABLE user""";
 
                 var recreateAuthTable = """
-            TRUNCATE TABLE  IF EXISTS auth""";
+            TRUNCATE TABLE auth""";
 
                 var recreateGameTable = """
-            TRUNCATE TABLE  IF EXISTS game""";
+            TRUNCATE TABLE game""";
 
 
                 try (var createTableStatement = conn.prepareStatement(recreateUserTable)) {

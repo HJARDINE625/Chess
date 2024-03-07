@@ -28,11 +28,11 @@ public class DataBaseAccesser implements DataAccesser{
 
     private Connection conn;
 
-    private String userTable = "user";
-    private String authTable = "auth";
-    private String gameTable = "game";
+    private final String userTable = "user";
+    private final String authTable = "auth";
+    private final String gameTable = "game";
 
-    private SQLInterface implementer;
+    private SQLInterface implementer = new SQLInterface();
 
     private BCryptPasswordEncoder encoder;
 
@@ -87,7 +87,8 @@ public class DataBaseAccesser implements DataAccesser{
         //Before we called this we checked if the username was valid
         if((implementer.allowedChars(password)) && (implementer.allowedChars(email))) {
             UserData newUser = new UserData(username, password, email);
-            String secretPassword = interpreter(password);
+            //String secretPassword = interpreter(password);
+            String secretPassword = password;
             String statement = "INSERT INTO " + userTable + " (username, password, email) VALUES (?, ?, ?)";
             implementer.executeUpdate(statement, DatabaseManager.getConnection(), username, secretPassword, email);
 //        try {
@@ -113,7 +114,9 @@ public class DataBaseAccesser implements DataAccesser{
         }
         boolean exists = false;
         String email;
-        String secretPassword = interpreter(password);
+        //String secretPassword = interpreter(password);
+        //test for now...
+        String secretPassword = password;
         if (implementer.exists("username", username, userTable)) {
             String statementBuilder = "SELECT username, password, email FROM " + userTable + " WHERE " + " password=?";
             //return implementer.executeUpdate(DatabaseManager.getConnection(), statementBuilder, username);
@@ -468,7 +471,7 @@ public class DataBaseAccesser implements DataAccesser{
         String authValue = new String();
         while(newUniqueValueFound == false) {
             authValue = UUID.randomUUID().toString();
-            newUniqueValueFound = implementer.exists(authValue, "authToken", authTable);
+            newUniqueValueFound = !implementer.exists("authToken", authValue, authTable);
             //if (!authentications.isEmpty()){
                // for (AuthData authenticator: authentications) {
                    // if (authenticator.authToken().equals(authValue)) {
@@ -640,7 +643,7 @@ public class DataBaseAccesser implements DataAccesser{
         // return false;
         // }
         if(implementer.allowedChars(username)) {
-            return implementer.exists(username, "username", userTable);
+            return implementer.exists("username", username, userTable);
         } else {
             throw new DataAccessException("error: illegal name");
         }
