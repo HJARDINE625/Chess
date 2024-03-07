@@ -26,7 +26,7 @@ public class SQLInterface {    //to delete stuff
 
     public boolean allowedChars(String testStatement){
         if(testStatement != null) {
-            if (testStatement.matches("[a-zA-Z0-9@/. ]+")) {
+            if (testStatement.matches("[a-zA-Z0-9@/.!' ]+")) {
                 return true;
             } else {
                 return false;

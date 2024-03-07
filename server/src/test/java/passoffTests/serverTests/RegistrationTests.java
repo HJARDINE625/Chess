@@ -4,6 +4,7 @@ import chess.ChessGame;
 import dataAccess.DataAccess;
 import dataAccess.DataAccessException;
 import dataAccess.DataAccesser;
+import dataAccess.DataBaseAccesser;
 import model.*;
 
 import org.junit.jupiter.api.*;
@@ -20,7 +21,7 @@ public class RegistrationTests {
 
         //We will use this to test that our insert method is working and failing in the right ways
 
-        private DataAccesser myDataStorage = new DataAccess();
+        private DataAccesser myDataStorage = new DataBaseAccesser();
 
         private UserData Kevin;
 
