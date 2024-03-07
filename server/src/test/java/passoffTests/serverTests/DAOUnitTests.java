@@ -155,9 +155,16 @@ public class DAOUnitTests {
     @Test
     public void createGameFail() throws DataAccessException {
         //Lets create a false new game
-        GameData myNonsenseGame = myDataStorage.createGame(null);
-        //Now check that it has a null name (which is a mistake here).
-        assertNull(myNonsenseGame);
+        try {
+            myDataStorage.createGame(null);
+        } catch (DataAccessException e){
+            //We were supposed to throw an error... so if we got here... good!
+            assertTrue(1==1);
+            return;
+        }
+        //If we got here we did not throw the error... so fail the test...
+        assertFalse(1==1);
+
     }
 
     @Order(8)

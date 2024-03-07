@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashSet;
 
+import static java.lang.Integer.valueOf;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static java.sql.Types.NULL;
 
@@ -177,7 +178,8 @@ public class SQLInterface {    //to delete stuff
         var name = rs.getString("gameName");
         var game = rs.getString("implementation");
         var chess = new Gson().fromJson(game, ChessGame.class);
-        return new GameData(id, black, white, name, chess);
+        return new GameData(id, white, black, name, chess);
+
     }
 
     //update this function
@@ -187,23 +189,24 @@ public class SQLInterface {    //to delete stuff
             //maybe throw an exception here...
             return;
         }
+        Integer ID = id;
         if(newGame.whiteUsername() != oldGame.whiteUsername()) {
-            String statement = "UPDATE game SET (whiteUsername) VALUES(?) WHERE (id)=?";
-            executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername(), newGame.gameID());
+            String statement = "UPDATE game SET whiteUsername=? WHERE gameID=?";
+            executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername(), ID);
         }
         if(oldGame.blackUsername() != newGame.blackUsername()) {
-            String statement = "UPDATE game SET (blackUsername) VALUES(?) WHERE (id)=?";
-            executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername(), newGame.gameID());
+            String statement = "UPDATE game SET blackUsername=? WHERE gameID=?";
+            executeUpdate(DatabaseManager.getConnection(), statement, newGame.blackUsername(), ID);
         }
         if(oldGame.gameName() != newGame.gameName()) {
-            String statement = "UPDATE game SET (gameName) VALUES(?) WHERE (id)=?";
-            executeUpdate(DatabaseManager.getConnection(), statement, newGame.gameName(), newGame.gameID());
+            String statement = "UPDATE game SET gameName=? WHERE gameID=?";
+            executeUpdate(DatabaseManager.getConnection(), statement, newGame.gameName(), ID);
         }
 
         if(oldGame.gameName() != newGame.gameName()) {
             var chess = new Gson().toJson(newGame.implementation());
-            String statement = "UPDATE game SET (implementation) VALUES(?) WHERE (id)=?";
-            executeUpdate(DatabaseManager.getConnection(), statement, chess, newGame.gameID());
+            String statement = "UPDATE game SET implementation=? WHERE gameID=?";
+            executeUpdate(DatabaseManager.getConnection(), statement, chess, ID);
         }
         //That should be all the changes a user can make.
     }

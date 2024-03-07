@@ -237,7 +237,7 @@ public class DataBaseAccesser implements DataAccesser{
 //                        throw new RuntimeException(e.getMessage());
 //                    }
                     if (implementer.exists("gameName", gameName, gameTable)) {
-                        newUniqueValueFound = false;
+                        throw new DataAccessException("error: game name already taken");
                     }
                 }
             }
@@ -260,7 +260,7 @@ public class DataBaseAccesser implements DataAccesser{
             return new GameData(newGameID, null, null, newGame.gameName(), newGame.implementation());
         } else {
             //or throw an exception
-            return null;
+            throw new DataAccessException("error: illegal name");
         }
     }
 
@@ -390,6 +390,26 @@ public class DataBaseAccesser implements DataAccesser{
     public GameData updateGame(int gameID, String clientColor, String auth) throws DataAccessException {
         //We only call this at appropriate times (when the user has been found), so I think it is fine to do this...
         String username = "";
+        String statementBuilder = "SELECT username FROM " + authTable + " WHERE " + " authToken=?";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var ps = conn.prepareStatement(statementBuilder)) {
+                ps.setString(1, auth);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        if (rs.getString("username") != null) {
+                            username = rs.getString("username");
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+                }
+            } catch (Exception e) {
+                throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+        }
+
         //for (AuthData user: authentications) {
             //if(user.authToken().equals(auth)) {
                // username = user.username();
