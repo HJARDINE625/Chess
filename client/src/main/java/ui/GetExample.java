@@ -12,7 +12,7 @@ import java.net.URL;
 
 public class GetExample {
 
-    public GameData[] doGet(String urlString) throws IOException, ReportingException {
+    public GameData[] doGet(String urlString, String authentication) throws IOException, ReportingException {
         URL url = new URL(urlString);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -22,12 +22,12 @@ public class GetExample {
 
         //gives body issues...
         var outputStream = connection.getOutputStream();
-        var json = new Gson().toJson(new UserData(null, null, null));
-        outputStream.write(json.getBytes());
+//        var json = new Gson().toJson(new UserData(null, null, null));
+//        outputStream.write(json.getBytes());
 
         // Set HTTP request headers, if necessary
         // connection.addRequestProperty("Accept", "text/html");
-        connection.addRequestProperty("Authorization", "fjaklc8sdfjklakl");
+        connection.addRequestProperty("Authorization", authentication);
 
         connection.connect();
 

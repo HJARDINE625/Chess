@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 import model.UserData;
@@ -10,22 +11,22 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class CreateGame {
-    public GameData create(String urlString) throws IOException, ReportingException {
+    public GameData create(String urlString, String authentication, ChessGame game) throws IOException, ReportingException {
         URL url = new URL(urlString);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
         connection.setReadTimeout(5000);
-        connection.setRequestMethod("GET");
+        connection.setRequestMethod("POST");
 
         //gives body issues...
         var outputStream = connection.getOutputStream();
-        var json = new Gson().toJson(new UserData(null, null, null));
+        var json = new Gson().toJson(game);
         outputStream.write(json.getBytes());
 
         // Set HTTP request headers, if necessary
         // connection.addRequestProperty("Accept", "text/html");
-        connection.addRequestProperty("Authorization", "fjaklc8sdfjklakl");
+        connection.addRequestProperty("Authorization", authentication);
 
         connection.connect();
 

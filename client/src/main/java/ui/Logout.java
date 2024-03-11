@@ -12,7 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class Logout {
-    public void doLogout(String urlString) throws IOException, ReportingException {
+    public void doLogout(String urlString, String authentication) throws IOException, ReportingException {
         URL url = new URL(urlString);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -27,7 +27,7 @@ public class Logout {
 
         // Set HTTP request headers, if necessary
         // connection.addRequestProperty("Accept", "text/html");
-        connection.addRequestProperty("Authorization", "fjaklc8sdfjklakl");
+        connection.addRequestProperty("Authorization", authentication);
 
         connection.connect();
 

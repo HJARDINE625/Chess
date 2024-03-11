@@ -13,17 +13,17 @@ import java.net.URL;
 //This can actually work for both Login and Register as long as you previously ensure the correct values are passed in.
 
 public class Login {
-    public AuthData login(String urlString) throws IOException, ReportingException {
+    public AuthData login(String urlString, UserData gson) throws IOException, ReportingException {
     URL url = new URL(urlString);
 
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
     connection.setReadTimeout(5000);
-    connection.setRequestMethod("GET");
+    connection.setRequestMethod("POST");
 
     //gives body issues...
     var outputStream = connection.getOutputStream();
-    var json = new Gson().toJson(new UserData(null, null, null));
+    var json = new Gson().toJson(gson);
     outputStream.write(json.getBytes());
 
     // Set HTTP request headers, if necessary
