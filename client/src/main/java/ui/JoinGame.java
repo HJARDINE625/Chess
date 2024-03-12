@@ -1,6 +1,7 @@
 package ui;
 
 import com.google.gson.Gson;
+import model.AuthDataInt;
 import model.GameData;
 import model.UserData;
 
@@ -10,7 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class JoinGame {
-    public void join(String urlString, String authentication) throws IOException, ReportingException {
+    public void join(String urlString, String authentication, String color, String gameID) throws IOException, ReportingException {
         URL url = new URL(urlString);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -20,8 +21,8 @@ public class JoinGame {
 
         //gives body issues...
         var outputStream = connection.getOutputStream();
-//        var json = new Gson().toJson(new UserData(null, null, null));
-//        outputStream.write(json.getBytes());
+        var json = new Gson().toJson(new AuthDataInt(gameID, color));
+        outputStream.write(json.getBytes());
 
         // Set HTTP request headers, if necessary
         // connection.addRequestProperty("Accept", "text/html");

@@ -7,8 +7,11 @@ import chess.ChessPosition;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
+import model.UserData;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -19,6 +22,8 @@ import static ui.EscapeSequences.*;
 public class ServerConnector {
 
     private PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+
+    private InputReader getUserInput = new ConsoleInput();
 
 
     //need some kind of init and stop functions
@@ -43,7 +48,7 @@ public class ServerConnector {
     private String game = "/game";
     private String database = "/db";
     private String user = "/user";
-    private String auth = "/auth";
+    private String auth = "/session";
 
     private GameData [] games = new GameData[0];
 
@@ -69,23 +74,55 @@ public class ServerConnector {
                 try {
                     authValueRemover.doLogout(urlString + auth, authentications[0].authToken());
                     authentications[0] = null;
-                    //make sure they know the new options
-                    addMoreAtEnd = true;
                 } catch(ReportingException r) {
                         message = r.getMessage();
                 }
+                //make sure they know the new options
+                addMoreAtEnd = true;
             }
         } else if(selector == 2){
             if(!loggedIn){
                 //find some way to get more input mid function here... or I could have an array of other inputs...
+                out.print("Enter Username\n");
+                String username = getUserInput.getString();
+                out.print("Enter Password\n");
+                String password = getUserInput.getString();
+                out.print("Enter Email\n");
+                String email = getUserInput.getString();
+                //enter information
+                try {
+                    authentications[0] = authValueGenerator.login(urlString + user, new UserData(username, password, email));
+                    message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
+                } catch(ReportingException r){
+                    message = r.getMessage();
+                }
                 //make sure they know the new options
                 addMoreAtEnd = true;
             } else {
                 //find some way to get more input mid function here... or I could have an array of other inputs...
+                out.print("Enter Game Name\n");
+                String gameName = getUserInput.getString();
+                ChessGame game = new ChessGame();
+                try {
+                    GameData newGame = gameCreator.create(urlString + game, authentications[0].authToken(), game);
+                    message = message + "New Game Name : " + newGame.gameName() + " New Game ID : " + newGame.gameID() + "\n";
+                } catch(ReportingException r){
+                    message = r.getMessage();
+                }
             }
         } else if(selector == 3){
             if(!loggedIn){
                 //find some way to get more input mid function here... or I could have an array of other inputs...
+                out.print("Enter Username\n");
+                String username = getUserInput.getString();
+                out.print("Enter Password\n");
+                String password = getUserInput.getString();
+                try {
+                    authentications[0] = authValueGenerator.login(urlString + user, new UserData(username, password, null));
+                    message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
+                } catch(ReportingException r){
+                    message = r.getMessage();
+                }
                 //make sure they know the new options
                 addMoreAtEnd = true;
             } else {
@@ -109,7 +146,7 @@ public class ServerConnector {
                                 message = message + "NONE! (Black Username) : ";
                             }
                             if(g.blackUsername() != null) {
-                                message = message + g.blackUsername() + " ";
+                                message = message + g.blackUsername() + " \n";
                             }  else {
                                 message = message + "NONE! \n";
                             }
@@ -125,8 +162,40 @@ public class ServerConnector {
             } else if (loggedIn) {
             if(selector == 4){
                 //find some way to get more input mid function here... or I could have an array of other inputs...
-            } else if(selector == 5){
+                out.print("Enter Game Number\n");
+                int gameNumber = getUserInput.getNum();
+                if(games[gameNumber] == null) {
+                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    //this will make sure that above that message there is a list of valid games!
+                    completeAction(3);
+                } else {
+                    String IDString = String.valueOf(games[gameNumber].gameID());
+                    out.print("Enter color you wish to play as.\n");
+                    String playerColor = getUserInput.getString();
+                try {
+                    gameJoiner.join(urlString + game, authentications[0].authToken(), playerColor, IDString);
+                    //message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
+                } catch(ReportingException r){
+                    message = r.getMessage();
+                }
+            }
+            }else if(selector == 5){
                 //find some way to get more input mid function here... or I could have an array of other inputs...
+                out.print("Enter Game Number\n");
+                int gameNumber = getUserInput.getNum();
+                if(games[gameNumber] == null) {
+                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    //this will make sure that above that message there is a list of valid games!
+                    completeAction(3);
+                } else {
+                    String IDString = String.valueOf(games[gameNumber].gameID());
+                    try {
+                        gameJoiner.join(urlString + game, authentications[0].authToken(), null, IDString);
+                        //message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
+                    } catch(ReportingException r){
+                        message = r.getMessage();
+                    }
+                }
             } else {
                 message = "Error: that is not a valid option for this client condition!\n";
                 //make sure they know the options
