@@ -53,8 +53,9 @@ public class ServerConnector {
     private GameData [] games = new GameData[0];
 
     //The rest of our code will work if we initialize this to null and change it out everytime we need to
-    public ServerConnector(){
+    public ServerConnector(String host, String selector){
         authentications[0] = null;
+        urlString = host + selector;
     }
 
     //just print out to console here, do not return anything...
