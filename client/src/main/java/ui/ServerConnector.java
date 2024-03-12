@@ -174,6 +174,9 @@ public class ServerConnector {
                     String playerColor = getUserInput.getString();
                 try {
                     gameJoiner.join(urlString + game, authentications[0].authToken(), playerColor, IDString);
+                    //for now we will do this this way...
+                    ChessGame boardDrawer = new ChessGame();
+                    draw(boardDrawer);
                     //message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
                 } catch(ReportingException r){
                     message = r.getMessage();
@@ -191,6 +194,9 @@ public class ServerConnector {
                     String IDString = String.valueOf(games[gameNumber].gameID());
                     try {
                         gameJoiner.join(urlString + game, authentications[0].authToken(), null, IDString);
+                        //for now we will do this this way...
+                        ChessGame boardDrawer = new ChessGame();
+                        draw(boardDrawer);
                         //message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
                     } catch(ReportingException r){
                         message = r.getMessage();
