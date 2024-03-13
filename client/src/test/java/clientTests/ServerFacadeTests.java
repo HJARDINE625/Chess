@@ -2,6 +2,7 @@ package clientTests;
 
 import dataAccess.DataAccessException;
 import model.AuthData;
+import model.GameData;
 import model.Responses;
 import org.junit.jupiter.api.*;
 import server.Server;
@@ -48,6 +49,7 @@ public class ServerFacadeTests {
 
     @AfterAll
     static void stopServer() {
+        //If I cannot find a way to delete the server from here, I may always have to run a test from elsewhere after this... for now do that...
         server.stop();
     }
 
@@ -112,7 +114,7 @@ public class ServerFacadeTests {
         assertNotEquals(newStuff, myStuff);
         assertNotEquals(newStuff.authToken(), myStuff.authToken());
     }
-    @Order(4)
+    @Order(10)
     @Test
     public void logoutFail() throws DataAccessException, IOException {
         //add a new user and login...
@@ -129,7 +131,7 @@ public class ServerFacadeTests {
         //We should not have gotten here
         fail();
     }
-    @Order(3)
+    @Order(8)
     @Test
     public void logoutPass() throws DataAccessException, IOException {
         //Logout, make sure it works
@@ -157,6 +159,173 @@ public class ServerFacadeTests {
         AuthData newStuff = myDataStorage.GetCurrentAuthentication();
         assertNull(newStuff);
     }
+
+    @Order(3)
+    @Test
+    public void getFail() throws DataAccessException, IOException {
+        //make sure we are in the correct part of the test environment
+        myDataStorage.completeAction(0);
+        //now make sure there are no games available right now...
+        assertNull(myDataStorage.getGames());
+        //ok, now we need to get all the non-existent games
+        myDataStorage.completeAction(3);
+        //make sure there are still no games
+        assertNull(myDataStorage.getGames());
+    }
+
+    @Order(4)
+    @Test
+    public void addPass() throws DataAccessException, IOException {
+        //make sure we are still in the correct part of the test environment
+        myDataStorage.completeAction(0);
+        //now make sure there are no games available right now...
+        assertNull(myDataStorage.getGames());
+        //ok, now we need to get all the non-existent games
+        myDataStorage.completeAction(3);
+        //make sure there are still no games
+        assertNull(myDataStorage.getGames());
+        //now we need to add a new game...
+        myDataStorage.completeAction(4);
+        ByteArrayInputStream inputFacade = new ByteArrayInputStream("RemeberMe".getBytes());
+        System.setIn(inputFacade);
+        //now lets see if a game exists
+        myDataStorage.completeAction(3);
+        assertNotNull(myDataStorage.getGames());
+    }
+
+    @Order(5)
+    @Test
+    public void getPass() throws DataAccessException, IOException {
+        //make sure we are still in the correct part of the test environment
+        myDataStorage.completeAction(0);
+        //now make sure there are games available right now...
+        assertNotNull(myDataStorage.getGames());
+        GameData[] oldGames = myDataStorage.getGames();
+        //ok, now we need to get all the games again
+        myDataStorage.completeAction(3);
+        //make sure there are still games
+        assertNotNull(myDataStorage.getGames());
+        GameData[] newGames = myDataStorage.getGames();
+        //are they the same?
+        assertEquals(oldGames, newGames);
+    }
+
+    @Order(6)
+    @Test
+    public void joinPass() throws DataAccessException, IOException {
+        //make sure we are still in the correct part of the test environment
+        myDataStorage.completeAction(0);
+        //now make sure there are games available right now...
+        assertNotNull(myDataStorage.getGames());
+        GameData[] oldGames = myDataStorage.getGames();
+        assertNotNull(oldGames[0]);
+        //ok, now we need to modify game zero
+        myDataStorage.completeAction(4);
+        //add ourselves as white
+        ByteArrayInputStream inputFacade = new ByteArrayInputStream("WHITE".getBytes());
+        System.setIn(inputFacade);
+        //ok, let us see if we were added
+        assertNotNull(myDataStorage.getGames());
+        GameData[] newGames = myDataStorage.getGames();
+        assertNotNull(newGames[0]);
+        assertNotNull(newGames[0].whiteUsername());
+        //just a check that we were not already there...
+        assertNull(oldGames[0].whiteUsername());
+    }
+
+    @Order(9)
+    @Test
+    public void addFail() throws DataAccessException, IOException {
+        //make sure we are still in the correct part of the test environment
+        myDataStorage.completeAction(0);
+        assertNull(myDataStorage.GetCurrentAuthentication());
+        //do impossible action from this selection screen
+        myDataStorage.completeAction(4);
+        //now act as though it worked and see if anything happens... it should not...
+        ByteArrayInputStream inputFacade = new ByteArrayInputStream("The Game That Could Not Be".getBytes());
+        System.setIn(inputFacade);
+        //next
+        inputFacade = new ByteArrayInputStream("0".getBytes());
+        System.setIn(inputFacade);
+        //we should have only got a help output here... nothing else...
+        //check that we do not have the game that could not be anywhere
+
+
+        //Create a new user
+        myDataStorage.completeAction(2);
+        inputFacade = new ByteArrayInputStream("inspector".getBytes());
+        System.setIn(inputFacade);
+        //next
+        inputFacade = new ByteArrayInputStream("SayPlease".getBytes());
+        System.setIn(inputFacade);
+        //finally
+        inputFacade = new ByteArrayInputStream("Classified".getBytes());
+        System.setIn(inputFacade);
+        assertNotNull(myDataStorage.GetCurrentAuthentication());
+        //lets look
+        myDataStorage.completeAction(3);
+        assertNotNull(myDataStorage.getGames());
+        //we should have a game in our list, but...
+        assertNotNull(myDataStorage.getGames()[0]);
+        //this next line should prove we only have one game...
+        assertNull(myDataStorage.getGames()[1]);
+        //now check that we do not have the game we just made is slot one
+        assertNotNull(myDataStorage.getGames()[0].gameName());
+        assertNotEquals(myDataStorage.getGames()[0].gameName(), "The Game That Could Not Be");
+    }
+
+    @Order(7)
+    @Test
+    public void joinFail() throws DataAccessException, IOException {
+        //make sure we are still in the correct part of the test environment
+        myDataStorage.completeAction(0);
+        //Log Out
+        assertNotNull(myDataStorage.GetCurrentAuthentication());
+        myDataStorage.completeAction(1);
+        assertNull(myDataStorage.GetCurrentAuthentication());
+        //Create a new user
+        myDataStorage.completeAction(2);
+        ByteArrayInputStream inputFacade = new ByteArrayInputStream("No!!!".getBytes());
+        System.setIn(inputFacade);
+        //next
+        inputFacade = new ByteArrayInputStream("OPENSESAME!".getBytes());
+        System.setIn(inputFacade);
+        //finally
+        inputFacade = new ByteArrayInputStream("@.@@@.@".getBytes());
+        System.setIn(inputFacade);
+        //Get the authToken for comparison
+        AuthData myStuff = myDataStorage.GetCurrentAuthentication();
+        assertNotNull(myStuff);
+        assertNotNull(myStuff.username());
+        assertNotNull(myStuff.authToken());
+        assertEquals(myStuff.username(), "No!!!");
+        //Now prove the game exists with a white user...
+        assertNotNull(myDataStorage.getGames());
+        GameData[] games = myDataStorage.getGames();
+        assertNotNull(games[0]);
+        assertNotNull(games[0].whiteUsername());
+         String rememberMe = games[0].whiteUsername();
+        //now try to join it
+        myDataStorage.completeAction(4);
+        inputFacade = new ByteArrayInputStream("WHITE".getBytes());
+        System.setIn(inputFacade);
+        assertNotNull(games[0]);
+        assertNotNull(games[0].whiteUsername());
+        assertNotEquals(games[0].whiteUsername(), myStuff.username());
+        assertEquals(rememberMe, games[0].whiteUsername());
+        //now join as black to prove it can be done...
+        myDataStorage.completeAction(4);
+        inputFacade = new ByteArrayInputStream("BLACK".getBytes());
+        System.setIn(inputFacade);
+        assertNotNull(games[0]);
+        assertNotNull(games[0].whiteUsername());
+        assertNotEquals(games[0].whiteUsername(), myStuff.username());
+        assertEquals(rememberMe, games[0].whiteUsername());
+        assertEquals(myStuff.username(), games[0].blackUsername());
+        //now join again as null to get a chessboard drawn again
+        myDataStorage.completeAction(5);
+    }
+
 
 
 
