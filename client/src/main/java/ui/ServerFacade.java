@@ -27,5 +27,10 @@ public class ServerFacade {
         }
     }
 
+    //I need this function just to be able to properly test my other functions... it is a dubious one to have...
+    public ServerConnector getMyServer() {
+        return myServer;
+    }
+
 
 }

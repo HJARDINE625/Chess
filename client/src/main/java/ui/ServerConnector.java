@@ -33,6 +33,28 @@ public class ServerConnector {
 
     //The way I set up my functions, this should be appropriate (ie declaring them here)...
 
+
+    //I feel like these functions are both annoying and questionable... but I need them to properly test this code.
+//    public CreateGame getGameCreator() {
+//        return gameCreator;
+//    }
+//
+//    public JoinGame getGameJoiner() {
+//        return gameJoiner;
+//    }
+//
+//    public Login getAuthValueGenerator() {
+//        return authValueGenerator;
+//    }
+//
+//    public Logout getAuthValueRemover() {
+//        return authValueRemover;
+//    }
+//
+//    public GetExample getGameInfo() {
+//        return gameInfo;
+//    }
+
     private CreateGame gameCreator = new CreateGame();
     private JoinGame gameJoiner = new JoinGame();
     private Login authValueGenerator = new Login();
@@ -43,6 +65,11 @@ public class ServerConnector {
 
     private AuthData[] authentications = new AuthData[1];
 
+    //I need this to test the code
+    public AuthData GetCurrentAuthentication(){
+        return authentications[1];
+    }
+
     private String urlString = new String();
 
     private String game = "/game";
@@ -51,6 +78,11 @@ public class ServerConnector {
     private String auth = "/session";
 
     private GameData [] games = new GameData[0];
+
+    //I need this to test the code
+    public GameData [] getGames(){
+        return games;
+    }
 
     //The rest of our code will work if we initialize this to null and change it out everytime we need to
     public ServerConnector(String host, String selector){
