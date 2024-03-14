@@ -7,6 +7,7 @@ import chess.ChessPosition;
 import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
+import model.NewGame;
 import model.UserData;
 
 import java.io.BufferedReader;
@@ -164,8 +165,8 @@ public class ServerConnectorTester {
             }else {
                 //find some way to get more input mid function here... or I could have an array of other inputs...
                 out.print("Enter Game Name\n");
-                String gameName = getUserInput.getString();
-                ChessGame games = new ChessGame();
+                //String gameName = getUserInput.getString();
+                NewGame games = new NewGame(null,null, inputsOrdered[0]);
                 try {
                     GameData newGame = gameCreator.create(urlString + game, authentications[0].authToken(), games);
                     message = message + "New Game Name : " + newGame.gameName() + " New Game ID : " + newGame.gameID() + "\n";
@@ -236,7 +237,11 @@ public class ServerConnectorTester {
                 //find some way to get more input mid function here... or I could have an array of other inputs...
                 out.print("Enter Game Number\n");
                 int gameNumber = otherNumber;
-                if(games[gameNumber] == null) {
+                if(gameNumber >= games.length) {
+                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    //this will make sure that above that message there is a list of valid games!
+                    completeAction(3, 0, null);
+                } else if(games[gameNumber] == null) {
                     message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3, 0, null);
@@ -266,7 +271,11 @@ public class ServerConnectorTester {
                 //find some way to get more input mid function here... or I could have an array of other inputs...
                 out.print("Enter Game Number\n");
                 int gameNumber = otherNumber;
-                if(games[gameNumber] == null) {
+                if(gameNumber >= games.length) {
+                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    //this will make sure that above that message there is a list of valid games!
+                    completeAction(3, 0, null);
+                } else if(games[gameNumber] == null) {
                     message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3, 0, null);

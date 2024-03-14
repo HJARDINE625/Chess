@@ -227,7 +227,7 @@ public class ServerFacadeTests {
         strings[0] = "RememberMe";
         strings[1] = null;
         strings[2] = null;
-        selection = 4;
+        selection = 2;
         myDataStorage.completeAction(selection, otherNum, strings);
         //now lets see if a game exists
         //myDataStorage.completeAction(3);
@@ -300,7 +300,7 @@ public class ServerFacadeTests {
 //        //now act as though it worked and see if anything happens... it should not...
 //        ByteArrayInputStream inputFacade = new ByteArrayInputStream("The Game That Could Not Be".getBytes());
 //        System.setIn(inputFacade);
-        selection = 4;
+        selection = 2;
         strings[0] = "The Game That Could Not Be";
         myDataStorage.completeAction(selection, otherNum, strings);
         //next
