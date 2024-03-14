@@ -18,14 +18,14 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ServerFacadeTests {
 
     private static Server server;
-    static ServerFacade facade;
+    static LoopGenerator facade;
     private static CreateGame gameCreator = new CreateGame();
     private static JoinGame gameJoiner = new JoinGame();
     private static Login authValueGenerator = new Login();
     private static Logout authValueRemover = new Logout();
     private static GetExample gameInfo = new GetExample();
 
-    private static ServerConnector myDataStorage;
+    private static ServerConnectorTester myDataStorage;
 
     private InputStream normalSystemInput = System.in; // backup System.in to restore it later
     //Unfortunately I had to look up the basics of how to turn my non-input into an input here it is...
@@ -37,9 +37,9 @@ public class ServerFacadeTests {
         server = new Server();
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
-        facade = new ServerFacade("localhost", port);
+        facade = new LoopGenerator("localhost", port, false);
         //Now fill up with all the stuff I actually need to run my tests... based on where I put my code.
-        myDataStorage = facade.getMyServer();
+        myDataStorage = facade.getMyServerTest();
         //I think I can access this another way...
 //        gameCreator = myDataStorage.getGameCreator();
 //        gameJoiner = myDataStorage.getGameJoiner();
