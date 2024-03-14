@@ -53,10 +53,17 @@ public class Login {
         //InputStream responseBody = connection.getInputStream();
         // Read and process response body from InputStream ...
     } else {
-        var input = connection.getInputStream();
-        InputStreamReader inputStreamReader = new InputStreamReader(input);
-        var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
-        throw Gson;
+        try {
+            var input = connection.getInputStream();
+            InputStreamReader inputStreamReader = new InputStreamReader(input);
+            var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+            throw Gson;
+        } catch(IOException e){
+            ExceptionTransformer error = new ExceptionTransformer();
+            error.transform(e);
+            //in case there is not an available transformation...
+            throw e;
+        }
         // SERVER RETURNED AN HTTP ERROR
     }
 }

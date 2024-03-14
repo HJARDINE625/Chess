@@ -153,7 +153,7 @@ public class ServerConnector {
                 String password = getUserInput.getString();
                 try {
                     authentications[0] = authValueGenerator.login(urlString + user, new UserData(username, password, null));
-                    message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
+                    message = message + "Cashed\nusername : " + authentications[0].username() + " authentication token : " + authentications[0].authToken() + "\n";
                 } catch(ReportingException r){
                     message = r.getMessage();
                 }
@@ -353,9 +353,9 @@ public class ServerConnector {
         String returnSupport = new String();
         returnSupport = "Enter the following numbers to execute the following commands:\n[0] : Help\n";
         if(authentications[0] == null){
-            return returnSupport + "[1] : Quit\n[2] : Register a new Chess Account and Login\n [3] : Login to an old Chess Account\n";
+            return returnSupport + "[1] : Quit\n[2] : Register a new Chess Account and Login\n[3] : Login to an old Chess Account\n";
         } else {
-            return returnSupport + "[1] : Logout of this Chess Account\n[2] : Create a new Chess Game\n[3] : List all Chess Games that currently exist on this Server\n[4] : Join an available Chess Game\n [5] : Join as an observer of any Chess Game\n";
+            return returnSupport + "[1] : Logout of this Chess Account\n[2] : Create a new Chess Game\n[3] : List all Chess Games that currently exist on this Server\n[4] : Join an available Chess Game\n[5] : Join as an observer of any Chess Game\n";
         }
     }
 
