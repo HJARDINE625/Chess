@@ -80,9 +80,16 @@ public class ServerConnector {
     private GameData [] games = new GameData[0];
 
     //I need this to test the code
-    public GameData [] getGames(){
-        return games;
-    }
+    public GameData [] getGames()
+        {
+            if (games.length == 0){
+                return null;
+            } else if (games[0] == null){
+                return null;
+            } else {
+                return games;
+            }
+        }
 
     //The rest of our code will work if we initialize this to null and change it out everytime we need to
     public ServerConnector(String host, String selector){
@@ -126,7 +133,7 @@ public class ServerConnector {
                 //enter information
                 try {
                     authentications[0] = authValueGenerator.login(urlString + user, new UserData(username, password, email));
-                    message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
+                    message = message + "Cashed\nusername : " + authentications[0].username() + " authentication token : " + authentications[0].authToken() + "\n";
                 } catch(ReportingException r){
                     message = r.getMessage();
                 }
@@ -152,7 +159,7 @@ public class ServerConnector {
                 out.print("Enter Password\n");
                 String password = getUserInput.getString();
                 try {
-                    authentications[0] = authValueGenerator.login(urlString + user, new UserData(username, password, null));
+                    authentications[0] = authValueGenerator.login(urlString + auth, new UserData(username, password, null));
                     message = message + "Cashed\nusername : " + authentications[0].username() + " authentication token : " + authentications[0].authToken() + "\n";
                 } catch(ReportingException r){
                     message = r.getMessage();

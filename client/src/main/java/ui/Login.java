@@ -18,7 +18,7 @@ public class Login {
 
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-    connection.setReadTimeout(5000);
+    connection.setReadTimeout(100000);
     connection.setRequestMethod("POST");
 
     //gives body issues...
