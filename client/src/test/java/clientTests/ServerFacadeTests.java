@@ -17,6 +17,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ServerFacadeTests {
 
+    private String[] strings = new String[3];
+
+    private int otherNum = 0;
+
+    private int selection = 0;
+
     private static Server server;
     static LoopGenerator facade;
     private static CreateGame gameCreator = new CreateGame();
@@ -57,6 +63,9 @@ public class ServerFacadeTests {
     @BeforeEach
     public void fixInput(){
         System.setIn(normalSystemInput);
+        //set up for new input...
+        strings = new String[3];
+        otherNum = 0;
     }
 
     //these are the five functions I need to test (they are the ones that actually link up with the server... they are found in my datastorage...
@@ -76,15 +85,20 @@ public class ServerFacadeTests {
     @Test
     public void loginPass() throws DataAccessException, IOException {
         // Let's use a login method to find someone
-        myDataStorage.completeAction(2);
-        ByteArrayInputStream inputFacade = new ByteArrayInputStream("Hi".getBytes());
-        System.setIn(inputFacade);
-        //next
-        inputFacade = new ByteArrayInputStream("YouShallNotPass".getBytes());
-        System.setIn(inputFacade);
-        //finally
-        inputFacade = new ByteArrayInputStream("@exe.com".getBytes());
-        System.setIn(inputFacade);
+//        myDataStorage.completeAction(2);
+//        ByteArrayInputStream inputFacade = new ByteArrayInputStream("Hi".getBytes());
+//        System.setIn(inputFacade);
+//        //next
+//        inputFacade = new ByteArrayInputStream("YouShallNotPass".getBytes());
+//        System.setIn(inputFacade);
+//        //finally
+//        inputFacade = new ByteArrayInputStream("@exe.com".getBytes());
+//        System.setIn(inputFacade);
+        strings[0] = "Hi";
+        strings[1] = "YouShallNotPass";
+        strings[2] = "@exe.com";
+        selection = 2;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //Get the authToken for comparison
         AuthData myStuff = myDataStorage.GetCurrentAuthentication();
         assertNotNull(myStuff);
@@ -92,16 +106,22 @@ public class ServerFacadeTests {
         assertNotNull(myStuff.authToken());
         assertEquals(myStuff.username(), "Hi");
         //log out
-        myDataStorage.completeAction(1);
+        //myDataStorage.completeAction(1);
+        selection = 1;
+        myDataStorage.completeAction(selection, otherNum, strings);
 
         // Let's use a login method to find someone we have entered.
-        myDataStorage.completeAction(3);
+        //myDataStorage.completeAction(3);
+        selection = 3;
+        strings[2] = null;
+        myDataStorage.completeAction(selection, otherNum, strings);
 
-        inputFacade = new ByteArrayInputStream("Hi".getBytes());
-        System.setIn(inputFacade);
-        //next
-        inputFacade = new ByteArrayInputStream("YouShallNotPass".getBytes());
-        System.setIn(inputFacade);
+//
+//        inputFacade = new ByteArrayInputStream("Hi".getBytes());
+//        System.setIn(inputFacade);
+//        //next
+//        inputFacade = new ByteArrayInputStream("YouShallNotPass".getBytes());
+//        System.setIn(inputFacade);
         // First lets see if our find method found anything at all. If it did not then we know that we got
         //Get some way of proving we found something...
         AuthData newStuff = myDataStorage.GetCurrentAuthentication();
@@ -119,10 +139,12 @@ public class ServerFacadeTests {
     public void logoutFail() throws DataAccessException, IOException {
         //add a new user and login...
         //Logout, make sure it works then logout again...
-        myDataStorage.completeAction(1);
+        //myDataStorage.completeAction(1);
+        selection = 1;
+        myDataStorage.completeAction(selection, otherNum, strings);
         assertNull(myDataStorage.GetCurrentAuthentication());
         try {
-            myDataStorage.completeAction(1);
+            myDataStorage.completeAction(selection, otherNum, strings);
         } catch (RuntimeException e) {
             //we exited rather than removing a login, good work
             assertTrue(true);
@@ -136,9 +158,12 @@ public class ServerFacadeTests {
     public void logoutPass() throws DataAccessException, IOException {
         //Logout, make sure it works
         assertNotNull(myDataStorage.GetCurrentAuthentication());
-        myDataStorage.completeAction(1);
+        //myDataStorage.completeAction(1);
+        selection = 1;
+        myDataStorage.completeAction(selection, otherNum, strings);
         assertNull(myDataStorage.GetCurrentAuthentication());
     }
+    //unfortunatly under the new testable system... this should pass but not indicate as much as I want it to by doing so...
     @Order(1)
     @Test
     public void loginFail() throws DataAccessException, IOException {
@@ -147,13 +172,17 @@ public class ServerFacadeTests {
         assertNull(oldStuff);
 
         //login with only a username and password before we have added anyone to the system
-        myDataStorage.completeAction(3);
-
-        ByteArrayInputStream inputFacade = new ByteArrayInputStream("Hi".getBytes());
-        System.setIn(inputFacade);
-        //next
-        inputFacade = new ByteArrayInputStream("YouShallNotPass".getBytes());
-        System.setIn(inputFacade);
+//        myDataStorage.completeAction(3);
+//
+//        ByteArrayInputStream inputFacade = new ByteArrayInputStream("Hi".getBytes());
+//        System.setIn(inputFacade);
+//        //next
+//        inputFacade = new ByteArrayInputStream("YouShallNotPass".getBytes());
+//        System.setIn(inputFacade);
+        strings[0] = "Hi";
+        strings[1] =  "YouShallNotPass";
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
         // First lets see if our find method found anything at all. If it did not then we know that we got
         //Get some way of proving we found nothing...
         AuthData newStuff = myDataStorage.GetCurrentAuthentication();
@@ -164,11 +193,14 @@ public class ServerFacadeTests {
     @Test
     public void getFail() throws DataAccessException, IOException {
         //make sure we are in the correct part of the test environment
-        myDataStorage.completeAction(0);
+        //myDataStorage.completeAction(0);
+        selection = 0;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //now make sure there are no games available right now...
         assertNull(myDataStorage.getGames());
         //ok, now we need to get all the non-existent games
-        myDataStorage.completeAction(3);
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //make sure there are still no games
         assertNull(myDataStorage.getGames());
     }
@@ -177,19 +209,30 @@ public class ServerFacadeTests {
     @Test
     public void addPass() throws DataAccessException, IOException {
         //make sure we are still in the correct part of the test environment
-        myDataStorage.completeAction(0);
+        //myDataStorage.completeAction(0);
+        selection = 0;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //now make sure there are no games available right now...
         assertNull(myDataStorage.getGames());
         //ok, now we need to get all the non-existent games
-        myDataStorage.completeAction(3);
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
+        //myDataStorage.completeAction(3);
         //make sure there are still no games
         assertNull(myDataStorage.getGames());
         //now we need to add a new game...
-        myDataStorage.completeAction(4);
-        ByteArrayInputStream inputFacade = new ByteArrayInputStream("RemeberMe".getBytes());
-        System.setIn(inputFacade);
+//        myDataStorage.completeAction(4);
+//        ByteArrayInputStream inputFacade = new ByteArrayInputStream("RemeberMe".getBytes());
+//        System.setIn(inputFacade);
+        strings[0] = "RememberMe";
+        strings[1] = null;
+        strings[2] = null;
+        selection = 4;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //now lets see if a game exists
-        myDataStorage.completeAction(3);
+        //myDataStorage.completeAction(3);
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
         assertNotNull(myDataStorage.getGames());
     }
 
@@ -197,12 +240,16 @@ public class ServerFacadeTests {
     @Test
     public void getPass() throws DataAccessException, IOException {
         //make sure we are still in the correct part of the test environment
-        myDataStorage.completeAction(0);
+        //myDataStorage.completeAction(0);
+        selection = 0;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //now make sure there are games available right now...
         assertNotNull(myDataStorage.getGames());
         GameData[] oldGames = myDataStorage.getGames();
         //ok, now we need to get all the games again
-        myDataStorage.completeAction(3);
+        //myDataStorage.completeAction(3);
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //make sure there are still games
         assertNotNull(myDataStorage.getGames());
         GameData[] newGames = myDataStorage.getGames();
@@ -214,16 +261,23 @@ public class ServerFacadeTests {
     @Test
     public void joinPass() throws DataAccessException, IOException {
         //make sure we are still in the correct part of the test environment
-        myDataStorage.completeAction(0);
+        //myDataStorage.completeAction(0);
+        selection = 0;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //now make sure there are games available right now...
         assertNotNull(myDataStorage.getGames());
         GameData[] oldGames = myDataStorage.getGames();
         assertNotNull(oldGames[0]);
-        //ok, now we need to modify game zero
-        myDataStorage.completeAction(4);
-        //add ourselves as white
-        ByteArrayInputStream inputFacade = new ByteArrayInputStream("WHITE".getBytes());
-        System.setIn(inputFacade);
+//        //ok, now we need to modify game zero
+//        myDataStorage.completeAction(4);
+//        //add ourselves as white
+//        ByteArrayInputStream inputFacade = new ByteArrayInputStream("WHITE".getBytes());
+//        System.setIn(inputFacade);
+        selection = 4;
+        strings[0] = "WHITE";
+        strings[1] = null;
+        strings[2] = null;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //ok, let us see if we were added
         assertNotNull(myDataStorage.getGames());
         GameData[] newGames = myDataStorage.getGames();
@@ -237,33 +291,50 @@ public class ServerFacadeTests {
     @Test
     public void addFail() throws DataAccessException, IOException {
         //make sure we are still in the correct part of the test environment
-        myDataStorage.completeAction(0);
+        //myDataStorage.completeAction(0);
+        selection = 0;
+        myDataStorage.completeAction(selection, otherNum, strings);
         assertNull(myDataStorage.GetCurrentAuthentication());
-        //do impossible action from this selection screen
-        myDataStorage.completeAction(4);
-        //now act as though it worked and see if anything happens... it should not...
-        ByteArrayInputStream inputFacade = new ByteArrayInputStream("The Game That Could Not Be".getBytes());
-        System.setIn(inputFacade);
+//        //do impossible action from this selection screen
+//        myDataStorage.completeAction(4);
+//        //now act as though it worked and see if anything happens... it should not...
+//        ByteArrayInputStream inputFacade = new ByteArrayInputStream("The Game That Could Not Be".getBytes());
+//        System.setIn(inputFacade);
+        selection = 4;
+        strings[0] = "The Game That Could Not Be";
+        myDataStorage.completeAction(selection, otherNum, strings);
         //next
-        inputFacade = new ByteArrayInputStream("0".getBytes());
-        System.setIn(inputFacade);
+//        inputFacade = new ByteArrayInputStream("0".getBytes());
+//        System.setIn(inputFacade);
+        selection = 0;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //we should have only got a help output here... nothing else...
         //check that we do not have the game that could not be anywhere
 
 
         //Create a new user
-        myDataStorage.completeAction(2);
-        inputFacade = new ByteArrayInputStream("inspector".getBytes());
-        System.setIn(inputFacade);
-        //next
-        inputFacade = new ByteArrayInputStream("SayPlease".getBytes());
-        System.setIn(inputFacade);
-        //finally
-        inputFacade = new ByteArrayInputStream("Classified".getBytes());
-        System.setIn(inputFacade);
+//        myDataStorage.completeAction(2);
+//        inputFacade = new ByteArrayInputStream("inspector".getBytes());
+//        System.setIn(inputFacade);
+//        //next
+//        inputFacade = new ByteArrayInputStream("SayPlease".getBytes());
+//        System.setIn(inputFacade);
+//        //finally
+//        inputFacade = new ByteArrayInputStream("Classified".getBytes());
+//        System.setIn(inputFacade);
+
+        selection = 2;
+        strings[0] = "inspector";
+        strings[1] = "SayPlease";
+        strings[2] = "Classified";
+        myDataStorage.completeAction(selection, otherNum, strings);
+
         assertNotNull(myDataStorage.GetCurrentAuthentication());
         //lets look
-        myDataStorage.completeAction(3);
+//        myDataStorage.completeAction(3);
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
+
         assertNotNull(myDataStorage.getGames());
         //we should have a game in our list, but...
         assertNotNull(myDataStorage.getGames()[0]);
@@ -278,21 +349,29 @@ public class ServerFacadeTests {
     @Test
     public void joinFail() throws DataAccessException, IOException {
         //make sure we are still in the correct part of the test environment
-        myDataStorage.completeAction(0);
+        //myDataStorage.completeAction(0);
+        selection = 0;
+        myDataStorage.completeAction(selection, otherNum, strings);
         //Log Out
         assertNotNull(myDataStorage.GetCurrentAuthentication());
-        myDataStorage.completeAction(1);
+        //myDataStorage.completeAction(1);
+        selection = 1;
+        myDataStorage.completeAction(selection, otherNum, strings);
         assertNull(myDataStorage.GetCurrentAuthentication());
         //Create a new user
-        myDataStorage.completeAction(2);
-        ByteArrayInputStream inputFacade = new ByteArrayInputStream("No!!!".getBytes());
-        System.setIn(inputFacade);
-        //next
-        inputFacade = new ByteArrayInputStream("OPENSESAME!".getBytes());
-        System.setIn(inputFacade);
-        //finally
-        inputFacade = new ByteArrayInputStream("@.@@@.@".getBytes());
-        System.setIn(inputFacade);
+        selection = 2;
+        strings[0] = "No!!!";
+        strings[1] = "OPENSESAME!";
+        strings[2] = "@.@@@.@";
+        myDataStorage.completeAction(selection, otherNum, strings);
+//        ByteArrayInputStream inputFacade = new ByteArrayInputStream("No!!!".getBytes());
+//        System.setIn(inputFacade);
+//        //next
+//        inputFacade = new ByteArrayInputStream("OPENSESAME!".getBytes());
+//        System.setIn(inputFacade);
+//        //finally
+//        inputFacade = new ByteArrayInputStream("@.@@@.@".getBytes());
+//        System.setIn(inputFacade);
         //Get the authToken for comparison
         AuthData myStuff = myDataStorage.GetCurrentAuthentication();
         assertNotNull(myStuff);
@@ -306,24 +385,31 @@ public class ServerFacadeTests {
         assertNotNull(games[0].whiteUsername());
          String rememberMe = games[0].whiteUsername();
         //now try to join it
-        myDataStorage.completeAction(4);
-        inputFacade = new ByteArrayInputStream("WHITE".getBytes());
-        System.setIn(inputFacade);
+        //myDataStorage.completeAction(4);
+        selection = 4;
+        strings[0] = "WHITE";
+        myDataStorage.completeAction(selection, otherNum, strings);
+        //inputFacade = new ByteArrayInputStream("WHITE".getBytes());
+        //System.setIn(inputFacade);
         assertNotNull(games[0]);
         assertNotNull(games[0].whiteUsername());
         assertNotEquals(games[0].whiteUsername(), myStuff.username());
         assertEquals(rememberMe, games[0].whiteUsername());
         //now join as black to prove it can be done...
-        myDataStorage.completeAction(4);
-        inputFacade = new ByteArrayInputStream("BLACK".getBytes());
-        System.setIn(inputFacade);
+        //myDataStorage.completeAction(4);
+        //inputFacade = new ByteArrayInputStream("BLACK".getBytes());
+        //System.setIn(inputFacade);
+        strings[0] = "BLACK";
+        myDataStorage.completeAction(selection, otherNum, strings);
         assertNotNull(games[0]);
         assertNotNull(games[0].whiteUsername());
         assertNotEquals(games[0].whiteUsername(), myStuff.username());
         assertEquals(rememberMe, games[0].whiteUsername());
         assertEquals(myStuff.username(), games[0].blackUsername());
         //now join again as null to get a chessboard drawn again
-        myDataStorage.completeAction(5);
+//        myDataStorage.completeAction(5);
+        selection = 5;
+        myDataStorage.completeAction(selection, otherNum, strings);
     }
 
 
