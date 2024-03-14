@@ -14,7 +14,7 @@ import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ServerFacadeTests {
 
     private static Server server;
@@ -48,14 +48,14 @@ public class ServerFacadeTests {
     }
 
     @AfterAll
-    static void stopServer() {
+    public static void stopServer() {
         //If I cannot find a way to delete the server from here, I may always have to run a test from elsewhere after this... for now do that...
         server.stop();
     }
 
     @AfterEach
     @BeforeEach
-    private void fixInput(){
+    public void fixInput(){
         System.setIn(normalSystemInput);
     }
 

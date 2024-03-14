@@ -67,7 +67,7 @@ public class ServerConnector {
 
     //I need this to test the code
     public AuthData GetCurrentAuthentication(){
-        return authentications[1];
+        return authentications[0];
     }
 
     private String urlString = new String();
@@ -87,7 +87,8 @@ public class ServerConnector {
     //The rest of our code will work if we initialize this to null and change it out everytime we need to
     public ServerConnector(String host, String selector){
         authentications[0] = null;
-        urlString = host + selector;
+        //add http:// and :.
+        urlString = "http://" + host + ":" + selector;
     }
 
     //just print out to console here, do not return anything...
@@ -135,9 +136,9 @@ public class ServerConnector {
                 //find some way to get more input mid function here... or I could have an array of other inputs...
                 out.print("Enter Game Name\n");
                 String gameName = getUserInput.getString();
-                ChessGame game = new ChessGame();
+                ChessGame games = new ChessGame();
                 try {
-                    GameData newGame = gameCreator.create(urlString + game, authentications[0].authToken(), game);
+                    GameData newGame = gameCreator.create(urlString + game, authentications[0].authToken(), games);
                     message = message + "New Game Name : " + newGame.gameName() + " New Game ID : " + newGame.gameID() + "\n";
                 } catch(ReportingException r){
                     message = r.getMessage();

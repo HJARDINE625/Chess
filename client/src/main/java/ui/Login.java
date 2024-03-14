@@ -22,6 +22,7 @@ public class Login {
     connection.setRequestMethod("POST");
 
     //gives body issues...
+        connection.setDoOutput(true);
     var outputStream = connection.getOutputStream();
     var json = new Gson().toJson(gson);
     outputStream.write(json.getBytes());
