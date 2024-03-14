@@ -31,7 +31,11 @@ public void executeCommands() throws IOException {
         if(useServerConnector) {
             myServer.completeAction(getUserInput.getNum());
         } else {
-            myServerConnectorTester.completeAction(getUserInput.getNum());
+            String[] strings = new String[2];
+            for(int i = 0; i<3; i++){
+               strings[i] = getUserInput.getString();
+            }
+            myServerConnectorTester.completeAction(getUserInput.getNum(), getUserInput.getNum(), strings);
         }
         }
         }

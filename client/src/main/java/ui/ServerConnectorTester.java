@@ -91,6 +91,20 @@ public class ServerConnectorTester {
         urlString = "http://" + host + ":" + selector;
     }
 
+    //helper functions for incomplete passins
+    public void completeAction(int selector) throws IOException {
+        completeAction(selector, 0);
+    }
+
+    public void completeAction(int selector, int otherNumber) throws IOException {
+        completeAction(selector, otherNumber, null);
+    }
+
+    public void completeAction(int selector, String[] inputsOrdered) throws IOException {
+        completeAction(selector, 0, inputsOrdered);
+    }
+
+
     //just print out to console here, do not return anything...
     public void completeAction(int selector, int otherNumber, String[] inputsOrdered) throws IOException {
         String message = "Success!\n";
