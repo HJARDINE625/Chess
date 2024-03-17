@@ -82,7 +82,9 @@ public class ServerConnectorTester {
 
     //I need this to test the code... update to test for null values somehow.
     public GameData [] getGames(){
-        if (games.length == 0){
+        if(games == null) {
+            return null;
+        } else if (games.length == 0){
             return null;
         } else if (games[0] == null){
             return null;
@@ -114,6 +116,7 @@ public class ServerConnectorTester {
 
     //just print out to console here, do not return anything...
     public void completeAction(int selector, int otherNumber, String[] inputsOrdered) throws IOException {
+        out.print(" \nnextCommand\n" + selector + "\n");
         String message = "Success!\n";
         boolean loggedIn = true;
         boolean addMoreAtEnd = false;
@@ -150,7 +153,7 @@ public class ServerConnectorTester {
 
                         try {
                             authentications[0] = authValueGenerator.login(urlString + user, new UserData(username, password, email));
-                            message = message + "Cashed\nusername : " + authentications[0].username() + " authentication token : " + authentications[0].authToken() + "\n";
+                            message = message + "Cashed\nusername : " + authentications[0].username() + "\nauthentication token : " + authentications[0].authToken() + "\n";
                         } catch (ReportingException r) {
                             message = r.getMessage();
                         }
@@ -169,7 +172,7 @@ public class ServerConnectorTester {
                 NewGame games = new NewGame(null,null, inputsOrdered[0]);
                 try {
                     GameData newGame = gameCreator.create(urlString + game, authentications[0].authToken(), games);
-                    message = message + "New Game Name : " + newGame.gameName() + " New Game ID : " + newGame.gameID() + "\n";
+                    message = message + "New Game Name : " + newGame.gameName() + "\nNew Game ID : " + newGame.gameID() + "\n";
                 } catch(ReportingException r){
                     message = r.getMessage();
                 }
@@ -185,7 +188,7 @@ public class ServerConnectorTester {
                         String password = inputsOrdered[1];
                         try {
                             authentications[0] = authValueGenerator.login(urlString + auth, new UserData(username, password, null));
-                            message = message + "Cashed\nusername : " + authentications[0].username() + " authentication token : " + authentications[0].authToken() + "\n";
+                            message = message + "Cashed\nusername : " + authentications[0].username() + "\nauthentication token : " + authentications[0].authToken() + "\n";
                         } catch (ReportingException r) {
                             message = r.getMessage();
                         }
@@ -238,11 +241,11 @@ public class ServerConnectorTester {
                 out.print("Enter Game Number\n");
                 int gameNumber = otherNumber;
                 if(gameNumber >= games.length) {
-                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    message = " \nError: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3, 0, null);
                 } else if(games[gameNumber] == null) {
-                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    message = " \nError: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3, 0, null);
                 } else {
@@ -272,11 +275,11 @@ public class ServerConnectorTester {
                 out.print("Enter Game Number\n");
                 int gameNumber = otherNumber;
                 if(gameNumber >= games.length) {
-                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    message = " \nError: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3, 0, null);
                 } else if(games[gameNumber] == null) {
-                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    message = " \nError: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3, 0, null);
                 } else {

@@ -134,7 +134,7 @@ public class ServerConnector {
                 //enter information
                 try {
                     authentications[0] = authValueGenerator.login(urlString + user, new UserData(username, password, email));
-                    message = message + "Cashed\nusername : " + authentications[0].username() + " authentication token : " + authentications[0].authToken() + "\n";
+                    message = message + "Cashed\nusername : " + authentications[0].username() + "\nauthentication token : " + authentications[0].authToken() + "\n";
                 } catch(ReportingException r){
                     message = r.getMessage();
                 }
@@ -147,7 +147,7 @@ public class ServerConnector {
                 NewGame games = new NewGame(null,null, gameName);
                 try {
                     GameData newGame = gameCreator.create(urlString + game, authentications[0].authToken(), games);
-                    message = message + "New Game Name : " + newGame.gameName() + " New Game ID : " + newGame.gameID() + "\n";
+                    message = message + "New Game Name : " + newGame.gameName() + "\nNew Game ID : " + newGame.gameID() + "\n";
                 } catch(ReportingException r){
                     message = r.getMessage();
                 }
@@ -161,7 +161,7 @@ public class ServerConnector {
                 String password = getUserInput.getString();
                 try {
                     authentications[0] = authValueGenerator.login(urlString + auth, new UserData(username, password, null));
-                    message = message + "Cashed\nusername : " + authentications[0].username() + " authentication token : " + authentications[0].authToken() + "\n";
+                    message = message + "Cashed\nusername : " + authentications[0].username() + "\nauthentication token : " + authentications[0].authToken() + "\n";
                 } catch(ReportingException r){
                     message = r.getMessage();
                 }
@@ -207,11 +207,11 @@ public class ServerConnector {
                 out.print("Enter Game Number\n");
                 int gameNumber = getUserInput.getNum();
                 if(gameNumber >= games.length) {
-                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    message = " \nError: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3);
                 } else if(games[gameNumber] == null) {
-                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    message = " \nError: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3);
                 } else {
@@ -233,11 +233,11 @@ public class ServerConnector {
                 out.print("Enter Game Number\n");
                 int gameNumber = getUserInput.getNum();
                 if(gameNumber >= games.length) {
-                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    message = " \nError: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3);
                 } else if(games[gameNumber] == null) {
-                    message = "Error: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
+                    message = " \nError: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
                     //this will make sure that above that message there is a list of valid games!
                     completeAction(3);
                 } else {

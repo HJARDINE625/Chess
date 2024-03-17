@@ -158,7 +158,10 @@ public class Server {
                 //Here we do have values...
                 //because I stored my values in a standard array, I need to add these Json signifiers after conversion...
                 finalReturn = "{ \"games\":" + finalReturn.toString() + "}";
-                return finalReturn;
+                //var finalCheck = new Gson().toJson(response);
+                GameDecomplier gameDecompiler = new GameDecomplier(response.getAllGames());
+                var finalCheck = new Gson().toJson(gameDecompiler);
+                return finalCheck;
             }
         } else {
             return errorHandler(response, req, res);

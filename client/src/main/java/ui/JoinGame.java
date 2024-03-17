@@ -16,7 +16,7 @@ public class JoinGame {
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-        connection.setReadTimeout(5000);
+        connection.setReadTimeout(100000);
         connection.setRequestMethod("PUT");
 
         //gives body issues...
@@ -28,9 +28,14 @@ public class JoinGame {
         // connection.addRequestProperty("Accept", "text/html");
         connection.addRequestProperty("Authorization", authentication);
 
-        var outputStream = connection.getOutputStream();
-        var json = new Gson().toJson(new AuthDataInt(gameID, color));
-        outputStream.write(json.getBytes());
+//        var outputStream = connection.getOutputStream();
+//        var json = new Gson().toJson(new AuthDataInt(gameID, color));
+//        outputStream.write(json.getBytes());
+
+        try (var outputStream = connection.getOutputStream()) {
+            var json = new Gson().toJson(new AuthDataInt(gameID, color));
+            outputStream.write(json.getBytes());
+        }
 
         connection.connect();
 
@@ -43,6 +48,7 @@ public class JoinGame {
 //            //process these responses differently to allow for a proper string output...
 //            return Gson;
             //all we need here
+            connection.disconnect();
             return;
             // OR
 
@@ -55,10 +61,12 @@ public class JoinGame {
                 var input = connection.getInputStream();
                 InputStreamReader inputStreamReader = new InputStreamReader(input);
                 var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+                connection.disconnect();
                 throw Gson;
             } catch(IOException e){
                 ExceptionTransformer error = new ExceptionTransformer();
                 error.transform(e);
+                connection.disconnect();
                 //in case there is not an available transformation...
                 throw e;
             }

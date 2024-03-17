@@ -17,7 +17,7 @@ public class Logout {
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-        connection.setReadTimeout(5000);
+        connection.setReadTimeout(100000);
         connection.setRequestMethod("DELETE");
 
         //gives body issues...
@@ -31,7 +31,7 @@ public class Logout {
         connection.addRequestProperty("Authorization", authentication);
 
         connection.setDoOutput(true);
-        var outputStream = connection.getOutputStream();
+        try(var outputStream = connection.getOutputStream()){};
 
         connection.connect();
 
@@ -55,10 +55,12 @@ public class Logout {
                 var input = connection.getInputStream();
                 InputStreamReader inputStreamReader = new InputStreamReader(input);
                 var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+                connection.disconnect();
                 throw Gson;
             } catch(IOException e){
                 ExceptionTransformer error = new ExceptionTransformer();
                 error.transform(e);
+                connection.disconnect();
                 //in case there is not an available transformation...
                 throw e;
             }

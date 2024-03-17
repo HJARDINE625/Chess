@@ -30,9 +30,15 @@ public class CreateGame {
         connection.addRequestProperty("Authorization", authentication);
 
         connection.setDoOutput(true);
-        var outputStream = connection.getOutputStream();
-        var json = new Gson().toJson(games);
-        outputStream.write(json.getBytes());
+//        var outputStream = connection.getOutputStream();
+//        var json = new Gson().toJson(games);
+//        outputStream.write(json.getBytes());
+        try (var outputStream = connection.getOutputStream()) {
+            var json = new Gson().toJson(games);
+            outputStream.write(json.getBytes());
+//            var json = new Gson().toJson(new String("Arbitrarily Given"));
+//            outputStream.write(json.getBytes());
+        }
 
         connection.connect();
 
@@ -43,6 +49,7 @@ public class CreateGame {
             InputStreamReader inputStreamReader = new InputStreamReader(input);
             var Gson = new Gson().fromJson(inputStreamReader, GameData.class);
             //process these responses differently to allow for a proper string output...
+            connection.disconnect();
             return Gson;
 
             // OR
@@ -56,10 +63,12 @@ public class CreateGame {
                 var input = connection.getInputStream();
                 InputStreamReader inputStreamReader = new InputStreamReader(input);
                 var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+                connection.disconnect();
                 throw Gson;
             } catch(IOException e){
                 ExceptionTransformer error = new ExceptionTransformer();
                 error.transform(e);
+                connection.disconnect();
                 //in case there is not an available transformation...
                 throw e;
             }

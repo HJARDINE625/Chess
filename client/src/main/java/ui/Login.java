@@ -2,6 +2,7 @@ package ui;
 
 import com.google.gson.Gson;
 import model.AuthData;
+import model.AuthDataInt;
 import model.GameData;
 import model.UserData;
 
@@ -23,9 +24,14 @@ public class Login {
 
     //gives body issues...
         connection.setDoOutput(true);
-    var outputStream = connection.getOutputStream();
-    var json = new Gson().toJson(gson);
-    outputStream.write(json.getBytes());
+//    var outputStream = connection.getOutputStream();
+//    var json = new Gson().toJson(gson);
+//    outputStream.write(json.getBytes());
+
+        try (var outputStream = connection.getOutputStream()) {
+            var json = new Gson().toJson(gson);
+            outputStream.write(json.getBytes());
+        }
 
     // Set HTTP request headers, if necessary
     // connection.addRequestProperty("Accept", "text/html");
@@ -39,6 +45,7 @@ public class Login {
         var input = connection.getInputStream();
         InputStreamReader inputStreamReader = new InputStreamReader(input);
         var Gson = new Gson().fromJson(inputStreamReader, AuthData.class);
+        connection.disconnect();
         return Gson;
         //process these responses differently to allow for a proper string output...
 //        if(Gson[0] == null) {
@@ -57,10 +64,12 @@ public class Login {
             var input = connection.getInputStream();
             InputStreamReader inputStreamReader = new InputStreamReader(input);
             var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+            connection.disconnect();
             throw Gson;
         } catch(IOException e){
             ExceptionTransformer error = new ExceptionTransformer();
             error.transform(e);
+            connection.disconnect();
             //in case there is not an available transformation...
             throw e;
         }

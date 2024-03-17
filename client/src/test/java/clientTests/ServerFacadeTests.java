@@ -76,9 +76,86 @@ public class ServerFacadeTests {
 //    private GetExample gameInfo = new GetExample();
 
 
+    @Order(12)
     @Test
     public void sampleTest() {
         Assertions.assertTrue(true);
+    }
+
+    @Order(10)
+    @Test
+    public void sanityCheck() throws DataAccessException, IOException {
+        //make sure the games are empty
+        assertNull(myDataStorage.getGames());
+        // Let's use a login method to find someone
+//        myDataStorage.completeAction(2);
+//        ByteArrayInputStream inputFacade = new ByteArrayInputStream("Hi".getBytes());
+//        System.setIn(inputFacade);
+//        //next
+//        inputFacade = new ByteArrayInputStream("YouShallNotPass".getBytes());
+//        System.setIn(inputFacade);
+//        //finally
+//        inputFacade = new ByteArrayInputStream("@exe.com".getBytes());
+//        System.setIn(inputFacade);
+        strings[0] = "Name";
+        strings[1] = "Pass";
+        strings[2] = "Email";
+        selection = 2;
+        myDataStorage.completeAction(selection, otherNum, strings);
+        //Get the authToken for comparison
+        AuthData myStuff = myDataStorage.GetCurrentAuthentication();
+        assertNotNull(myStuff);
+        assertNotNull(myStuff.username());
+        assertNotNull(myStuff.authToken());
+        assertEquals(myStuff.username(), "Name");
+        //log out
+        //myDataStorage.completeAction(1);
+        selection = 1;
+        myDataStorage.completeAction(selection, otherNum, strings);
+
+        // Let's use a login method to find someone we have entered.
+        //myDataStorage.completeAction(3);
+        selection = 3;
+        strings[2] = null;
+        myDataStorage.completeAction(selection, otherNum, strings);
+
+//
+//        inputFacade = new ByteArrayInputStream("Hi".getBytes());
+//        System.setIn(inputFacade);
+//        //next
+//        inputFacade = new ByteArrayInputStream("YouShallNotPass".getBytes());
+//        System.setIn(inputFacade);
+        // First lets see if our find method found anything at all. If it did not then we know that we got
+        //Get some way of proving we found something...
+        AuthData newStuff = myDataStorage.GetCurrentAuthentication();
+        assertNotNull(newStuff);
+        assertNotNull(newStuff.username());
+        assertNotNull(newStuff.authToken());
+        assertEquals(newStuff.username(), "Name");
+
+        //now make sure the returns are different
+        assertNotEquals(newStuff, myStuff);
+        assertNotEquals(newStuff.authToken(), myStuff.authToken());
+        //now make a game
+        strings[0] = "AGame";
+        strings[1] = null;
+        strings[2] = null;
+        selection = 2;
+        myDataStorage.completeAction(selection, otherNum, strings);
+        //now retrieve it
+        selection = 5;
+        otherNum = 0;
+        myDataStorage.completeAction(selection,otherNum, strings);
+        //now see what we get here...
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
+        //see if it worked now...
+        assertNotNull(myDataStorage.getGames());
+
+        selection = 1;
+        myDataStorage.completeAction(selection,otherNum, strings);
+        //make sure we logged out for the next test...
+        assertNull(myDataStorage.GetCurrentAuthentication());
     }
 
     @Order(2)
@@ -134,7 +211,7 @@ public class ServerFacadeTests {
         assertNotEquals(newStuff, myStuff);
         assertNotEquals(newStuff.authToken(), myStuff.authToken());
     }
-    @Order(10)
+    @Order(11)
     @Test
     public void logoutFail() throws DataAccessException, IOException {
         //add a new user and login...
