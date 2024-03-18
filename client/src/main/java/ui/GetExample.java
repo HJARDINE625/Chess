@@ -88,7 +88,13 @@ public class GetExample {
                } else if(Gson.getGames() == null) {
                     connection.disconnect();
                     return null;
-                } else if(Gson.getGames()[0] == null){
+                } else if(Gson.getGames() == null) {
+                   connection.disconnect();
+                   return null;
+               } else if(Gson.getGames().length == 0) {
+                   connection.disconnect();
+                   return null;
+               } else if(Gson.getGames()[0] == null){
                     connection.disconnect();
                     return null;
                 } else {
