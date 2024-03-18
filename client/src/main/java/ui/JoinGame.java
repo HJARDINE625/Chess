@@ -7,12 +7,15 @@ import model.UserData;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public class JoinGame {
     public void join(String urlString, String authentication, String color, String gameID) throws IOException, ReportingException {
         URL url = new URL(urlString);
+        PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -31,15 +34,17 @@ public class JoinGame {
 //        var outputStream = connection.getOutputStream();
 //        var json = new Gson().toJson(new AuthDataInt(gameID, color));
 //        outputStream.write(json.getBytes());
-
+        connection.setDoOutput(true);
         try (var outputStream = connection.getOutputStream()) {
             var json = new Gson().toJson(new AuthDataInt(gameID, color));
             outputStream.write(json.getBytes());
         }
 
         connection.connect();
+        out.print("Connected... ");
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            out.print("OK!\n");
             // Get HTTP response headers, if necessary
             // Map<String, List<String>> headers = connection.getHeaderFields();
 //            var input = connection.getInputStream();
@@ -58,6 +63,8 @@ public class JoinGame {
             // Read and process response body from InputStream ...
         } else {
             try {
+                out.print("NOOO!\n");
+
                 var input = connection.getInputStream();
                 InputStreamReader inputStreamReader = new InputStreamReader(input);
                 var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
@@ -67,6 +74,7 @@ public class JoinGame {
                 ExceptionTransformer error = new ExceptionTransformer();
                 error.transform(e);
                 connection.disconnect();
+                out.print("ERROR!\n");
                 //in case there is not an available transformation...
                 throw e;
             }

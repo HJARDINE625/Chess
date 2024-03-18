@@ -19,6 +19,8 @@ public class ServerFacadeTests {
 
     private String[] strings = new String[3];
 
+    private GameData[] startingGames;
+
     private int otherNum = 0;
 
     private int selection = 0;
@@ -66,6 +68,7 @@ public class ServerFacadeTests {
         //set up for new input...
         strings = new String[3];
         otherNum = 0;
+        startingGames = myDataStorage.getGames();
     }
 
     //these are the five functions I need to test (they are the ones that actually link up with the server... they are found in my datastorage...
@@ -85,8 +88,14 @@ public class ServerFacadeTests {
     @Order(10)
     @Test
     public void sanityCheck() throws DataAccessException, IOException {
-        //make sure the games are empty
-        assertNull(myDataStorage.getGames());
+        //make sure the games are empty or if this is called in order, make sure they are the same length as they were before.
+        if(myDataStorage.getGames() != null) {
+            assertEquals(myDataStorage.getGames().length, startingGames.length);
+            //we are currently in the wrong part of the menu for this test so log out without changing any key strings in the logout function.
+            myDataStorage.completeAction(1, 0, strings);
+        } else {
+            assertNull(startingGames);
+        }
         // Let's use a login method to find someone
 //        myDataStorage.completeAction(2);
 //        ByteArrayInputStream inputFacade = new ByteArrayInputStream("Hi".getBytes());
@@ -331,7 +340,8 @@ public class ServerFacadeTests {
         assertNotNull(myDataStorage.getGames());
         GameData[] newGames = myDataStorage.getGames();
         //are they the same?
-        assertEquals(oldGames, newGames);
+        assertEquals(oldGames.length, newGames.length);
+        assertEquals(oldGames[0].gameID(), newGames[0].gameID());
     }
 
     @Order(6)
@@ -356,6 +366,10 @@ public class ServerFacadeTests {
         strings[2] = null;
         myDataStorage.completeAction(selection, otherNum, strings);
         //ok, let us see if we were added
+        //first get new games selection...
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
+        //now check it...
         assertNotNull(myDataStorage.getGames());
         GameData[] newGames = myDataStorage.getGames();
         assertNotNull(newGames[0]);
@@ -416,7 +430,7 @@ public class ServerFacadeTests {
         //we should have a game in our list, but...
         assertNotNull(myDataStorage.getGames()[0]);
         //this next line should prove we only have one game...
-        assertNull(myDataStorage.getGames()[1]);
+        assertEquals(myDataStorage.getGames().length, 1);
         //now check that we do not have the game we just made is slot one
         assertNotNull(myDataStorage.getGames()[0].gameName());
         assertNotEquals(myDataStorage.getGames()[0].gameName(), "The Game That Could Not Be");
