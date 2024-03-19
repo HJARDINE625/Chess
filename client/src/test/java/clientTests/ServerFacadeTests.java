@@ -159,13 +159,31 @@ public class ServerFacadeTests {
         //now retrieve it
         selection = 4;
         otherNum = 0;
-        strings[0] = "BLACK";
+        strings[0] = "WHITE";
         myDataStorage.completeAction(selection,otherNum, strings);
         //now see what we get here...
         selection = 3;
         myDataStorage.completeAction(selection, otherNum, strings);
         //see if it worked now...
         assertNotNull(myDataStorage.getGames());
+
+        selection = 1;
+        myDataStorage.completeAction(selection, otherNum, strings);
+        selection = 2;
+        strings[0] = "Try";
+        strings[1] = "Se";
+        strings[2] = "True";
+        myDataStorage.completeAction(selection, otherNum, strings);
+
+        selection = 4;
+        otherNum = 0;
+        strings[0] = "BLACK";
+        myDataStorage.completeAction(selection,otherNum, strings);
+
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
+       myDataStorage.getGames();
+       int i = 2;
 
 //        selection = 1;
 //        myDataStorage.completeAction(selection,otherNum, strings);
