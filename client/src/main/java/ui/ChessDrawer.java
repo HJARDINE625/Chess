@@ -30,13 +30,13 @@ public class ChessDrawer {
         if(bl == true){
         out.print(SET_BG_COLOR_BLUE);
         for (int size = (board.getChessBoardSize() - 1); size >= 0; --size) {
-            out.print(EMPTY);
+            out.print(" \u2003");
             out.print(SET_TEXT_BOLD);
             out.print(SET_TEXT_COLOR_MAGENTA);
             out.print(SET_BG_COLOR_BLUE);
             out.print(letterFiller(size));
         }
-        boolean blackSpace = true;
+        boolean blackSpace = false;
         //print right side up board
         for (int space = 0; space < board.getChessBoardSize(); ++space) {
             out.print("\n");
@@ -63,7 +63,7 @@ public class ChessDrawer {
                     ChessPiece myPiece = board.getPiece(new ChessPosition(space, width));
                     ChessGame.TeamColor color = myPiece.getTeamColor();
                     ChessPiece.PieceType piece = myPiece.getPieceType();
-                    replace(color.name(), piece.name());
+                    replace(color.name(), piece.name(), blackSpace);
                 } else {
                     out.print(EMPTY);
                 }
@@ -76,7 +76,7 @@ public class ChessDrawer {
         out.print("\n");
         out.print(SET_BG_COLOR_BLUE);
         for (int size = (board.getChessBoardSize() - 1); size >= 0; --size) {
-            out.print(EMPTY);
+            out.print(" \u2003");
             out.print(SET_TEXT_BOLD);
             out.print(SET_TEXT_COLOR_MAGENTA);
             out.print(SET_BG_COLOR_BLUE);
@@ -88,13 +88,13 @@ public class ChessDrawer {
             //give a line or so
             out.print(SET_BG_COLOR_BLUE);
             for (int size = 0; size < board.getChessBoardSize(); ++size) {
-                out.print(EMPTY);
+                out.print(" \u2003");
                 out.print(SET_TEXT_BOLD);
                 out.print(SET_TEXT_COLOR_MAGENTA);
                 out.print(SET_BG_COLOR_BLUE);
                 out.print(letterFiller(size));
             }
-            boolean blackSpace = true;
+            boolean blackSpace = false;
             //print upside down board
             for (int space = board.getChessBoardSize(); space > 0; --space) {
                 out.print("\n");
@@ -121,7 +121,7 @@ public class ChessDrawer {
                         ChessPiece myPiece = board.getPiece(new ChessPosition(space, width));
                         ChessGame.TeamColor color = myPiece.getTeamColor();
                         ChessPiece.PieceType piece = myPiece.getPieceType();
-                        replace(color.name(), piece.name());
+                        replace(color.name(), piece.name(), blackSpace);
                     } else {
                         out.print(EMPTY);
                     }
@@ -135,7 +135,7 @@ public class ChessDrawer {
             //give a line or so
             out.print(SET_BG_COLOR_BLUE);
             for (int size = 0; size < board.getChessBoardSize(); ++size) {
-                out.print(EMPTY);
+                out.print(" \u2003");
                 out.print(SET_TEXT_BOLD);
                 out.print(SET_TEXT_COLOR_MAGENTA);
                 out.print(SET_BG_COLOR_BLUE);
@@ -160,9 +160,16 @@ public class ChessDrawer {
     }
 
 
-    private void replace(String color, String piece){
+    private void replace(String color, String piece, boolean blackSpace){
         //right now we only have escape sequences for black and white...
+        if(blackSpace){
+            out.print(SET_BG_COLOR_BLACK);
+        } else {
+            out.print(SET_BG_COLOR_WHITE);
+        }
+        out.print(SET_TEXT_BOLD);
         if(color.equals("BLACK")) {
+            out.print(SET_TEXT_COLOR_DARK_GREY);
             if(piece.equals("PAWN")){
                 out.print(BLACK_PAWN);
             } else if(piece.equals("KNIGHT")){
@@ -177,6 +184,7 @@ public class ChessDrawer {
                 out.print(BLACK_KING);
             }
         } else if(color.equals("WHITE")){
+            out.print(SET_TEXT_COLOR_LIGHT_GREY);
             if(piece.equals("PAWN")){
                 out.print(WHITE_PAWN);
             } else if(piece.equals("KNIGHT")){
