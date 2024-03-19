@@ -17,6 +17,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ServerFacadeTests {
 
+    private ChessDrawer myPen = new ChessDrawer();
+
     private String[] strings = new String[3];
 
     private GameData[] startingGames;
@@ -82,7 +84,9 @@ public class ServerFacadeTests {
     @Order(12)
     @Test
     public void sampleTest() {
+        myPen.draw();
         Assertions.assertTrue(true);
+
     }
 
     @Order(10)
