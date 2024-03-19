@@ -32,7 +32,7 @@ public void executeCommands() throws IOException {
             myServer.completeAction(getUserInput.getNum());
         } else {
             String[] strings = new String[2];
-            for(int i = 0; i<3; i++){
+            for(int i = 0; i<2; i++){
                strings[i] = getUserInput.getString();
             }
             myServerConnectorTester.completeAction(getUserInput.getNum(), getUserInput.getNum(), strings);

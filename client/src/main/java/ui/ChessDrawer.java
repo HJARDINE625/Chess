@@ -17,7 +17,9 @@ public class ChessDrawer {
 
     public void draw() {
         ChessBoard board = new ChessBoard();
+        board.resetBoard();
         ChessGame chess = new ChessGame();
+        chess.setBoard(board);
         draw(chess, true, true);
     }
 
@@ -59,8 +61,8 @@ public class ChessDrawer {
                     blackSpace = true;
                     out.print(SET_BG_COLOR_BLACK);
                 }
-                if (board.getPiece(new ChessPosition(space, width)) != null) {
-                    ChessPiece myPiece = board.getPiece(new ChessPosition(space, width));
+                if (board.getPiece(new ChessPosition(space+1, width+1)) != null) {
+                    ChessPiece myPiece = board.getPiece(new ChessPosition(space+1, width+1));
                     ChessGame.TeamColor color = myPiece.getTeamColor();
                     ChessPiece.PieceType piece = myPiece.getPieceType();
                     replace(color.name(), piece.name(), blackSpace);

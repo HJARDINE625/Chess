@@ -407,7 +407,7 @@ public class ServerConnectorTester {
 //                out.print(WHITE_KING);
 //            }
 //        }
-    }
+//    }
 
 
 
