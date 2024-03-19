@@ -182,8 +182,8 @@ public class ServerFacadeTests {
 
         selection = 3;
         myDataStorage.completeAction(selection, otherNum, strings);
-       myDataStorage.getGames();
-       int i = 2;
+       assertNotNull(myDataStorage.getGames());
+       //int i = 2;
 
 //        selection = 1;
 //        myDataStorage.completeAction(selection,otherNum, strings);
@@ -526,6 +526,7 @@ public class ServerFacadeTests {
         strings[0] = "BLACK";
         myDataStorage.completeAction(selection, otherNum, strings);
         myDataStorage.completeAction(3, otherNum, strings);
+        games = myDataStorage.getGames();
         assertNotNull(games[0]);
         assertNotNull(games[0].whiteUsername());
         assertNotEquals(games[0].whiteUsername(), myStuff.username());
