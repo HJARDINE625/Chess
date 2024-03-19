@@ -46,11 +46,15 @@ public class CreateGame {
             // Get HTTP response headers, if necessary
             // Map<String, List<String>> headers = connection.getHeaderFields();
             var input = connection.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(input);
-            var Gson = new Gson().fromJson(inputStreamReader, GameData.class);
-            //process these responses differently to allow for a proper string output...
-            connection.disconnect();
-            return Gson;
+            try(input){
+                InputStreamReader inputStreamReader = new InputStreamReader(input);
+                try(inputStreamReader) {
+                    var Gson = new Gson().fromJson(inputStreamReader, GameData.class);
+                    //process these responses differently to allow for a proper string output...
+                    connection.disconnect();
+                    return Gson;
+                }
+            }
 
             // OR
 
@@ -61,10 +65,14 @@ public class CreateGame {
         } else {
             try {
                 var input = connection.getInputStream();
-                InputStreamReader inputStreamReader = new InputStreamReader(input);
-                var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
-                connection.disconnect();
-                throw Gson;
+                try(input) {
+                    InputStreamReader inputStreamReader = new InputStreamReader(input);
+                    try(inputStreamReader) {
+                        var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+                        connection.disconnect();
+                        throw Gson;
+                    }
+                }
             } catch(IOException e){
                 ExceptionTransformer error = new ExceptionTransformer();
                 error.transform(e);

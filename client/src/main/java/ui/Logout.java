@@ -30,12 +30,13 @@ public class Logout {
         // connection.addRequestProperty("Accept", "text/html");
         connection.addRequestProperty("Authorization", authentication);
 
-        connection.setDoOutput(true);
-        try(var outputStream = connection.getOutputStream()){};
+        //connection.setDoOutput(true);
+        //try(var outputStream = connection.getOutputStream()){};
 
         connection.connect();
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+            connection.disconnect();
             // Get HTTP response headers, if necessary
             // Map<String, List<String>> headers = connection.getHeaderFields();
 //            var input = connection.getInputStream();
@@ -53,10 +54,14 @@ public class Logout {
         } else {
             try {
                 var input = connection.getInputStream();
-                InputStreamReader inputStreamReader = new InputStreamReader(input);
-                var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
-                connection.disconnect();
-                throw Gson;
+                try(input) {
+                    InputStreamReader inputStreamReader = new InputStreamReader(input);
+                    try(inputStreamReader) {
+                        var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+                        connection.disconnect();
+                        throw Gson;
+                    }
+                }
             } catch(IOException e){
                 ExceptionTransformer error = new ExceptionTransformer();
                 error.transform(e);

@@ -186,8 +186,14 @@ public class Server {
         } else if(Game.gameID() != null){
             GameServices service = new GameServices();
             AuthDataName game = serializer.fromJson(req.body(), AuthDataName.class);
+            String color;
+            if(game.color() == null){
+                color = Game.color();
+            } else {
+                color = game.color();
+            }
             //AuthData authentication = new AuthData(game.authToken(), game.username());
-            response = service.joinGame(auth, game.gameID(), game.color(), myDataStorageDevice);
+            response = service.joinGame(auth, game.gameID(), color, myDataStorageDevice);
         } else {
             //We actually still did not have everything we needed...
             response = new Responses(400);

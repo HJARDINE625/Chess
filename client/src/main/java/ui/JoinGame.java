@@ -16,11 +16,14 @@ public class JoinGame {
     public void join(String urlString, String authentication, String color, String gameID) throws IOException, ReportingException {
         URL url = new URL(urlString);
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-
+        out.print("Color " + color + " ID" + " " + gameID);
+        new AuthDataInt(gameID, color);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
         connection.setReadTimeout(100000);
         connection.setRequestMethod("PUT");
+        out.print("HERE!!!");
+
+        //connection.setRequestMethod("PUT");
 
         //gives body issues...
 //        var outputStream = connection.getOutputStream();
@@ -35,6 +38,7 @@ public class JoinGame {
 //        var json = new Gson().toJson(new AuthDataInt(gameID, color));
 //        outputStream.write(json.getBytes());
         connection.setDoOutput(true);
+        //connection.setRequestMethod("PUT");
         try (var outputStream = connection.getOutputStream()) {
             var json = new Gson().toJson(new AuthDataInt(gameID, color));
             outputStream.write(json.getBytes());
@@ -54,7 +58,7 @@ public class JoinGame {
 //            return Gson;
             //all we need here
             connection.disconnect();
-            return;
+            //return;
             // OR
 
             //connection.getHeaderField("Content-Length");
@@ -66,10 +70,14 @@ public class JoinGame {
                 out.print("NOOO!\n");
 
                 var input = connection.getInputStream();
-                InputStreamReader inputStreamReader = new InputStreamReader(input);
-                var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
-                connection.disconnect();
-                throw Gson;
+                try(input) {
+                    InputStreamReader inputStreamReader = new InputStreamReader(input);
+                    try(inputStreamReader) {
+                        var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+                        connection.disconnect();
+                        throw Gson;
+                    }
+                }
             } catch(IOException e){
                 ExceptionTransformer error = new ExceptionTransformer();
                 error.transform(e);

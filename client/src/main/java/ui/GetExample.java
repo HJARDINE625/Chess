@@ -1,6 +1,7 @@
 package ui;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -61,7 +62,9 @@ public class GetExample {
             // Get HTTP response headers, if necessary
             // Map<String, List<String>> headers = connection.getHeaderFields();
             var input = connection.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(input);
+            try(input) {
+                InputStreamReader inputStreamReader = new InputStreamReader(input);
+                try (inputStreamReader) {
 //            //The following gives the protocol...
 //            String huh = input.toString();
 //            int check = huh.length();
@@ -81,42 +84,67 @@ public class GetExample {
 //            String moreHelpful = finalValue.toString();
 //            String json = moreHelpful;
 //            //var Gson = new GameData[1];
-            try {
-               var Gson = new Gson().fromJson(inputStreamReader, GameDecomplier.class);
-               if(Gson == null){
-                   return null;
-               } else if(Gson.getGames() == null) {
-                    connection.disconnect();
-                    return null;
-                } else if(Gson.getGames() == null) {
-                   connection.disconnect();
-                   return null;
-               } else if(Gson.getGames().length == 0) {
-                   connection.disconnect();
-                   return null;
-               } else if(Gson.getGames()[0] == null){
-                    connection.disconnect();
-                    return null;
-                } else {
-                   return Gson.getGames();
-               }
-            } catch(JsonSyntaxException e){
-                try{
+                    try {
+                        var Gson = new Gson().fromJson(inputStreamReader, GameDecomplier.class);
+                        if (Gson == null) {
+                            return null;
+                        } else if (Gson.getGames() == null) {
+                            connection.disconnect();
+                            return null;
+                        } else if (Gson.getGames() == null) {
+                            connection.disconnect();
+                            return null;
+                        } else if (Gson.getGames().length == 0) {
+                            connection.disconnect();
+                            return null;
+                        } else if (Gson.getGames()[0] == null) {
+                            connection.disconnect();
+                            return null;
+                        } else {
+                            connection.disconnect();
+                            return Gson.getGames();
+                        }
+                    } catch (JsonSyntaxException e) {
+                        try {
 //                    String help = inputStreamReader
-                    //String please = help.read();
-                    JsonReader myReader = new JsonReader(inputStreamReader);
-                    myReader.setLenient(true);
+                            //String please = help.read();
+                            JsonReader myReader = new JsonReader(inputStreamReader);
+                            myReader.setLenient(true);
 //                    String jsonString = EntityUtils.toString(connection..getEntity());
-                    //var gson = new Gson().fromJson(myReader, GameData[].class);
-                    Type collectionType = new TypeToken<Collection<GameData>>(){}.getType();
-                    Collection<GameData> enums = new Gson().fromJson(myReader, collectionType);
+                            //var gson = new Gson().fromJson(myReader, GameData[].class);
+                            Type collectionType = new TypeToken<Collection<GameData>>() {
+                            }.getType();
+                            Collection<GameData> enums = new Gson().fromJson(myReader, collectionType);
 //                    String test = Arrays.toString(gson);
-                    connection.disconnect();
-                    int i;
-                    return null;
-                } catch(JsonSyntaxException r) {
-                    connection.disconnect();
-               return null;
+                            connection.disconnect();
+                            int i;
+                            return null;
+                        } catch (JsonSyntaxException r) {
+                            connection.disconnect();
+                            return null;
+                        }
+                    } catch (JsonIOException e) {
+                        connection.disconnect();
+                        throw new RuntimeException(e);
+                    }
+//                    try {
+////                    String help = inputStreamReader
+//                        //String please = help.read();
+//                        JsonReader myReader = new JsonReader(inputStreamReader);
+//                        myReader.setLenient(true);
+////                    String jsonString = EntityUtils.toString(connection..getEntity());
+//                        //var gson = new Gson().fromJson(myReader, GameData[].class);
+//                        Type collectionType = new TypeToken<Collection<GameData>>() {
+//                        }.getType();
+//                        Collection<GameData> enums = new Gson().fromJson(myReader, collectionType);
+////                    String test = Arrays.toString(gson);
+//                        connection.disconnect();
+//                        int i;
+//                        return null;
+//                    } catch (JsonSyntaxException r) {
+//                        connection.disconnect();
+//                        return null;
+//                    }
                 }
             }
             //process these responses differently to allow for a proper string output...
@@ -136,10 +164,14 @@ public class GetExample {
         } else {
             try {
                 var input = connection.getInputStream();
-                InputStreamReader inputStreamReader = new InputStreamReader(input);
-                var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
-                connection.disconnect();
-                throw Gson;
+                try(input) {
+                    InputStreamReader inputStreamReader = new InputStreamReader(input);
+                    try(inputStreamReader) {
+                        var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+                        connection.disconnect();
+                        throw Gson;
+                    }
+                }
             } catch(IOException e){
                 ExceptionTransformer error = new ExceptionTransformer();
                 out.print("??????????");

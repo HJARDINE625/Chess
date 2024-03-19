@@ -43,10 +43,14 @@ public class Login {
         // Get HTTP response headers, if necessary
         // Map<String, List<String>> headers = connection.getHeaderFields();
         var input = connection.getInputStream();
-        InputStreamReader inputStreamReader = new InputStreamReader(input);
-        var Gson = new Gson().fromJson(inputStreamReader, AuthData.class);
-        connection.disconnect();
-        return Gson;
+        try(input) {
+            InputStreamReader inputStreamReader = new InputStreamReader(input);
+            try(inputStreamReader) {
+                var Gson = new Gson().fromJson(inputStreamReader, AuthData.class);
+                connection.disconnect();
+                return Gson;
+            }
+        }
         //process these responses differently to allow for a proper string output...
 //        if(Gson[0] == null) {
 //            return null;
@@ -62,17 +66,21 @@ public class Login {
     } else {
         try {
             var input = connection.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(input);
-            var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
-            connection.disconnect();
-            throw Gson;
-        } catch(IOException e){
-            ExceptionTransformer error = new ExceptionTransformer();
-            error.transform(e);
-            connection.disconnect();
-            //in case there is not an available transformation...
-            throw e;
-        }
+            try (input) {
+                InputStreamReader inputStreamReader = new InputStreamReader(input);
+                try(inputStreamReader) {
+                    var Gson = new Gson().fromJson(inputStreamReader, ReportingException.class);
+                    connection.disconnect();
+                    throw Gson;
+                }
+            }
+            } catch (IOException e) {
+                ExceptionTransformer error = new ExceptionTransformer();
+                error.transform(e);
+                connection.disconnect();
+                //in case there is not an available transformation...
+                throw e;
+            }
         // SERVER RETURNED AN HTTP ERROR
     }
 }

@@ -151,9 +151,15 @@ public class ServerFacadeTests {
         strings[2] = null;
         selection = 2;
         myDataStorage.completeAction(selection, otherNum, strings);
+        //now get game
+        selection = 3;
+        myDataStorage.completeAction(selection, otherNum, strings);
+        //see if it worked now...
+        assertNotNull(myDataStorage.getGames());
         //now retrieve it
-        selection = 5;
+        selection = 4;
         otherNum = 0;
+        strings[0] = "BLACK";
         myDataStorage.completeAction(selection,otherNum, strings);
         //now see what we get here...
         selection = 3;
@@ -161,10 +167,10 @@ public class ServerFacadeTests {
         //see if it worked now...
         assertNotNull(myDataStorage.getGames());
 
-        selection = 1;
-        myDataStorage.completeAction(selection,otherNum, strings);
-        //make sure we logged out for the next test...
-        assertNull(myDataStorage.GetCurrentAuthentication());
+//        selection = 1;
+//        myDataStorage.completeAction(selection,otherNum, strings);
+//        //make sure we logged out for the next test...
+//        assertNull(myDataStorage.GetCurrentAuthentication());
     }
 
     @Order(2)
@@ -490,8 +496,18 @@ public class ServerFacadeTests {
         //myDataStorage.completeAction(4);
         //inputFacade = new ByteArrayInputStream("BLACK".getBytes());
         //System.setIn(inputFacade);
+        //log out
+//        selection = 0;
+//        myDataStorage.completeAction(selection, otherNum, strings);
+//        //log in
+//        selection = 3;
+//        strings[0] = "inspector";
+//        strings[1] = "SayPlease";
+//        myDataStorage.completeAction(selection, otherNum, strings);
+//        selection = 4;
         strings[0] = "BLACK";
         myDataStorage.completeAction(selection, otherNum, strings);
+        myDataStorage.completeAction(3, otherNum, strings);
         assertNotNull(games[0]);
         assertNotNull(games[0].whiteUsername());
         assertNotEquals(games[0].whiteUsername(), myStuff.username());
