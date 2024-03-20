@@ -21,7 +21,7 @@ public class JoinGame {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setReadTimeout(100000);
         connection.setRequestMethod("PUT");
-        out.print("HERE!!!");
+        //out.print("HERE!!!");
 
         //connection.setRequestMethod("PUT");
 
@@ -45,7 +45,7 @@ public class JoinGame {
         }
 
         connection.connect();
-        out.print("Connected... ");
+        //out.print("Connected... ");
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
             out.print("OK!\n");
@@ -67,7 +67,7 @@ public class JoinGame {
             // Read and process response body from InputStream ...
         } else {
             try {
-                out.print("NOOO!\n");
+                //out.print("NOOO!\n");
 
                 var input = connection.getInputStream();
                 try(input) {

@@ -42,7 +42,7 @@ public class GetExample {
         connection.addRequestProperty("Authorization", authentication);
         connection.getRequestMethod();
 
-        out.print("outputting");
+        //out.print("outputting");
         //methods with setDoOutput(true), will find a request method that works...
 //        connection.setDoOutput(true);
 //        try (var outputStream = connection.getOutputStream()) {
@@ -56,7 +56,7 @@ public class GetExample {
 //
 //        out.print("connecting");
         connection.connect();
-        out.print("connected");
+        //out.print("connected");
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
             // Get HTTP response headers, if necessary
@@ -174,7 +174,7 @@ public class GetExample {
                 }
             } catch(IOException e){
                 ExceptionTransformer error = new ExceptionTransformer();
-                out.print("??????????");
+                //out.print("??????????");
                 error.transform(e);
                 connection.disconnect();
                 //in case there is not an available transformation...
