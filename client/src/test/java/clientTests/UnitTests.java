@@ -69,6 +69,12 @@ public class UnitTests {
         //UserData myUser = new UserData(loginStrings[0], loginStrings[1], loginStrings[2]);
 
     }
+    @AfterAll
+    public static void stopServer() {
+        //If I cannot find a way to delete the server from here, I may always have to run a test from elsewhere after this... for now do that...
+        server.stop();
+    }
+
 
 
     @Order(1)
