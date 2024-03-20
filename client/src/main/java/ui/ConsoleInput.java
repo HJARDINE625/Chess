@@ -15,7 +15,7 @@ public class ConsoleInput implements InputReader{
     public String getString() {
         //BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         Scanner scannedStuff = new Scanner(System.in);
-        return scannedStuff.toString();
+            return scannedStuff.nextLine();
     }
 
     @Override
@@ -40,6 +40,8 @@ public class ConsoleInput implements InputReader{
                 out.print(SET_BG_COLOR_YELLOW);
                 out.print(SET_TEXT_COLOR_RED);
                 out.print("Error: That is not a valid number! Try again!\n");
+                out.print(SET_BG_COLOR_BLACK);
+                out.print(SET_TEXT_COLOR_WHITE);
             }
         }
         return finalReturn;

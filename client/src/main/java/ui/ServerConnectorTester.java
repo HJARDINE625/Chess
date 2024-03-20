@@ -118,7 +118,7 @@ public class ServerConnectorTester {
 
     //just print out to console here, do not return anything...
     public void completeAction(int selector, int otherNumber, String[] inputsOrdered) throws IOException {
-        out.print(" \nnextCommand\n" + selector + "\n");
+        //out.print(" \nnextCommand\n" + selector + "\n");
         String message = "Success!\n";
         boolean loggedIn = true;
         boolean addMoreAtEnd = false;
@@ -240,7 +240,7 @@ public class ServerConnectorTester {
         } else if (loggedIn) {
             if(selector == 4){
                 //find some way to get more input mid function here... or I could have an array of other inputs...
-                out.print("Enter Game Number\n");
+                //out.print("Enter Game Number\n");
                 int gameNumber = otherNumber;
                 if(gameNumber >= games.length) {
                     message = " \nError: Not a valid game number!\n" + "Games and numbers are found above the error message.\n";
@@ -252,14 +252,17 @@ public class ServerConnectorTester {
                     completeAction(3, 0, null);
                 } else {
                     String IDString = String.valueOf(games[gameNumber].gameID());
-                    out.print("Enter color you wish to play as.\n");
+                    //out.print("Enter color you wish to play as.\n");
                     if (inputsOrdered != null) {
                         if (inputsOrdered[0] != null) {
                             String playerColor = inputsOrdered[0];
                             try {
                                 gameJoiner.join(urlString + game, authentications[0].authToken(), playerColor, IDString);
                                 //for now we will do this this way...
+                                ChessBoard newChess = new ChessBoard();
+                                newChess.resetBoard();
                                 ChessGame boardDrawer = new ChessGame();
+                                boardDrawer.setBoard(newChess);
                                 pen.draw(boardDrawer, true, true);
                                 //draw(boardDrawer);
                                 //message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
@@ -290,7 +293,10 @@ public class ServerConnectorTester {
                     try {
                         gameJoiner.join(urlString + game, authentications[0].authToken(), null, IDString);
                         //for now we will do this this way...
+                        ChessBoard newChess = new ChessBoard();
+                        newChess.resetBoard();
                         ChessGame boardDrawer = new ChessGame();
+                        boardDrawer.setBoard(newChess);
                         pen.draw(boardDrawer, true, true);
                         //draw(boardDrawer);
                         //message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
@@ -317,6 +323,9 @@ public class ServerConnectorTester {
         out.print(SET_TEXT_BOLD);
         out.print(SET_BG_COLOR_DARK_GREEN);
         out.print(message);
+        out.print(" \nnextCommand\n" + selector + "\n");
+        out.print(SET_BG_COLOR_BLACK);
+        out.print(SET_TEXT_COLOR_WHITE);
     }
 
     //here I pass in a game specifically so I can do something more complicated if I choose to...
@@ -415,9 +424,9 @@ public class ServerConnectorTester {
         String returnSupport = new String();
         returnSupport = "Enter the following numbers to execute the following commands:\n[0] : Help\n";
         if(authentications[0] == null){
-            return returnSupport + "[1] : Quit\n[2] : Register a new Chess Account and Login\n[3] : Login to an old Chess Account\n";
+            return returnSupport + "[1] : Quit\n[2] : Register a new Chess Account and Login - Will need 3 Strings - (1):username (2):password (3):email\n[3] : Login to an old Chess Account - Will need 2 Strings - (1):username (2):password\n";
         } else {
-            return returnSupport + "[1] : Logout of this Chess Account\n[2] : Create a new Chess Game\n[3] : List all Chess Games that currently exist on this Server\n[4] : Join an available Chess Game\n[5] : Join as an observer of any Chess Game\n";
+            return returnSupport + "[1] : Logout of this Chess Account\n[2] : Create a new Chess Game - Will need 1 String - (1):gameName\n[3] : List all Chess Games that currently exist on this Server\n[4] : Join an available Chess Game - Will need one number - gameNumber\n[5] : Join as an observer of any Chess Game - Will need one number - gameNumber - Will need 1 String - (1) - joinColor: IMPORTANT! just click enter with no inputs if you want to join as an observer, otherwise the system will interpret your response as a team in chess\n";
         }
     }
 

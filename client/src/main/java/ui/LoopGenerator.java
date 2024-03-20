@@ -31,11 +31,20 @@ public void executeCommands() throws IOException {
         if(useServerConnector) {
             myServer.completeAction(getUserInput.getNum());
         } else {
-            String[] strings = new String[2];
-            for(int i = 0; i<2; i++){
-               strings[i] = getUserInput.getString();
+
+            System.out.println("Please supply a non-negative number parameter to decide which of the options you want to select (or select 0 for help)\n");
+            int selection = getUserInput.getNum();
+            System.out.println("Please supply a non-negative selection number parameter for input, unnecessary inputs for specific commands still need a value to be interpreted so please input 0 for them\n");
+            int helperValue = getUserInput.getNum();
+            String[] strings = new String[3];
+            for(int i = 0; i<=2; i++){
+                System.out.println("Please supply a #" + Integer.toString(i+1) + " String parameter for input, unnecessary inputs for specific commands can be blank as they will be ignored\n");
+                strings[i] = getUserInput.getString();
+                if(strings[i].equals("")){
+                    strings[i] = null;
+                }
             }
-            myServerConnectorTester.completeAction(getUserInput.getNum(), getUserInput.getNum(), strings);
+            myServerConnectorTester.completeAction(selection, helperValue, strings);
         }
         }
         }

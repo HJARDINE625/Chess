@@ -67,7 +67,13 @@ public class ChessDrawer {
                     ChessPiece.PieceType piece = myPiece.getPieceType();
                     replace(color.name(), piece.name(), blackSpace);
                 } else {
-                    out.print(EMPTY);
+                    if(blackSpace) {
+                        out.print(SET_TEXT_COLOR_BLACK);
+                        out.print(BLACK_PAWN);
+                    } else {
+                        out.print(SET_TEXT_COLOR_WHITE);
+                        out.print(WHITE_PAWN);
+                    }
                 }
             }
             out.print(SET_TEXT_BOLD);
@@ -125,7 +131,13 @@ public class ChessDrawer {
                         ChessPiece.PieceType piece = myPiece.getPieceType();
                         replace(color.name(), piece.name(), blackSpace);
                     } else {
-                        out.print(EMPTY);
+                        if(blackSpace) {
+                            out.print(SET_TEXT_COLOR_BLACK);
+                            out.print(BLACK_PAWN);
+                        } else {
+                            out.print(SET_TEXT_COLOR_WHITE);
+                            out.print(WHITE_PAWN);
+                        }
                     }
                 }
                 out.print(SET_TEXT_BOLD);
