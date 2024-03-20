@@ -228,6 +228,7 @@ public class ServerConnectorTester {
                             }  else {
                                 message = message + "NONE! \n";
                             }
+                            gameNumber++;
                         }
                         message = message + json;
                     } else {
