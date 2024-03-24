@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import exception.ResponseException;
 import webSocketMessages.Action;
 import webSocketMessages.Notification;
+import webSocketMessages.serverMessages.ServerMessage;
+import webSocketMessages.userCommands.UserGameCommand;
 
 import javax.websocket.*;
 import java.io.IOException;
@@ -17,7 +19,7 @@ public class WebSocketFacade extends Endpoint {
     NotificationHandler notificationHandler;
 
 
-    public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
+    public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ReportingException {
         try {
             url = url.replace("http", "ws");
             URI socketURI = new URI(url + "/connect");
@@ -30,12 +32,12 @@ public class WebSocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    Notification notification = new Gson().fromJson(message, Notification.class);
+                    var notification = new Gson().fromJson(message, ServerMessage.class);
                     notificationHandler.notify(notification);
                 }
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
-            throw new ResponseException(500, ex.getMessage());
+            throw new ReportingException("Error: 500 " + ex.getMessage());
         }
     }
 
@@ -44,22 +46,22 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void enterPetShop(String visitorName) throws ResponseException {
+    public void enterPetShop(String visitorName) throws ReportingException {
         try {
-            var action = new Action(Action.Type.ENTER, visitorName);
+            var action = new UserGameCommand(UserGameCommand.Type.ENTER, visitorName);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
         } catch (IOException ex) {
-            throw new ResponseException(500, ex.getMessage());
+            throw new ReportingException("Error: 500 " + ex.getMessage());
         }
     }
 
-    public void leavePetShop(String visitorName) throws ResponseException {
+    public void leavePetShop(String visitorName) throws ReportingException {
         try {
-            var action = new Action(Action.Type.EXIT, visitorName);
+            var action = new UserGameCommand(UserGameCommand.Type.EXIT, visitorName);
             this.session.getBasicRemote().sendText(new Gson().toJson(action));
             this.session.close();
         } catch (IOException ex) {
-            throw new ResponseException(500, ex.getMessage());
+            throw new ReportingException("Error: 500 " + ex.getMessage());
         }
     }
 
