@@ -5,6 +5,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import server.*;
+import webSocketMessages.serverMessages.Message;
 import webSocketMessages.serverMessages.ServerMessage;
 import webSocketMessages.userCommands.UserGameCommand;
 
@@ -40,13 +41,14 @@ public class WebSocketHandler {
         connections.broadcast(visitorName, notification);
     }
 
-    public void makeNoise(String petName, String sound) throws ResponseException {
+    public void makeNoise(String visitorsName, String sound) throws IOException {
         try {
-            var message = String.format("%s says %s", petName, sound);
+            var message = String.format("%s says %s", visitorsName, sound);
             var notification = new ServerMessage(ServerMessage.Type.NOISE, message);
             connections.broadcast("", notification);
         } catch (Exception ex) {
-            throw new ResponseException(500, ex.getMessage());
+            Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 " + ex.getMessage());
+            connections.narrowcast(visitorsName, error);
         }
     }
 }

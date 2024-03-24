@@ -1,5 +1,6 @@
 package server;
 
+import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.Session;
 import server.Connection;
 import webSocketMessages.Notification;
@@ -26,7 +27,8 @@ public class ConnectionManager {
         for (var c : connections.values()) {
             if (c.session.isOpen()) {
                 if (!c.visitorName.equals(excludeVisitorName)) {
-                    c.send(notification.toString());
+                    var message = new Gson().toJson(notification);
+                    c.send(message);
                 }
             } else {
                 removeList.add(c);
@@ -36,6 +38,19 @@ public class ConnectionManager {
         // Clean up any connections that were left open.
         for (var c : removeList) {
             connections.remove(c.visitorName);
+        }
+    }
+
+    //we need this too...
+    public void narrowcast(String vistorsName, ServerMessage error) throws IOException {
+        var groupList = new ArrayList<Connection>();
+        for (var c: connections.values()) {
+            if(c.session.isOpen()){
+                if(c.visitorName.equals(vistorsName)){
+                    var message = new Gson().toJson(error);
+                    c.send(message);
+                }
+            }
         }
     }
 }
