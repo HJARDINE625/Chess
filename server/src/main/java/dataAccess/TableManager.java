@@ -35,6 +35,14 @@ public class TableManager {
                 PRIMARY KEY (gameID)
             )""";
 
+        //added to make there be an easy way to lookup watchers
+        var createObserverTable = """
+            CREATE TABLE  IF NOT EXISTS observer (
+                gameID INT,
+                watchers longtext NOT NULL,
+                FOREIGN KEY (gameID)
+            )""";
+
 
         try (var createTableStatement = conn.prepareStatement(createUserTable)) {
             createTableStatement.executeUpdate();
@@ -43,6 +51,9 @@ public class TableManager {
             createTableStatement.executeUpdate();
         }
         try (var createTableStatement = conn.prepareStatement(createGameTable)) {
+            createTableStatement.executeUpdate();
+        }
+        try (var createTableStatement = conn.prepareStatement(createObserverTable)) {
             createTableStatement.executeUpdate();
         }
     } catch (SQLException e) {
@@ -63,6 +74,9 @@ public class TableManager {
                 var recreateGameTable = """
             TRUNCATE TABLE game""";
 
+                var recreateObserverTable = """
+            TRUNCATE TABLE game""";
+
 
                 try (var createTableStatement = conn.prepareStatement(recreateUserTable)) {
                     createTableStatement.executeUpdate();
@@ -71,6 +85,9 @@ public class TableManager {
                     createTableStatement.executeUpdate();
                 }
                 try (var createTableStatement = conn.prepareStatement(recreateGameTable)) {
+                    createTableStatement.executeUpdate();
+                }
+                try (var createTableStatement = conn.prepareStatement(recreateObserverTable)) {
                     createTableStatement.executeUpdate();
                 }
             } catch (SQLException e) {

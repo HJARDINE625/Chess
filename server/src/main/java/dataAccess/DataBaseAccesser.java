@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import model.WatcherList;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.sql.Connection;
@@ -31,6 +32,8 @@ public class DataBaseAccesser implements DataAccesser{
     private final String userTable = "user";
     private final String authTable = "auth";
     private final String gameTable = "game";
+
+    private final String observerTable = "observer";
 
     private SQLInterface implementer = new SQLInterface();
 
@@ -261,6 +264,37 @@ public class DataBaseAccesser implements DataAccesser{
         } else {
             //or throw an exception
             throw new DataAccessException("error: illegal name");
+        }
+    }
+
+    //only call if there is a game
+    public String[] getWatchers(int gameID){
+        //GameData myNewChessGame = implementer.getGame(gameID, gameTable);
+        String statementBuilder = "SELECT watchers FROM " + observerTable + " WHERE " + " gameID=?";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var ps = conn.prepareStatement(statementBuilder)) {
+                ps.setInt(1, gameID);
+                try (var rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        if (rs.getString("watchers") != null) {
+                            //This should work but is currently untested...
+                            //add a add watchers function somewhere else that first gets the Watchers than compares to make sure the new watcher is new... then add a delete...
+                            WatcherList listOfWatchers = new Gson().fromJson(rs.getString("watchers"), WatcherList.class);
+                            return listOfWatchers.getWatchers();
+                        } else {
+                            return null;
+                        }
+                    } else {
+                        return null;
+                    }
+                } catch (Exception e) {
+                    throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+                }
+            } catch (Exception e) {
+                throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
         }
     }
 

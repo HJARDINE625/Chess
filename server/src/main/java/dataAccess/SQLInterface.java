@@ -183,6 +183,8 @@ public class SQLInterface {    //to delete stuff
     }
 
     //update this function
+    //first get a game board...
+    //Use this function to set an old game into a new empty game (ie: remove a player or make a move...)
     public void updateGame(int id, GameData newGame) throws DataAccessException {
         GameData oldGame = getGame(id, "game");
         if(oldGame == null){
