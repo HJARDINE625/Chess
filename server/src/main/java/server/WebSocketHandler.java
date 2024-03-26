@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataAccess.DataAccessException;
 import dataAccess.DataBaseAccesser;
 import model.AuthDataInt;
+import model.Responses;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -58,9 +59,15 @@ public class WebSocketHandler {
         }
     }
 
-    private void leaveGame(Leave instuctions, Session session){
+    private void leaveGame(Leave instuctions, Session session) throws DataAccessException {
         //Probably will not come up...
         //String httpLink = newHttpLinker(session) + "/game";
+        if(instuctions.getAuthString() == null){
+            Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 Not Authorized... so no idea who to send this message too");
+            throw new DataAccessException(error.getMessage());
+        } else {
+
+        }
 
 
     }
