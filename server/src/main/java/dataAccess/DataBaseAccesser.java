@@ -384,10 +384,8 @@ public class DataBaseAccesser implements DataAccesser{
         // return returnArray;
         }
     //}
-
-    //First check this person is authorized then that the game exists then that color is available... Then call this function...
     @Override
-    public GameData updateGame(int gameID, String clientColor, String auth) throws DataAccessException {
+    public String usernameFinder(String auth) throws DataAccessException{
         //We only call this at appropriate times (when the user has been found), so I think it is fine to do this...
         String username = "";
         String statementBuilder = "SELECT username FROM " + authTable + " WHERE " + " authToken=?";
@@ -409,6 +407,32 @@ public class DataBaseAccesser implements DataAccesser{
         } catch (Exception e) {
             throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
         }
+        return username;
+    }
+    //First check this person is authorized then that the game exists then that color is available... Then call this function...
+    @Override
+    public GameData updateGame(int gameID, String clientColor, String auth) throws DataAccessException {
+        //We only call this at appropriate times (when the user has been found), so I think it is fine to do this...
+        String username = usernameFinder(auth);
+//        String statementBuilder = "SELECT username FROM " + authTable + " WHERE " + " authToken=?";
+//        try (Connection conn = DatabaseManager.getConnection()) {
+//            try (var ps = conn.prepareStatement(statementBuilder)) {
+//                ps.setString(1, auth);
+//                try (var rs = ps.executeQuery()) {
+//                    if (rs.next()) {
+//                        if (rs.getString("username") != null) {
+//                            username = rs.getString("username");
+//                        }
+//                    }
+//                } catch (Exception e) {
+//                    throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+//                }
+//            } catch (Exception e) {
+//                throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+//            }
+//        } catch (Exception e) {
+//            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+//        }
 
         //for (AuthData user: authentications) {
             //if(user.authToken().equals(auth)) {

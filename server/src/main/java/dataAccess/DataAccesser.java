@@ -13,6 +13,8 @@ public interface DataAccesser {
     public GameData[] listGames() throws DataAccessException;
     public GameData updateGame(int gameID, String clientColor, String auth) throws DataAccessException;
     public AuthData createAuth(String username) throws DataAccessException;
+
+    public String usernameFinder(String auth) throws DataAccessException;
     //public AuthData getAuth();
     public boolean deleteAuth(String authenticator) throws DataAccessException;
     public boolean checkAuthorization(String authenticator) throws DataAccessException;

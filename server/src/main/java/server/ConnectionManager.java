@@ -3,7 +3,7 @@ package server;
 import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.Session;
 import server.Connection;
-import webSocketMessages.Notification;
+//import webSocketMessages.Notification;
 import webSocketMessages.serverMessages.ServerMessage;
 
 import java.io.IOException;
