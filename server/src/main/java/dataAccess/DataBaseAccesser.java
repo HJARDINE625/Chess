@@ -268,7 +268,77 @@ public class DataBaseAccesser implements DataAccesser{
     }
 
     //only call if there is a game
-    public String[] getWatchers(int gameID){
+    public boolean subtractWatcher(int gameID, String watcherName) throws DataAccessException {
+        String[] observers = getWatchers(gameID);
+        //check boolean; and String which will only allow functions if modified below.
+        String[] newObservers = new String[0];
+        boolean alreadyExists = false;
+        if(observers != null) {
+            if(observers.length > 0) {
+               newObservers = new String[(observers.length) - 1];
+                int i = 0;
+                for (String observer : observers) {
+                    if (!observer.equals(watcherName)) {
+                        newObservers[i] = observer;
+                    } else {
+                        alreadyExists = true;
+                    }
+                    i++;
+                }
+            }
+        }
+        //now check already exists
+        //these are easist to see as simple code together, they are basically the same overall check.. just not specfic ones.
+        if((alreadyExists) && (newObservers.length > 0)){
+            var updateString = new Gson().toJson(new WatcherList(newObservers));
+            //this statement is probabaly invalid, but it at least stands as pesdocode here...
+            String statement = "INSERT INTO " + observerTable + " (observers) VALUES (?)" + " WHERE " + " gameID=?";
+            implementer.executeUpdate(statement, DatabaseManager.getConnection(), updateString, gameID);
+            return true;
+        } else {
+            //this return might not matter that much to overall logic however, as it just means that the person was added already...
+            return false;
+        }
+    }
+
+
+    //only call if there is a game
+    public boolean addWatcher(int gameID, String watcherName) throws DataAccessException {
+        String[] observers = getWatchers(gameID);
+        //check boolean;
+        boolean alreadyExists = false;
+        if(observers != null) {
+            if(observers.length > 0) {
+                for (String observer : observers) {
+                    if (observer.equals(watcherName)) {
+                        alreadyExists = true;
+                        break;
+                    }
+                }
+            }
+        }
+        //now check already exists
+        if(!alreadyExists){
+            String[] newObservers = new String[(observers.length) + 1];
+            int i = 0;
+            for (String observer: observers) {
+                newObservers[i] = observer;
+                i++;
+            }
+            newObservers[i] = watcherName;
+            var updateString = new Gson().toJson(new WatcherList(newObservers));
+            //this statement is probabaly invalid, but it at least stands as pesdocode here...
+            String statement = "INSERT INTO " + observerTable + " (observers) VALUES (?)" + " WHERE " + " gameID=?";
+            implementer.executeUpdate(statement, DatabaseManager.getConnection(), updateString, gameID);
+            return true;
+        } else {
+            //this return might not matter that much to overall logic however, as it just means that the person was added already...
+            return false;
+        }
+    }
+
+    //only call if there is a game
+    public String[] getWatchers(int gameID) throws DataAccessException {
         //GameData myNewChessGame = implementer.getGame(gameID, gameTable);
         String statementBuilder = "SELECT watchers FROM " + observerTable + " WHERE " + " gameID=?";
         try (Connection conn = DatabaseManager.getConnection()) {
