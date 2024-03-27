@@ -539,11 +539,17 @@ public class DataBaseAccesser implements DataAccesser{
 //        }
 //        return username;
 //    }
+    //...I added a new updateGame to allow for removals
     //First check this person is authorized then that the game exists then that color is available... Then call this function...
     @Override
     public GameData updateGame(int gameID, String clientColor, String auth) throws DataAccessException {
         //We only call this at appropriate times (when the user has been found), so I think it is fine to do this...
         String username = usernameFinder(auth);
+        return updateGame(username, clientColor, gameID);
+    }
+    //here is the removal one...
+    @Override
+        public GameData updateGame(String username, String clientColor, int gameID) throws DataAccessException{
 //        String statementBuilder = "SELECT username FROM " + authTable + " WHERE " + " authToken=?";
 //        try (Connection conn = DatabaseManager.getConnection()) {
 //            try (var ps = conn.prepareStatement(statementBuilder)) {
@@ -624,6 +630,7 @@ public class DataBaseAccesser implements DataAccesser{
                     }
                 }else {
                     //I am not sure that we need to do anything to add a new observer....
+                    //can call the observer add code now...
                     return chessGame;
                 //}
            // }
@@ -636,6 +643,17 @@ public class DataBaseAccesser implements DataAccesser{
         return newGame;
     }
 
+    //NOTE: for the breakdown of steps I have broken up the overall pieces of this project into parts here and parts elsewhere... DO NOT CALL THIS FUNCTION UNTIL YOU CHECKED THAT THE CHANGE MAKES SENSE ELSEWHERE!!!
+    @Override
+    public GameData modifyGameState(int gameID, ChessGame implementation) throws DataAccessException {
+        GameData chessGame = getGame(gameID);
+        //see how we swap out the implementations here.
+        GameData newGame = new GameData(chessGame.gameID(), chessGame.whiteUsername(), chessGame.blackUsername(), chessGame.gameName(), implementation);
+        //This function should already work for this... but check here if an error is being thrown...
+        implementer.updateGame(gameID, newGame);
+        //now return.
+        return newGame;
+    }
 
     //only call this after calling get user and checking for non-null responses...
     @Override

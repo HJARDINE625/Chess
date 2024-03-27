@@ -1,5 +1,6 @@
 package dataAccess;
 
+import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -12,6 +13,12 @@ public interface DataAccesser {
     public GameData getGame(int gameID) throws DataAccessException;
     public GameData[] listGames() throws DataAccessException;
     public GameData updateGame(int gameID, String clientColor, String auth) throws DataAccessException;
+
+    public GameData updateGame(String username, String clientColor, int gameID) throws DataAccessException;
+
+    //NOTE: for the breakdown of steps I have broken up the overall pieces of this project into parts here and parts elsewhere... DO NOT CALL THIS FUNCTION UNTIL YOU CHECKED THAT THE CHANGE MAKES SENSE ELSEWHERE!!!
+    GameData modifyGameState(int gameID, ChessGame implementation) throws DataAccessException;
+
     public AuthData createAuth(String username) throws DataAccessException;
 
     public String usernameFinder(String auth) throws DataAccessException;

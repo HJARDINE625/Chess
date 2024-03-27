@@ -166,6 +166,30 @@ public class DataAccess implements DataAccesser{
         return newGame;
     }
 
+    @Override
+    public GameData updateGame(String username, String clientColor, int gameID) throws DataAccessException {
+        //not the intent of this method, but it works for now...
+        return updateGame(gameID, clientColor, username);
+    }
+
+    @Override
+    public GameData modifyGameState(int gameID, ChessGame implementation) throws DataAccessException {
+        HashSet<GameData> newgames = new HashSet<GameData>();
+        for (GameData game: games) {
+            if(game.gameID() == gameID) {
+                //this should work... but we can test it here if need be...
+                GameData newgame = new GameData(gameID, game.whiteUsername(), game.blackUsername(), game.gameName(), implementation);
+                newgames.add(newgame);
+            } else {
+                newgames.add(game);
+            }
+
+        }
+        games = newgames;
+        //with games updated now... this should work.
+        return getGame(gameID);
+    }
+
 
     //only call this after calling get user and checking for non-null responses...
     @Override
@@ -189,6 +213,18 @@ public class DataAccess implements DataAccesser{
         authentications.add(authenticator);
         return authenticator;
 
+    }
+
+    @Override
+    public String usernameFinder(String auth) throws DataAccessException {
+        for (AuthData a:authentications) {
+            if(a.authToken().equals(auth)){
+                //found it!
+                return a.username();
+            }
+        }
+        //we could not find it...
+        return null;
     }
 
     //Might not be necessary in this implementation...
