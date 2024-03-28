@@ -116,6 +116,47 @@ public class WebSocketHandler {
                 connections.broadcast(name, finalServerMessage);
                 connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, gameMove.getMyGameData().implementation()));
                 connections.narrowcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, gameMove.getMyGameData().implementation()));
+                //addeed here to allow for more messages if need arises here
+                boolean check = false;
+                boolean trapped = false;
+                //check for stalemate and check and checkmate
+                //hardcoded for now... an impossible name
+                String othername = ")--";
+                if(gameMove.getMyGameData().implementation().getTeamTurn().equals("WHITE")) {
+                    othername = gameMove.getMyGameData().whiteUsername();
+                }
+                if(gameMove.getMyGameData().implementation().getTeamTurn().equals("BLACK")) {
+                    othername = gameMove.getMyGameData().blackUsername();
+                }
+                if(othername.equals(")--")){
+                    othername = "Some coward who quit before they could lose";
+                }
+                if(gameMove.getMyGameData().implementation().isInCheck(gameMove.getMyGameData().implementation().getTeamTurn())){
+                    check = true;
+                }
+                if(gameMove.getMyGameData().implementation().isInStalemate(gameMove.getMyGameData().implementation().getTeamTurn())){
+                    trapped = true;
+                }
+                if(trapped){
+                    //checkmate
+                    if(check){
+                        finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! " + othername + " is in checkmate!!");
+                        connections.broadcast(name, finalServerMessage);
+                        connections.narrowcast(name, finalServerMessage);
+                    }
+                    //stalemate
+                    else{
+                        finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! " + othername + " is in stalemate!?");
+                        connections.broadcast(name, finalServerMessage);
+                        connections.narrowcast(name, finalServerMessage);
+                    }
+                    //check
+                } else if(check){
+                    finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, othername + " is in check!");
+                    connections.broadcast(name, finalServerMessage);
+                    connections.narrowcast(name, finalServerMessage);
+                }
+//none!
             }
         }
     }
