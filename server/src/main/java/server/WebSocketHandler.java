@@ -81,6 +81,8 @@ public class WebSocketHandler {
                 //looks like we got what we wanted so we should have two things...
                 Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! " + name + " surrendered.");
                 connections.broadcast(name, finalServerMessage);
+                finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! You gave up.");
+                connections.narrowcast(name, finalServerMessage);
                 connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()));
                 connections.narrowcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()));
             }
