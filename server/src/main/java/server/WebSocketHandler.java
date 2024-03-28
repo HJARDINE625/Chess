@@ -9,26 +9,23 @@ import model.Responses;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
-import server.*;
 import service.GameServices;
 import service.RegistrationServices;
 import service.WebSocketServices;
+import webSocketMessages.serverMessages.Load;
 import webSocketMessages.serverMessages.Message;
 import webSocketMessages.serverMessages.ServerMessage;
 import webSocketMessages.userCommands.Join;
 import webSocketMessages.userCommands.Leave;
 import webSocketMessages.userCommands.Move;
 import webSocketMessages.userCommands.UserGameCommand;
-import webSocketMessages.userCommands.UserGameCommand.*;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Timer;
 
 
 @WebSocket
@@ -60,7 +57,38 @@ public class WebSocketHandler {
         }
     }
 
-    private void causeMove(Move instructions, Session session) throws DataAccessException {
+    private void surrender(Leave instructions, Session session) throws DataAccessException, IOException {
+        if (instructions.getAuthString() == null) {
+            Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 Not Authorized... so no idea who to send this message too");
+            throw new DataAccessException(error.getMessage());
+        } else {
+            String auth = instructions.getAuthString();
+            String name = new String();
+            try {
+                name = extraHelp.getName(auth, myDataStorageDevice);
+            } catch (DataAccessException e) {
+                Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 Not Authorized... so no idea who to send this message too");
+                throw new DataAccessException(error.getMessage());
+            }
+            //if we made it this far... then we can try to check the game itself.
+            Responses stillTimeToGiveUp = extraHelp.giveUp(auth, myDataStorageDevice, instructions.getGameID());
+            if(stillTimeToGiveUp.getMyException() != null){
+                //something went wrong... narrowcast it
+                Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : " + stillTimeToGiveUp.getNumericalCode() + stillTimeToGiveUp.getMyException());
+                //removedGame.getMyException().getMessage();
+                connections.narrowcast(name, error);
+            } else{
+                //looks like we got what we wanted so we should have two things...
+                Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! " + name + " surrendered.");
+                connections.broadcast(name, finalServerMessage);
+                connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()));
+                connections.narrowcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()));
+            }
+        }
+    }
+
+//similar to the surrender one, but a little different...
+    private void causeMove(Move instructions, Session session) throws DataAccessException, IOException {
         if(instructions.getAuthString() == null){
             Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 Not Authorized... so no idea who to send this message too");
             throw new DataAccessException(error.getMessage());
@@ -74,7 +102,19 @@ public class WebSocketHandler {
                 throw new DataAccessException(error.getMessage());
             }
             //if we made it this far... then we can try to check the game itself.
-
+            Responses gameMove = extraHelp.moveMaker(auth, myDataStorageDevice, instructions.getMyMove(), instructions.getGameID());
+            if(gameMove.getMyException() != null){
+                //something went wrong... narrowcast it
+                Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : " + gameMove.getNumericalCode() + gameMove.getMyException());
+                //removedGame.getMyException().getMessage();
+                connections.narrowcast(name, error);
+            } else{
+                //looks like we got what we wanted so we should have two things...
+                Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, name + " made move " + instructions.getMyMove().toString() + ".");
+                connections.broadcast(name, finalServerMessage);
+                connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, gameMove.getMyGameData().implementation()));
+                connections.narrowcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, gameMove.getMyGameData().implementation()));
+            }
         }
     }
 

@@ -6,36 +6,57 @@ import dataAccess.DataAccesser;
 import dataAccess.DataBaseAccesser;
 import model.GameData;
 import model.Responses;
+import model.UserData;
 
 import java.util.Collection;
 
 public class WebSocketServices {
 
-    //only call after it is confirmed that the move can be made.
-    private Responses makeMove(DataAccesser myDatabase, ChessMove move, int gameID, ChessGame game, GameData gameHolder) {
-        try {
-            game.makeMove(move);
-        } catch (InvalidMoveException e) {
-            Responses faliureResponse = new Responses(401);
-            //I think this is the kind of error they want, they may want 500 or something...
-            faliureResponse.setMyException(new DataAccessException("Error: not a valid move!"));
-            return faliureResponse;
+    //use this to give up...
+    public Responses giveUp(String auth, DataAccesser myDatabase, int gameID){
+        Responses firstPart = firstFewChecks(auth, myDatabase, gameID);
+        if(firstPart.getMyException() != null) {
+            //already failed...
+            return firstPart;
+        } else {
+            //unpack
+            GameData checkGame = firstPart.getMyGameData();
+            ChessGame aGame = checkGame.implementation();
+            UserData personOfInterest = firstPart.getMyUserData();
+            String name = personOfInterest.username();
+            //begin main checks...
+            ChessGame.TeamColor myTeam = findPosition(name, myDatabase, gameID);
+            GameData newGame;
+            if(myTeam == null){
+                Responses faliureResponse = new Responses(401);
+                //I think this is the kind of error they want, they may want 500 or something...
+                faliureResponse.setMyException(new DataAccessException("Error: Forbidden"));
+                return faliureResponse;
+            } else {
+                //we need whoever they are to give up...
+                aGame.gameOver();
+                try {
+                    newGame = new GameData(gameID, checkGame.whiteUsername(), checkGame.blackUsername(), checkGame.gameName(), aGame);
+                    myDatabase.modifyGameState(gameID, aGame);
+                } catch (DataAccessException e) {
+                    //something went wrong...
+                    Responses faliureResponse = new Responses(500);
+                    faliureResponse.setMyException(e);
+                    return faliureResponse;
+                }
+                //if we made it here, everything went well
+                Responses success = new Responses(200);
+                //we are kind of overstocking here... but it will help...
+                success.setMyUserData(new UserData(name, null, null));
+                success.setMyGameData(newGame);
+                return success;
+            }
         }
-        try {
-            myDatabase.modifyGameState(gameID, game);
-        } catch (DataAccessException e) {
-            Responses faliureResponse = new Responses(500);
-            faliureResponse.setMyException(e);
-            return faliureResponse;
-        }
-        //if we made it here that is good news...
-        Responses success = new Responses(200);
-        success.setMyGameData(new GameData(gameHolder.gameID(), gameHolder.whiteUsername(), gameHolder.blackUsername(), gameHolder.gameName(), game));
-        return success;
+
     }
 
 
-    public Responses moveMaker(String auth, DataAccesser myDatabase, ChessMove checkMe, int gameID){
+    private Responses firstFewChecks(String auth, DataAccesser myDatabase, int gameID){
         try {myDatabase.checkAuthorization(auth);} catch (DataAccessException e) {
             Responses faliureResponse = new Responses(401);
             //I think this is the kind of error they want, they may want 500 or something...
@@ -80,6 +101,95 @@ public class WebSocketServices {
             faliureResponse.setMyException(new DataAccessException("Error: the game is already over... you cannot do anything now!"));
             return faliureResponse;
         } else {
+            //here I pass quite a bit of data back...
+            Responses goodData = new Responses(200);
+            goodData.setMyGameData(checkGame);
+            goodData.setMyUserData(new UserData(name, null, null));
+            return goodData;
+        }
+    }
+
+
+    //only call after it is confirmed that the move can be made.
+    private Responses makeMove(DataAccesser myDatabase, ChessMove move, int gameID, ChessGame game, GameData gameHolder) {
+        try {
+            game.makeMove(move);
+        } catch (InvalidMoveException e) {
+            Responses faliureResponse = new Responses(401);
+            //I think this is the kind of error they want, they may want 500 or something...
+            faliureResponse.setMyException(new DataAccessException("Error: not a valid move!"));
+            return faliureResponse;
+        }
+        try {
+            myDatabase.modifyGameState(gameID, game);
+        } catch (DataAccessException e) {
+            Responses faliureResponse = new Responses(500);
+            faliureResponse.setMyException(e);
+            return faliureResponse;
+        }
+        //if we made it here that is good news...
+        Responses success = new Responses(200);
+        success.setMyGameData(new GameData(gameHolder.gameID(), gameHolder.whiteUsername(), gameHolder.blackUsername(), gameHolder.gameName(), game));
+        return success;
+    }
+
+
+    public Responses moveMaker(String auth, DataAccesser myDatabase, ChessMove checkMe, int gameID){
+//        try {myDatabase.checkAuthorization(auth);} catch (DataAccessException e) {
+//            Responses faliureResponse = new Responses(401);
+//            //I think this is the kind of error they want, they may want 500 or something...
+//            faliureResponse.setMyException(new DataAccessException("Error: Forbidden"));
+//            return faliureResponse;
+//        }
+//        try {
+//            if (!myDatabase.locateGameID(gameID)) {
+//                Responses faliureResponse = new Responses(400);
+//                //I think this is the kind of error they want, they may want 500 or something...
+//                faliureResponse.setMyException(new DataAccessException("Error: bad request"));
+//                return faliureResponse;
+//            }
+//        } catch (DataAccessException e) {
+//            Responses faliureResponse = new Responses(400);
+//            //I think this is the kind of error they want, they may want 500 or something...
+//            faliureResponse.setMyException(new DataAccessException("Error: bad request"));
+//            return faliureResponse;
+//        }
+//        String name = new String();
+//        try{
+//            name = getName(auth, myDatabase);
+//        } catch (DataAccessException e) {
+//            Responses faliureResponse = new Responses(401);
+//            //I think this is the kind of error they want, they may want 500 or something...
+//            faliureResponse.setMyException(new DataAccessException("Error: Forbidden"));
+//            return faliureResponse;
+//        }
+//        GameData checkGame = null;
+//        try {
+//            checkGame = myDatabase.getGame(gameID);
+//        } catch (DataAccessException e) {
+//            Responses faliureResponse = new Responses(401);
+//            //I think this is the kind of error they want, they may want 500 or something...
+//            faliureResponse.setMyException(new DataAccessException("Error: Forbidden"));
+//            return faliureResponse;
+//        }
+//        ChessGame aGame = checkGame.implementation();
+//        if(aGame.isGameOver()){
+//            Responses faliureResponse = new Responses(401);
+//            //I think this is the kind of error they want, they may want 500 or something...
+//            faliureResponse.setMyException(new DataAccessException("Error: the game is already over... you cannot do anything now!"));
+//            return faliureResponse;
+//        } else {
+        Responses firstPart = firstFewChecks(auth, myDatabase, gameID);
+        if(firstPart.getMyException() != null) {
+            //already failed...
+        return firstPart;
+        } else {
+            //unpack everything...
+            GameData checkGame = firstPart.getMyGameData();
+            ChessGame aGame = checkGame.implementation();
+            UserData personOfInterest = firstPart.getMyUserData();
+            String name = personOfInterest.username();
+            //now use it for the final move checks...
             Collection<ChessMove> finalMoves = aGame.validMoves(checkMe.getStartPosition());
             if(finalMoves.isEmpty()){
                 Responses faliureResponse = new Responses(401);
