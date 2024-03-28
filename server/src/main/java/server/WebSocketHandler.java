@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
 import dataAccess.DataBaseAccesser;
@@ -59,14 +60,34 @@ public class WebSocketHandler {
         }
     }
 
-    private void leaveGame(Leave instuctions, Session session) throws DataAccessException {
+    private void leaveGame(Leave instuctions, Session session) throws DataAccessException, IOException {
         //Probably will not come up...
         //String httpLink = newHttpLinker(session) + "/game";
         if(instuctions.getAuthString() == null){
             Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 Not Authorized... so no idea who to send this message too");
             throw new DataAccessException(error.getMessage());
         } else {
-
+               String auth = instuctions.getAuthString();
+               String name = new String();
+               try {
+                   name = extraHelp.getName(auth, myDataStorageDevice);
+               } catch(DataAccessException e){
+                   Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 Not Authorized... so no idea who to send this message too");
+                   throw new DataAccessException(error.getMessage());
+               }
+               //kind of hard coded for now...
+            ChessGame.TeamColor team = extraHelp.findPosition(name, myDataStorageDevice, instuctions.getGameID());
+            Responses removedGame = extraHelp.removeName(auth, myDataStorageDevice, team, instuctions.getGameID());
+            if(removedGame.getMyException() != null){
+                //something went wrong... narrowcast it
+                Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : " + removedGame.getNumericalCode() + removedGame.getMyException());
+                //removedGame.getMyException().getMessage();
+                connections.narrowcast(name, error);
+            } else {
+                //broadcast the new update
+                Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, name + " has left the game");
+                connections.broadcast(name, finalServerMessage);
+            }
         }
 
 

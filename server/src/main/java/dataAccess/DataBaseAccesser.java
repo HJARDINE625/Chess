@@ -268,6 +268,7 @@ public class DataBaseAccesser implements DataAccesser{
     }
 
     //only call if there is a game
+    @Override
     public boolean subtractWatcher(int gameID, String watcherName) throws DataAccessException {
         String[] observers = getWatchers(gameID);
         //check boolean; and String which will only allow functions if modified below.
@@ -303,6 +304,7 @@ public class DataBaseAccesser implements DataAccesser{
 
 
     //only call if there is a game
+    @Override
     public boolean addWatcher(int gameID, String watcherName) throws DataAccessException {
         String[] observers = getWatchers(gameID);
         //check boolean;
@@ -338,6 +340,7 @@ public class DataBaseAccesser implements DataAccesser{
     }
 
     //only call if there is a game
+    @Override
     public String[] getWatchers(int gameID) throws DataAccessException {
         //GameData myNewChessGame = implementer.getGame(gameID, gameTable);
         String statementBuilder = "SELECT watchers FROM " + observerTable + " WHERE " + " gameID=?";

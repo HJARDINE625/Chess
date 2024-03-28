@@ -10,6 +10,16 @@ public interface DataAccesser {
     public UserData createUser(String username, String password, String email) throws DataAccessException;
     public UserData getUser(String username, String password) throws DataAccessException;
     public GameData createGame(String gameName) throws DataAccessException;
+
+    //only call if there is a game
+    boolean subtractWatcher(int gameID, String watcherName) throws DataAccessException;
+
+    //only call if there is a game
+    boolean addWatcher(int gameID, String watcherName) throws DataAccessException;
+
+    //only call if there is a game
+    String[] getWatchers(int gameID) throws DataAccessException;
+
     public GameData getGame(int gameID) throws DataAccessException;
     public GameData[] listGames() throws DataAccessException;
     public GameData updateGame(int gameID, String clientColor, String auth) throws DataAccessException;

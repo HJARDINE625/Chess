@@ -4,6 +4,7 @@ import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import model.WatcherList;
 
 import java.util.HashSet;
 import java.util.UUID;
@@ -15,6 +16,8 @@ public class DataAccess implements DataAccesser{
     private HashSet<AuthData> authentications = new HashSet<AuthData>();
 
     private HashSet<GameData> games = new HashSet<GameData>();
+
+    private HashSet<WatcherList> watchers = new HashSet<WatcherList>();
     @Override
     public boolean clear() {
         //reset the three databases by defining them as new databases with nothing inside.
@@ -82,6 +85,22 @@ public class DataAccess implements DataAccesser{
         GameData newGame = new GameData(GameID, null, null, gameName, gameOfChess);
         games.add(newGame);
         return newGame;
+    }
+
+    //these are actually harder to implement here... could try to force sucessses...
+    @Override
+    public boolean subtractWatcher(int gameID, String watcherName) throws DataAccessException {
+        return false;
+    }
+
+    @Override
+    public boolean addWatcher(int gameID, String watcherName) throws DataAccessException {
+        return false;
+    }
+
+    @Override
+    public String[] getWatchers(int gameID) throws DataAccessException {
+        return null;
     }
 
     //call after proving game exists...
