@@ -27,6 +27,8 @@ public class ChessGame {
 
     private int largestTeam = 1;
 
+    private boolean gameIsOver = false;
+
 
     public ChessGame() {
         //Assume that if no parameters were passed then there are two teams with one member each
@@ -108,6 +110,20 @@ public class ChessGame {
         currentTeamLocation = nextTeamIndex();
     }
 
+    public boolean isGameOver() {
+        //for now just these two players, I think I could easily iterate through the turn order to check everyone if this works.
+        if(isInCheckmate(TeamColor.WHITE)){
+            gameOver();
+        }
+        if(isInCheckmate(TeamColor.BLACK)){
+            gameOver();
+        }
+        return gameIsOver;
+    }
+
+    public void gameOver() {
+        this.gameIsOver = true;
+    }
 
 
     /**

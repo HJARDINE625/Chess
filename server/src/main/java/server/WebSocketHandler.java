@@ -60,6 +60,24 @@ public class WebSocketHandler {
         }
     }
 
+    private void causeMove(Move instructions, Session session) throws DataAccessException {
+        if(instructions.getAuthString() == null){
+            Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 Not Authorized... so no idea who to send this message too");
+            throw new DataAccessException(error.getMessage());
+        }else {
+            String auth = instructions.getAuthString();
+            String name = new String();
+            try {
+                name = extraHelp.getName(auth, myDataStorageDevice);
+            } catch (DataAccessException e) {
+                Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 Not Authorized... so no idea who to send this message too");
+                throw new DataAccessException(error.getMessage());
+            }
+            //if we made it this far... then we can try to check the game itself.
+
+        }
+    }
+
     private void leaveGame(Leave instuctions, Session session) throws DataAccessException, IOException {
         //Probably will not come up...
         //String httpLink = newHttpLinker(session) + "/game";
