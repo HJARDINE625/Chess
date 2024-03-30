@@ -38,9 +38,10 @@ public class TableManager {
         //added to make there be an easy way to lookup watchers
         var createObserverTable = """
             CREATE TABLE  IF NOT EXISTS observer (
-                gameID INT,
+                thisID INT NOT NULL AUTO_INCREMENT,
+                gameID INT NOT NULL,
                 watchers longtext NOT NULL,
-                FOREIGN KEY (gameID)
+                PRIMARY KEY (thisID)
             )""";
 
 

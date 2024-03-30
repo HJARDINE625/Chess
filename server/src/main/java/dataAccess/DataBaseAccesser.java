@@ -321,17 +321,27 @@ public class DataBaseAccesser implements DataAccesser{
         }
         //now check already exists
         if(!alreadyExists){
-            String[] newObservers = new String[(observers.length) + 1];
+            String[] newObservers;
             int i = 0;
-            for (String observer: observers) {
-                newObservers[i] = observer;
-                i++;
+            if(observers != null) {
+                newObservers = new String[(observers.length) + 1];
+                for (String observer : observers) {
+                    newObservers[i] = observer;
+                    i++;
+                }
+            } else {
+                newObservers = new String[1];
             }
             newObservers[i] = watcherName;
             var updateString = new Gson().toJson(new WatcherList(newObservers));
             //this statement is probabaly invalid, but it at least stands as pesdocode here...
-            String statement = "INSERT INTO " + observerTable + " (observers) VALUES (?)" + " WHERE " + " gameID=?";
+            //String statement = "INSERT INTO " + observerTable + " (observers) VALUES (?)" + " WHERE " + " gameID=?";
+            String statement =  "INSERT INTO " + observerTable + " (watchers, gameID) VALUES (?, ?)";
+            //inefficient, but I think it works.
+            implementer.delete(gameID,"gameID", observerTable);
             implementer.executeUpdate(statement, DatabaseManager.getConnection(), updateString, gameID);
+            //implementer.delete(gameID,"gameID", observerTable);
+            //implementer.executeUpdate(statement, DatabaseManager.getConnection(), updateString, gameID);
             return true;
         } else {
             //this return might not matter that much to overall logic however, as it just means that the person was added already...
@@ -634,6 +644,7 @@ public class DataBaseAccesser implements DataAccesser{
                 }else {
                     //I am not sure that we need to do anything to add a new observer....
                     //can call the observer add code now...
+                    addWatcher(gameID, username);
                     return chessGame;
                 //}
            // }
