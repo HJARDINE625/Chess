@@ -190,7 +190,9 @@ public class WebSocketServices {
             UserData personOfInterest = firstPart.getMyUserData();
             String name = personOfInterest.username();
             //now use it for the final move checks...
+            ChessGame.TeamColor theTeam = aGame.getTeamTurn();
             Collection<ChessMove> finalMoves = aGame.validMoves(checkMe.getStartPosition());
+            aGame.setTeamTurn(theTeam);
             if(finalMoves.isEmpty()){
                 Responses faliureResponse = new Responses(401);
                 //I think this is the kind of error they want, they may want 500 or something...
@@ -300,7 +302,7 @@ public class WebSocketServices {
 //                //find the name in the observers list...
 //            }
         if(amIInPosition(name, myDatabase, team, gameID)){
-            if(name != null) {
+            if(team != null) {
                 GameData newGame = myDatabase.updateGame(null, team.toString(), gameID);
                 Responses SuccessResponse = new Responses(200);
                 SuccessResponse.setMyGameData(newGame);
@@ -339,7 +341,7 @@ public class WebSocketServices {
 //        }
         if (amIInPosition(name, myDatabase, ChessGame.TeamColor.WHITE, gameID)) {
             return ChessGame.TeamColor.WHITE;
-        } else if (amIInPosition(name, myDatabase, ChessGame.TeamColor.WHITE, gameID)){
+        } else if (amIInPosition(name, myDatabase, ChessGame.TeamColor.BLACK, gameID)){
             return ChessGame.TeamColor.BLACK;
         } else {
             //This may actually not be where they are either... but we will fiqure that out if we call another function or are called by one...

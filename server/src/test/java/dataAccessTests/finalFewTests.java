@@ -68,7 +68,7 @@ public class finalFewTests {
             //we do not need to do anything, here for now...
         }
 
-        @Order(3)
+        @Order(2)
         @Test
         public void insertPass() throws DataAccessException {
                 // Start by inserting a user into the grid database.
@@ -79,6 +79,23 @@ public class finalFewTests {
                 // something back from our database.
                 assertNotNull(authDataHolder.getMyAuthData());
                 assertNull(authDataHolder.getMyException());
+                //now create a game
+
+
+                AuthData myLogin = authDataHolder.getMyAuthData();
+
+                myGameService.createGame(myLogin.authToken(), ChessGameName, myDataStorage);
+                // Let's make sure that there is a game now
+                Responses gameList = myGameService.listGames(myLogin.authToken(), myDataStorage);
+                GameData myGameTest = gameList.getAllGames()[0];
+                assertNotNull(myGameTest);
+                //now let us make sure it is the right one
+                assertEquals(myGameTest.gameName(), ChessGameName);
+                ChessGameID = myGameTest.gameID();
+
+                //now use the last few functions for the websocet
+//                stuffFromWeb.
+
         }
         @Order(1)
         @Test
@@ -104,8 +121,9 @@ public class finalFewTests {
                 assertNotNull(myGameTest);
                 //now let us make sure it is the right one
                 assertEquals(myGameTest.gameName(), ChessGameName);
+                ChessGameID = myGameTest.gameID();
 
-                Responses game = myGameService.joinGame(loginToken.authToken(),ChessGameID, null, myDataStorage);
+                Responses game = myGameService.joinGame(loginToken.authToken(), myGameTest.gameID(), null, myDataStorage);
                 assertNotNull(game.getMyGameData());
                 assertEquals(200, game.getNumericalCode());
                 //now let us make sure it is the right one
@@ -117,18 +135,28 @@ public class finalFewTests {
                 assertEquals(stuffFromWeb.getName(compareTest.authToken(), myDataStorage), compareTest.username());
                 stuffFromWeb.removeName(compareTest.authToken(), myDataStorage, stuffFromWeb.findPosition(compareTest.username(), myDataStorage, myNewGameTest.gameID()), myNewGameTest.gameID());
                 //did we remove the name?
-                assertNotEquals(stuffFromWeb.getName(compareTest.authToken(), myDataStorage), compareTest.username());
+                assertNull(stuffFromWeb.findPosition(compareTest.username(), myDataStorage, myNewGameTest.gameID()));
+               // myDataStorage.getWatchers(myNewGameTest.gameID());
+                //GameData theGameTest = game.getMyGameData();
+                //add a line here to see it.
+                stuffFromWeb.findPosition(compareTest.username(), myDataStorage, ChessGameID);
+                String[] watchers= myDataStorage.getWatchers(myNewGameTest.gameID());
+                for (String watcher: watchers) {
+                        assertNotEquals(watcher, compareTest.username());
+                }
+                //assertNotEquals(stuffFromWeb.getName(myGameTest.authToken(), myDataStorage), compareTest.username());
                 myGameService.joinGame(loginToken.authToken(),ChessGameID, "BLACK", myDataStorage);
                 assertEquals(stuffFromWeb.getName(compareTest.authToken(), myDataStorage), compareTest.username());
                 //find black
-                assertEquals(stuffFromWeb.findPosition(compareTest.username(), myDataStorage, myNewGameTest.gameID()), "BLACK");
+                assertEquals(stuffFromWeb.findPosition(compareTest.username(), myDataStorage, myNewGameTest.gameID()).toString(), "BLACK");
                 //leave
                 stuffFromWeb.removeName(compareTest.authToken(), myDataStorage, stuffFromWeb.findPosition(compareTest.username(), myDataStorage, myNewGameTest.gameID()), myNewGameTest.gameID());
-                myGameService.joinGame(loginToken.authToken(),ChessGameID, "BLACK", myDataStorage);
+                myGameService.joinGame(loginToken.authToken(),ChessGameID, "WHITE", myDataStorage);
                 //find white.
-                assertEquals(stuffFromWeb.findPosition(compareTest.username(), myDataStorage, myNewGameTest.gameID()), "WHITE");
+                assertEquals(stuffFromWeb.findPosition(compareTest.username(), myDataStorage, myNewGameTest.gameID()).toString(), "WHITE");
                 //other tests
-                stuffFromWeb.moveMaker(compareTest.authToken(), myDataStorage, new ChessMove(new ChessPosition(2,5), new ChessPosition(3,5), null), myNewGameTest.gameID());
+                //we now need to start the games by setting up the baseboards... maybe we should do this when we pass new games into the database.
+                var cheese = stuffFromWeb.moveMaker(compareTest.authToken(), myDataStorage, new ChessMove(new ChessPosition(2,5), new ChessPosition(3,5), null), myNewGameTest.gameID());
                 //make sure that move was made!
                 Responses games = myGameService.joinGame(loginToken.authToken(),ChessGameID, null, myDataStorage);
                 GameData myNewestGameTest = games.getMyGameData();
@@ -146,13 +174,13 @@ public class finalFewTests {
                 assertEquals(others.implementation().getTeamTurn(), other.implementation().getTeamTurn());
                 stuffFromWeb.moveMaker(compareTest.authToken(), myDataStorage, new ChessMove(new ChessPosition(7,5), new ChessPosition(5,5), null), myNewGameTest.gameID());
                 Responses good = myGameService.joinGame(loginToken.authToken(),ChessGameID, null, myDataStorage);
-                GameData move = last.getMyGameData();
+                GameData move = good.getMyGameData();
                 assertNotEquals(others.implementation().getTeamTurn(), move.implementation().getTeamTurn());
                 stuffFromWeb.giveUp(compareTest.authToken(), myDataStorage, move.gameID());
                 myGameService.joinGame(loginToken.authToken(),ChessGameID, "WHITE", myDataStorage);
                 stuffFromWeb.moveMaker(loginToken.authToken(), myDataStorage, new ChessMove(new ChessPosition(2,2), new ChessPosition(4,2), null), myNewGameTest.gameID());
                 Responses goods = myGameService.joinGame(loginToken.authToken(),ChessGameID, null, myDataStorage);
-                GameData moves = last.getMyGameData();
+                GameData moves = goods.getMyGameData();
                 assertEquals(move.implementation().getTeamTurn(), moves.implementation().getTeamTurn());
                 //that means we successfully left.
 

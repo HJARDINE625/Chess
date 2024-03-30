@@ -246,6 +246,8 @@ public class DataBaseAccesser implements DataAccesser{
             }
             //The game will be very incomplete so far as no-one has joined as white or black... but it will need a new ChessGame
             ChessGame gameOfChess = new ChessGame();
+            gameOfChess.getBoard().resetBoard();
+            gameOfChess.setTeamTurn(ChessGame.TeamColor.WHITE);
             GameData newGame = new GameData(GameID, null, null, gameName, gameOfChess);
             var chessGame = new Gson().toJson(gameOfChess);
 //            try {
@@ -290,13 +292,16 @@ public class DataBaseAccesser implements DataAccesser{
         }
         //now check already exists
         //these are easist to see as simple code together, they are basically the same overall check.. just not specfic ones.
-        if((alreadyExists) && (newObservers.length > 0)){
+        if((alreadyExists) && (newObservers.length >= 0)){
             var updateString = new Gson().toJson(new WatcherList(newObservers));
             //this statement is probabaly invalid, but it at least stands as pesdocode here...
-            String statement = "INSERT INTO " + observerTable + " (observers) VALUES (?)" + " WHERE " + " gameID=?";
-            implementer.executeUpdate(statement, DatabaseManager.getConnection(), updateString, gameID);
+            String statement = "UPDATE " + observerTable + " SET watchers=? WHERE gameID=?";
+            //executeUpdate(DatabaseManager.getConnection(), statement, newGame.whiteUsername(), ID);
+            //String statement = "INSERT INTO " + observerTable + " (observers) VALUES (?)" + " WHERE " + " gameID=?";
+            implementer.executeUpdate(DatabaseManager.getConnection(), statement, updateString, gameID);
             return true;
         } else {
+            //if()
             //this return might not matter that much to overall logic however, as it just means that the person was added already...
             return false;
         }

@@ -122,10 +122,10 @@ public class WebSocketHandler {
                 //check for stalemate and check and checkmate
                 //hardcoded for now... an impossible name
                 String othername = ")--";
-                if(gameMove.getMyGameData().implementation().getTeamTurn().equals("WHITE")) {
+                if(gameMove.getMyGameData().implementation().getTeamTurn().equals(ChessGame.TeamColor.WHITE)) {
                     othername = gameMove.getMyGameData().whiteUsername();
                 }
-                if(gameMove.getMyGameData().implementation().getTeamTurn().equals("BLACK")) {
+                if(gameMove.getMyGameData().implementation().getTeamTurn().equals(ChessGame.TeamColor.BLACK)) {
                     othername = gameMove.getMyGameData().blackUsername();
                 }
                 if(othername.equals(")--")){

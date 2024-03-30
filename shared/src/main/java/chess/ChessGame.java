@@ -113,12 +113,12 @@ public class ChessGame {
     public boolean isGameOver() {
         //for now just these two players, I think I could easily iterate through the turn order to check everyone if this works.
         //the way I implemented isInStalemate it also checks for checkmate... so we are good.
-        if(isInStalemate(TeamColor.WHITE)){
+        if(isInStalemate(currentTeam)){
             gameOver();
         }
-        if(isInStalemate(TeamColor.BLACK)){
-            gameOver();
-        }
+//        if(isInStalemate(TeamColor.BLACK)){
+//            gameOver();
+//        }
         return gameIsOver;
     }
 
