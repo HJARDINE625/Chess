@@ -11,6 +11,9 @@ import model.GameData;
 import model.Responses;
 import model.UserData;
 import org.junit.jupiter.api.*;
+import passoffTests.obfuscatedTestClasses.TestServerFacade;
+import passoffTests.testClasses.TestModels;
+import server.Server;
 import service.ContolServices;
 import service.GameServices;
 import service.RegistrationServices;
@@ -49,6 +52,28 @@ public class finalFewTests {
         private int ChessGameID;
 
         private String ChessGameName = "New";
+
+        @BeforeAll
+        public static void init() {
+                Server server = new Server();
+                var port = server.run(0);
+                System.out.println("Started test HTTP server on " + port);
+
+                var serverFacade = new TestServerFacade("localhost", Integer.toString(port));
+
+                var existingUser = new TestModels.TestUser();
+                existingUser.username = "ExistingUser";
+                existingUser.password = "existingUserPassword";
+                existingUser.email = "eu@mail.com";
+
+                var newUser = new TestModels.TestUser();
+                newUser.username = "NewUser";
+                newUser.password = "newUserPassword";
+                newUser.email = "nu@mail.com";
+
+                 var createRequest = new TestModels.TestCreateRequest();
+                createRequest.gameName = "testGame";
+        }
 
         @BeforeEach
         public void setUp() throws DataAccessException {

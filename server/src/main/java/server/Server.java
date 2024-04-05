@@ -48,6 +48,10 @@ public class Server {
 
         // Register your endpoints and handle exceptions here.
 
+        //here is the new connect endpoint.
+        //supposedly this is the best way to implement it... not sure what exactaly to do with it...
+        Spark.webSocket("/connect", WebSocketHandler.class);
+
         Spark.awaitInitialization();
         return Spark.port();
     }
@@ -55,6 +59,10 @@ public class Server {
     public void stop() {
         Spark.stop();
     }
+
+    //private Object handleWebSocket(Request req, Response res){
+
+    //}
 
     private Object addUser(Request req, Response res) {
         //Get a serializer...

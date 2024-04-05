@@ -351,8 +351,9 @@ public class WebSocketServices {
     }
 
 
+    //need to make public here... to use elsewhere...
     //can also check if game exists here... nonexistant game is also forbidden... for now... do not call until checking that name != null (by finding it in other function).
-    private boolean amIInPosition(String name, DataAccesser myDatabase, ChessGame.TeamColor team, int gameID){
+    public boolean amIInPosition(String name, DataAccesser myDatabase, ChessGame.TeamColor team, int gameID){
         try{
             if(myDatabase.locateGameID(gameID)) {
                 //check for players

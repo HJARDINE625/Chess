@@ -80,10 +80,10 @@ public class WebSocketHandler {
             } else{
                 //looks like we got what we wanted so we should have two things...
                 Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! " + name + " surrendered.");
-                connections.broadcast(name, finalServerMessage);
+                connections.broadcast(name, finalServerMessage, instructions.getGameID());
                 finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! You gave up.");
                 connections.narrowcast(name, finalServerMessage);
-                connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()));
+                connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()), instructions.getGameID());
                 connections.narrowcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()));
             }
         }
@@ -113,8 +113,8 @@ public class WebSocketHandler {
             } else{
                 //looks like we got what we wanted so we should have two things...
                 Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, name + " made move " + instructions.getMyMove().toString() + ".");
-                connections.broadcast(name, finalServerMessage);
-                connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, gameMove.getMyGameData().implementation()));
+                connections.broadcast(name, finalServerMessage, instructions.getGameID());
+                connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, gameMove.getMyGameData().implementation()), instructions.getGameID());
                 connections.narrowcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, gameMove.getMyGameData().implementation()));
                 //addeed here to allow for more messages if need arises here
                 boolean check = false;
@@ -141,19 +141,19 @@ public class WebSocketHandler {
                     //checkmate
                     if(check){
                         finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! " + othername + " is in checkmate!!");
-                        connections.broadcast(name, finalServerMessage);
+                        connections.broadcast(name, finalServerMessage, instructions.getGameID());
                         connections.narrowcast(name, finalServerMessage);
                     }
                     //stalemate
                     else{
                         finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! " + othername + " is in stalemate!?");
-                        connections.broadcast(name, finalServerMessage);
+                        connections.broadcast(name, finalServerMessage, instructions.getGameID());
                         connections.narrowcast(name, finalServerMessage);
                     }
                     //check
                 } else if(check){
                     finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, othername + " is in check!");
-                    connections.broadcast(name, finalServerMessage);
+                    connections.broadcast(name, finalServerMessage, instructions.getGameID());
                     connections.narrowcast(name, finalServerMessage);
                 }
 //none!
@@ -187,7 +187,7 @@ public class WebSocketHandler {
             } else {
                 //broadcast the new update
                 Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, name + " has left the game");
-                connections.broadcast(name, finalServerMessage);
+                connections.broadcast(name, finalServerMessage, instuctions.getGameID());
             }
         }
 
@@ -219,11 +219,11 @@ public class WebSocketHandler {
             if(color != null) {
                 String broadcastName = extraHelp.getName(auth, myDataStorageDevice);
                 Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, broadcastName + " has joined the game as " + color);
-                connections.broadcast(broadcastName, finalServerMessage);
+                connections.broadcast(broadcastName, finalServerMessage, instuctions.getGameID());
             } else {
                 String broadcastName = extraHelp.getName(auth, myDataStorageDevice);
                 Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, broadcastName + " has joined the game as an observer");
-                connections.broadcast(broadcastName, finalServerMessage);
+                connections.broadcast(broadcastName, finalServerMessage, instuctions.getGameID());
             }
         }
     }
@@ -234,6 +234,8 @@ public class WebSocketHandler {
         return "http://" + host + ":" + Integer.toString(port);
     }
 
+    //login from server... could try from client side.
+    //test 
     public void join(String urlString, String authentication, String color, String gameID) throws DataAccessException, IOException {
         URL url = new URL(urlString);
         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
