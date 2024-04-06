@@ -81,6 +81,8 @@ public class WebSocketHandler {
             }
         }
     }
+    //add a move decompiler and some kind of space highlighter...
+    //might need to add phantom red pieces... just for drawing...
 
     private void helpWords(){
         String finalPrint = "[0] : Help\n[1] : Redraw Chessboard\n[2] : See valid moves from location- Will need 1 String - (1):letter number: like so \"a4\"\n[3] : Make Move- Will need 1 String - (1):letter number, letter number: like so \"a4,a3\"\n[4] : Leave Game\n";
