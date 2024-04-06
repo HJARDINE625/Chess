@@ -419,7 +419,17 @@ public class ServerConnectorTester {
 //        }
 //    }
 
+    private void joinWebSocket(){
+        //call after adding to the game.
+        //use a WebSocketFasade handler class to make moves, exct by calling the WebSocket Facade class after login.
+        boolean connected = false;
+        // set connected = if the handler could connect
+        while(connected){
+            //call the handler over and over again.
 
+        }
+        //we must have disconected or never have been connected
+    }
 
     private String help(){
         String returnSupport = new String();
