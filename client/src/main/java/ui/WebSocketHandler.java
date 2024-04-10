@@ -2,6 +2,7 @@ package ui;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 
 import java.io.PrintStream;
@@ -134,58 +135,92 @@ public class WebSocketHandler {
             out.print("INVALID COMMAND... valid commands follow");
             helpWords();
         } else {
-            //must be a valid use of this based upon the previous check...
-            if(nextCommand == 5){
-                myWebSocket.leaveGame(myName, gameID, true);
-                out.print(SET_TEXT_COLOR_WHITE);
-                out.print(SET_TEXT_BOLD);
-                out.print(SET_BG_COLOR_GREEN);
-                out.print("Confirm resign by pressing 0\n");
-                if(userInterface.getNum() == 0){
-                    myWebSocket.leaveGame(myName, gameID, false);
-                } else {
-                    helpWords();
-                }
-            }else if(nextCommand == 4){
-                myWebSocket.leaveGame(myName, gameID, false);
-            } else if(nextCommand == 3){
-                out.print(SET_TEXT_COLOR_WHITE);
-                out.print(SET_TEXT_BOLD);
-                out.print(SET_BG_COLOR_GREEN);
-                out.print("Please enter the rows and columns of the move\n");
-                out.print("Start with the starting location of the moving peice\n");
-                ChessPosition peice = getChessPosition(userInterface);
-                out.print("Now give that pieces ending location\n");
-                ChessPosition newLocation = getChessPosition(userInterface);
-                ChessMove move = new ChessMove()
-                myWebSocket.gameMove(myName, gameID, move);
-            } else if(nextCommand == 2){
-                out.print(SET_TEXT_COLOR_WHITE);
-                out.print(SET_TEXT_BOLD);
-                out.print(SET_BG_COLOR_GREEN);
-                out.print("Please enter the rows and columns of the piece\n");
-                ChessPosition peice = getChessPosition(userInterface);
-                if(thisGame.getBoard().getPiece(peice) == null){
-                    out.print(SET_TEXT_COLOR_RED);
+            try {
+                //must be a valid use of this based upon the previous check...
+                if (nextCommand == 5) {
+                    myWebSocket.leaveGame(myName, gameID, true);
+                    out.print(SET_TEXT_COLOR_WHITE);
                     out.print(SET_TEXT_BOLD);
-                    out.print(SET_BG_COLOR_BLACK);
-                    out.print("THERE IS NO PIECE THERE!!!\n");
-                } else {
-                    //I need to have a chessgame here to check this with
-                    Collection<ChessMove> myMoves = thisGame.validMoves(peice);
+                    out.print(SET_BG_COLOR_GREEN);
+                    out.print("Confirm resign by pressing 0\n");
+                    if (userInterface.getNum() == 0) {
+                        myWebSocket.leaveGame(myName, gameID, false);
+                    } else {
+                        helpWords();
+                    }
+                } else if (nextCommand == 4) {
+                    myWebSocket.leaveGame(myName, gameID, false);
+                } else if (nextCommand == 3) {
+                    out.print(SET_TEXT_COLOR_WHITE);
+                    out.print(SET_TEXT_BOLD);
+                    out.print(SET_BG_COLOR_GREEN);
+                    out.print("Please enter the rows and columns of the move\n");
+                    out.print("Start with the starting location of the moving peice\n");
+                    ChessPosition peice = getChessPosition(userInterface);
+                    out.print("Now give that pieces ending location\n");
+                    ChessPosition newLocation = getChessPosition(userInterface);
+                    out.print("Now please either type out the name of the piece you want to promote to or type null for no promotion");
+                    String newPiece = userInterface.getString();
+                    if(!((newPiece.contains("NULL")) || (newPiece.contains("null")) || (newPiece.contains("Null")))) {
+                        String filteredPiece = new String();
+                        for(int i = 0; i<newPiece.length(); i++){
+                            char checkChar = newPiece.charAt(i);
+                            String CheckString = String.valueOf(checkChar);
+                            if(CheckString.matches("[a-zA-Z]")){
+                                CheckString = CheckString.toUpperCase();
+                                filteredPiece = filteredPiece + CheckString;
+                            }
+                        }
+                        if(filteredPiece.equals(new String())){
+                            out.print(SET_TEXT_COLOR_RED);
+                            out.print(SET_TEXT_BOLD);
+                            out.print(SET_BG_COLOR_BLACK);
+                            out.print("Inferring no promotion...\n");
+                            ChessMove move = new ChessMove(peice, newLocation, null);
+                            myWebSocket.gameMove(myName, gameID, move);
+                        } else {
+                            ChessPiece.PieceType kindOfPiece = ChessPiece.PieceType.valueOf(filteredPiece);
+                            //ChessPiece premotion = new ChessPiece(thisGame.getBoard().getPiece(peice).getTeamColor(), kindOfPiece);
+                            ChessMove move = new ChessMove(peice, newLocation, kindOfPiece);
+                            myWebSocket.gameMove(myName, gameID, move);
+                        }
+                    } else {
+                        ChessMove move = new ChessMove(peice, newLocation, null);
+                        myWebSocket.gameMove(myName, gameID, move);
+                    }
+                } else if (nextCommand == 2) {
+                    out.print(SET_TEXT_COLOR_WHITE);
+                    out.print(SET_TEXT_BOLD);
+                    out.print(SET_BG_COLOR_GREEN);
+                    out.print("Please enter the rows and columns of the piece\n");
+                    ChessPosition peice = getChessPosition(userInterface);
+                    if (thisGame.getBoard().getPiece(peice) == null) {
+                        out.print(SET_TEXT_COLOR_RED);
+                        out.print(SET_TEXT_BOLD);
+                        out.print(SET_BG_COLOR_BLACK);
+                        out.print("THERE IS NO PIECE THERE!!!\n");
+                    } else {
+                        //I need to have a chessgame here to check this with
+                        Collection<ChessMove> myMoves = thisGame.validMoves(peice);
+                        //draw chessboard
+                        ChessDrawer myPen = new ChessDrawer();
+                        myPen.draw(thisGame, amIBlack(), !amIBlack(), peice);
+                        //make sure that there is always a chessboard when I get here.
+                    }
+                } else if (nextCommand == 1) {
                     //draw chessboard
                     ChessDrawer myPen = new ChessDrawer();
-                    myPen.draw(thisGame, amIBlack(), !amIBlack(), peice);
-                    //make sure that there is always a chessboard when I get here.
+                    //simple chessboard draw...
+                    myPen.draw(thisGame, amIBlack(), !amIBlack());
+                } else {
+                    //next command == 0.
+                    helpWords();
                 }
-            } else if(nextCommand == 1){
-                //draw chessboard
-                ChessDrawer myPen = new ChessDrawer();
-                //simple chessboard draw...
-                myPen.draw(thisGame, amIBlack(), !amIBlack());
-            } else {
-                //next command == 0.
-                helpWords();
+            } catch(ReportingException r){
+                out.print(SET_TEXT_COLOR_RED);
+                out.print(SET_TEXT_BOLD);
+                out.print(SET_BG_COLOR_BLACK);
+                out.print(r.getMessage());
             }
         }
     }
@@ -193,7 +228,7 @@ public class WebSocketHandler {
     //might need to add phantom red pieces... just for drawing...
 
     private void helpWords(){
-        String finalPrint = "[0] : Help\n[1] : Redraw Chessboard\n[2] : See valid moves from location- Will need 1 String and 1 int - (1):letter (2):number\n[3] : Make Move- Will need 2 String and 2 ints - (1):letter (2):number (1):letter (2):number\n[4] : Leave Game\n";
+        String finalPrint = "[0] : Help\n[1] : Redraw Chessboard\n[2] : See valid moves from location- Will need 1 String and 1 int - (1):letter (2):number\n[3] : Make Move- Will need 3 String and 2 ints - (1):letter (2):number (1):letter (2):number (3):promotion piece name or null\n[4] : Leave Game\n";
         if(player != null){
             finalPrint = finalPrint + "[5] : Resign\n";
         }
