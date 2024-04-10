@@ -9,6 +9,7 @@ import model.AuthData;
 import model.GameData;
 import model.NewGame;
 import model.UserData;
+import webSocketMessages.serverMessages.ServerMessage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,6 +28,8 @@ public class ServerConnectorTester {
     private InputReader getUserInput = new ConsoleInput();
 
     private ChessDrawer pen = new ChessDrawer();
+
+    private boolean tryConnecting = false;
 
 
     //need some kind of init and stop functions
@@ -68,6 +71,8 @@ public class ServerConnectorTester {
 
     private AuthData[] authentications = new AuthData[1];
 
+    private WebSocketHandler myHandle;
+
     //I need this to test the code
     public AuthData GetCurrentAuthentication(){
         return authentications[0];
@@ -103,6 +108,20 @@ public class ServerConnectorTester {
     }
 
     //helper functions for incomplete passins
+    public void completeAction(){
+        if(tryConnecting){
+            //this way we will automatically know if we logged out of the game... so we should only call this while logged into a game.
+            tryConnecting = myHandle.getNextCommand();
+        } else {
+            String message = "Error : Missing Key Game Information! Try selecting game-joining Option 4 or 5 to fix issue!";
+            out.print(SET_TEXT_COLOR_MAGENTA);
+            out.print(SET_TEXT_BOLD);
+            out.print(SET_BG_COLOR_DARK_GREEN);
+            out.print(message);
+            out.print(SET_BG_COLOR_BLACK);
+            out.print(SET_TEXT_COLOR_WHITE);
+        }
+    }
     public void completeAction(int selector) throws IOException {
         completeAction(selector, 0);
     }
@@ -265,10 +284,15 @@ public class ServerConnectorTester {
                                 ChessGame boardDrawer = new ChessGame();
                                 boardDrawer.setBoard(newChess);
                                 pen.draw(boardDrawer, true, true);
+                                tryConnecting = true;
                                 //draw(boardDrawer);
                                 //message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
                             } catch (ReportingException r) {
+                                tryConnecting = false;
                                 message = r.getMessage();
+                            }
+                            if(tryConnecting){
+                                joinWebSocket(games[gameNumber].gameID(), ChessGame.TeamColor.valueOf(playerColor));
                             }
                         }else {
                             message = "Error: not enough information to process request!";
@@ -299,10 +323,15 @@ public class ServerConnectorTester {
                         ChessGame boardDrawer = new ChessGame();
                         boardDrawer.setBoard(newChess);
                         pen.draw(boardDrawer, true, true);
+                        tryConnecting = true;
                         //draw(boardDrawer);
                         //message = message + "Cashed\nusername : " + authentications[0].username() + "authentication token : " + authentications[0].authToken() + "\n";
                     } catch(ReportingException r){
+                        tryConnecting = false;
                         message = r.getMessage();
+                    }
+                    if(tryConnecting){
+                        joinWebSocket(games[gameNumber].gameID(), null);
                     }
                 }
             } else {
@@ -419,14 +448,20 @@ public class ServerConnectorTester {
 //        }
 //    }
 
-    private void joinWebSocket(){
+    private void joinWebSocket(int gameID, ChessGame.TeamColor myColor){
         //call after adding to the game.
         //use a WebSocketFasade handler class to make moves, exct by calling the WebSocket Facade class after login.
-        boolean connected = false;
-        // set connected = if the handler could connect
-        while(connected){
-            //call the handler over and over again.
-
+        try{
+            NotificationHandler myHandler = new Notifier();
+            myHandle = new WebSocketHandler(urlString, myHandler, authentications[0].username(), gameID, myColor);
+        } catch (ReportingException e) {
+            out.print(SET_TEXT_COLOR_RED);
+            out.print(SET_TEXT_BOLD);
+            out.print(SET_BG_COLOR_BLACK);
+            out.print(e.getMessage());
+            tryConnecting = false;
+            out.print(SET_BG_COLOR_BLACK);
+            out.print(SET_TEXT_COLOR_WHITE);
         }
         //we must have disconected or never have been connected
     }
@@ -442,7 +477,8 @@ public class ServerConnectorTester {
     }
 
 
-
-
+    public boolean isConnected() {
+        return tryConnecting;
+    }
 }
 

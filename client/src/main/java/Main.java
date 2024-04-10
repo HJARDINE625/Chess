@@ -1,4 +1,6 @@
 import chess.*;
+import ui.ConsoleInput;
+import ui.InputReader;
 import ui.LoopGenerator;
 import ui.ServerConnectorTester;
 
@@ -10,7 +12,23 @@ public class Main {
         System.out.println("♕ 240 Chess Client: " + piece);
         int port = 8080;
         String host = "localhost";
-        LoopGenerator facade = new LoopGenerator(host, port, false);
-        facade.executeCommands();
+        System.out.println("Please enter a number greater than zero to decide how many Clients to run, they will all execute one after the other in a loop");
+        InputReader firstInput = new ConsoleInput();
+        int numberOfServers = 0;
+        do {
+            numberOfServers = firstInput.getNum();
+        } while (numberOfServers <= 0);
+        //now we can call repeately here instead to allow for multiple clients at once.
+        LoopGenerator[] facade = new LoopGenerator[numberOfServers];
+        for(int i = 0; i < numberOfServers; i++) {
+            facade[i] = new LoopGenerator(host, port, false);
+        }
+        System.out.println("Press 0 for help!");
+        while(true) {
+            for(int i = 0; i < numberOfServers; i++) {
+                System.out.println("In client#" + i);
+                facade[i].executeCommands();
+            }
+        }
     }
 }

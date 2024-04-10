@@ -30,6 +30,13 @@ public class WebSocketHandler {
         this.myName = myName;
         player = myColor;
         this.gameID = gameID;
+        //thisGame = game;
+        myWebSocket.joinGame(myName, gameID, player);
+        if(myWebSocket.getThisGame() != null){
+            thisGame = myWebSocket.getThisGame();
+        } else {
+            throw new RuntimeException("ERROR: This Game Does Not Exist!!!");
+        }
     }
 
     //may have to add more of these if I add more colors later.
@@ -45,7 +52,7 @@ public class WebSocketHandler {
         }
     }
 
-    public void getNextCommand(){
+    public boolean getNextCommand(){
         ConsoleInput userInterface = new ConsoleInput();
         //ask for more commands
         //helpWords();
@@ -53,7 +60,7 @@ public class WebSocketHandler {
         out.print(SET_TEXT_COLOR_WHITE);
         out.print("Enter the number of an in game command or press 0 for help!\n");
         int nextCommand = userInterface.getNum();
-        caculateNextCommand(nextCommand, userInterface);
+        return caculateNextCommand(nextCommand, userInterface);
 
     }
 
@@ -126,7 +133,8 @@ public class WebSocketHandler {
         }
     }
 
-    private void caculateNextCommand(int nextCommand, ConsoleInput userInterface){
+    private boolean caculateNextCommand(int nextCommand, ConsoleInput userInterface){
+        boolean stillLoggedIn = true;
         if(((nextCommand > 5) || ((player != null) && (nextCommand == 5))) || (nextCommand < 0)){
             //invalid command... no need to do anything except inform the player!
             out.print(SET_TEXT_COLOR_MAGENTA);
@@ -135,6 +143,10 @@ public class WebSocketHandler {
             out.print("INVALID COMMAND... valid commands follow");
             helpWords();
         } else {
+            //update game if new game exists...
+            if(myWebSocket.getThisGame() != null){
+                thisGame = myWebSocket.getThisGame();
+            }
             try {
                 //must be a valid use of this based upon the previous check...
                 if (nextCommand == 5) {
@@ -150,6 +162,8 @@ public class WebSocketHandler {
                     }
                 } else if (nextCommand == 4) {
                     myWebSocket.leaveGame(myName, gameID, false);
+                    //for now resigning does not log you out... but this... and only this... does.
+                    stillLoggedIn = false;
                 } else if (nextCommand == 3) {
                     out.print(SET_TEXT_COLOR_WHITE);
                     out.print(SET_TEXT_BOLD);
@@ -223,6 +237,7 @@ public class WebSocketHandler {
                 out.print(r.getMessage());
             }
         }
+        return stillLoggedIn;
     }
     //add a move decompiler and some kind of space highlighter...
     //might need to add phantom red pieces... just for drawing...

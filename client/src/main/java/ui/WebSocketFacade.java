@@ -40,6 +40,8 @@ public class WebSocketFacade extends Endpoint {
 
     private ChessGame.TeamColor myColor;
 
+    private ChessGame thisGame;
+
 
     public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ReportingException {
         try {
@@ -85,6 +87,7 @@ public class WebSocketFacade extends Endpoint {
     private void drawBoard(Load boardStuff, ChessGame.TeamColor myColor){
         //we might want another way to see what team we are on... for now this lets us test something.
         ChessGame gameInQuestion = boardStuff.getGame();
+        thisGame = gameInQuestion;
         //confusing and unused.
         ChessBoard implementation = gameInQuestion.getBoard();
         //for now hardcoded for two teams
@@ -165,4 +168,7 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
+    public ChessGame getThisGame() {
+        return thisGame;
+    }
 }
