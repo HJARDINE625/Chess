@@ -1,12 +1,10 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
 import static org.junit.jupiter.params.shadow.com.univocity.parsers.conversions.Conversions.replace;
 import static ui.EscapeSequences.*;
@@ -23,9 +21,33 @@ public class ChessDrawer {
         draw(chess, true, true);
     }
 
+    public void draw(ChessGame game, boolean bl, boolean wh){
+        draw(game, bl, wh, null);
+    }
+
+
     //here I pass in a game specifically so I can do something more complicated if I choose to...
-    public void draw(ChessGame game, boolean bl, boolean wh) {
+    public void draw(ChessGame game, boolean bl, boolean wh, ChessPosition hereAmI) {
+        //check the game
+        if(game == null){
+            out.print("\nNO SUCH GAME!!!!!!!!\n\n");
+            return;
+        }
+        Collection<ChessMove> allowedMoves = null;
+        //check the position
         ChessBoard board = game.getBoard();
+        boolean thereAreChessMoves = false;
+        if(!(hereAmI == null)) {
+            if (!((hereAmI.getColumn() >= board.getChessBoardSize()) || (hereAmI.getRow() >= board.getChessBoardSize()))) {
+                if (!((hereAmI.getColumn() <= 0) || (hereAmI.getRow() <= 0))) {
+                    if(game.validMoves(hereAmI) != null){
+                        if(!game.validMoves(hereAmI).isEmpty()){
+                            allowedMoves = game.validMoves(hereAmI);
+                        }
+                    }
+                }
+            }
+        }
         //give a line or so
         out.print(SET_BG_COLOR_BLUE);
         out.print("\n");
@@ -65,14 +87,32 @@ public class ChessDrawer {
                     ChessPiece myPiece = board.getPiece(new ChessPosition(space+1, width+1));
                     ChessGame.TeamColor color = myPiece.getTeamColor();
                     ChessPiece.PieceType piece = myPiece.getPieceType();
-                    replace(color.name(), piece.name(), blackSpace);
-                } else {
-                    if(blackSpace) {
-                        out.print(SET_TEXT_COLOR_BLACK);
-                        out.print(BLACK_PAWN);
+                    //check if this is the move starting position
+                    if(new ChessPosition(space, width).equals(hereAmI)){
+                        out.print(SET_BG_COLOR_BLUE);
+                        replace(color.name(), piece.name());
                     } else {
-                        out.print(SET_TEXT_COLOR_WHITE);
-                        out.print(WHITE_PAWN);
+                        replace(color.name(), piece.name(), blackSpace);
+                    }
+                } else {
+                    boolean isAMove = false;
+                    for (ChessMove m : allowedMoves) {
+                        ChessPosition pos = m.getEndPosition();
+                        if ((pos.getRow() == space) && (pos.getColumn() == width)) {
+                            isAMove = true;
+                            out.print(SET_BG_COLOR_GREEN);
+                            out.print(SET_TEXT_COLOR_GREEN);
+                            out.print(WHITE_PAWN);
+                        }
+                    }
+                    if (!isAMove) {
+                        if (blackSpace) {
+                            out.print(SET_TEXT_COLOR_BLACK);
+                            out.print(BLACK_PAWN);
+                        } else {
+                            out.print(SET_TEXT_COLOR_WHITE);
+                            out.print(WHITE_PAWN);
+                        }
                     }
                 }
             }
@@ -129,14 +169,32 @@ public class ChessDrawer {
                         ChessPiece myPiece = board.getPiece(new ChessPosition(space, width));
                         ChessGame.TeamColor color = myPiece.getTeamColor();
                         ChessPiece.PieceType piece = myPiece.getPieceType();
-                        replace(color.name(), piece.name(), blackSpace);
-                    } else {
-                        if(blackSpace) {
-                            out.print(SET_TEXT_COLOR_BLACK);
-                            out.print(BLACK_PAWN);
+                        //check if this is the move starting position
+                        if(new ChessPosition(space, width).equals(hereAmI)){
+                            out.print(SET_BG_COLOR_BLUE);
+                            replace(color.name(), piece.name());
                         } else {
-                            out.print(SET_TEXT_COLOR_WHITE);
-                            out.print(WHITE_PAWN);
+                            replace(color.name(), piece.name(), blackSpace);
+                        }
+                    } else {
+                        boolean isAMove = false;
+                        for (ChessMove m: allowedMoves) {
+                            ChessPosition pos = m.getEndPosition();
+                            if((pos.getRow() == space) && (pos.getColumn() == width)){
+                                isAMove = true;
+                                out.print(SET_BG_COLOR_GREEN);
+                                out.print(SET_TEXT_COLOR_GREEN);
+                                out.print(BLACK_PAWN);
+                            }
+                        }
+                        if(!isAMove) {
+                            if (blackSpace) {
+                                out.print(SET_TEXT_COLOR_BLACK);
+                                out.print(BLACK_PAWN);
+                            } else {
+                                out.print(SET_TEXT_COLOR_WHITE);
+                                out.print(WHITE_PAWN);
+                            }
                         }
                     }
                 }
@@ -173,14 +231,8 @@ public class ChessDrawer {
         return letterConversion;
     }
 
-
-    private void replace(String color, String piece, boolean blackSpace){
-        //right now we only have escape sequences for black and white...
-        if(blackSpace){
-            out.print(SET_BG_COLOR_BLACK);
-        } else {
-            out.print(SET_BG_COLOR_WHITE);
-        }
+    //call this one if you need to keep the background the same color...
+    private void replace(String color, String piece){
         out.print(SET_TEXT_BOLD);
         if(color.equals("BLACK")) {
             out.print(SET_TEXT_COLOR_DARK_GREY);
@@ -213,6 +265,49 @@ public class ChessDrawer {
                 out.print(WHITE_KING);
             }
         }
+    }
+
+
+    private void replace(String color, String piece, boolean blackSpace){
+        //right now we only have escape sequences for black and white...
+        if(blackSpace){
+            out.print(SET_BG_COLOR_BLACK);
+        } else {
+            out.print(SET_BG_COLOR_WHITE);
+        }
+        replace(color, piece);
+//        out.print(SET_TEXT_BOLD);
+//        if(color.equals("BLACK")) {
+//            out.print(SET_TEXT_COLOR_DARK_GREY);
+//            if(piece.equals("PAWN")){
+//                out.print(BLACK_PAWN);
+//            } else if(piece.equals("KNIGHT")){
+//                out.print(BLACK_KNIGHT);
+//            } else if(piece.equals("BISHOP")){
+//                out.print(BLACK_BISHOP);
+//            } else if(piece.equals("ROOK")){
+//                out.print(BLACK_ROOK);
+//            } else if(piece.equals("QUEEN")){
+//                out.print(BLACK_QUEEN);
+//            } else if(piece.equals("KING")){
+//                out.print(BLACK_KING);
+//            }
+//        } else if(color.equals("WHITE")){
+//            out.print(SET_TEXT_COLOR_LIGHT_GREY);
+//            if(piece.equals("PAWN")){
+//                out.print(WHITE_PAWN);
+//            } else if(piece.equals("KNIGHT")){
+//                out.print(WHITE_KNIGHT);
+//            } else if(piece.equals("BISHOP")){
+//                out.print(WHITE_BISHOP);
+//            } else if(piece.equals("ROOK")){
+//                out.print(WHITE_ROOK);
+//            } else if(piece.equals("QUEEN")){
+//                out.print(WHITE_QUEEN);
+//            } else if(piece.equals("KING")){
+//                out.print(WHITE_KING);
+//            }
+//        }
     }
 
 }

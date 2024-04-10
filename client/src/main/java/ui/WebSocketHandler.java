@@ -1,9 +1,12 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 
 import static ui.EscapeSequences.*;
 
@@ -19,11 +22,26 @@ public class WebSocketHandler {
 
     private PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
+    private ChessGame thisGame;
+
     public WebSocketHandler(String url, NotificationHandler notificationHandler, String myName, int gameID, ChessGame.TeamColor myColor) throws ReportingException {
         myWebSocket = new WebSocketFacade(url, notificationHandler);
         this.myName = myName;
         player = myColor;
         this.gameID = gameID;
+    }
+
+    //may have to add more of these if I add more colors later.
+    private boolean amIBlack(){
+        if(player == null){
+            return false;
+        } else {
+            if (player == ChessGame.TeamColor.BLACK) {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
 
     public void getNextCommand(){
@@ -36,6 +54,75 @@ public class WebSocketHandler {
         int nextCommand = userInterface.getNum();
         caculateNextCommand(nextCommand, userInterface);
 
+    }
+
+    //for getting chessspaces
+    private ChessPosition getChessPosition(ConsoleInput userInterface){
+        out.print(SET_TEXT_BOLD);
+        out.print(SET_BG_COLOR_GREEN);
+        int myRow = 0;
+        boolean letterWorks = false;
+        while(!letterWorks) {
+            out.print(SET_BG_COLOR_BLACK);
+            out.print(SET_TEXT_COLOR_WHITE);
+            out.print("Please enter the row of the position as a letter\n");
+            String row = userInterface.getString();
+            myRow = letterFinder(row);
+            if(myRow >= 0){
+             letterWorks = true;
+            } else {
+                out.print(SET_BG_COLOR_YELLOW);
+                out.print(SET_TEXT_COLOR_RED);
+                out.print("Not a valid row! Try again!\n");
+            }
+        }
+        out.print("Please enter the row of the column as a number\n");
+        int column = userInterface.getNum();
+        //this should work!
+        return new ChessPosition(myRow, column);
+    }
+
+    //do the oppisit of this function to get the equivilent number.
+    private String letterFiller(int location){
+        String letterConversion = "";
+        int intermediate = location/26;
+        if(intermediate >= 1){
+            letterConversion = letterFiller(intermediate);
+        }
+        int added = location%26;
+        char starterLetter = 'A';
+        char newLetter = (char) (starterLetter + added);
+        letterConversion = letterConversion + newLetter;
+        return letterConversion;
+    }
+    //here is the number function
+
+    private int letterFinder(String letter){
+        String letters = new String();
+        if(letter.matches("[\n\t a-zA-Z]+")) {
+            //if we only have those characters we just need to remove every character that is not a letter to get a useful string (when we change it to uppercase).
+            for(int i = 0; i < letter.length(); i++){
+                if(letter.charAt(i) != ' '){
+                    if(letter.charAt(i) != '\n'){
+                        if(letter.charAt(i) != '\t'){
+                            letters = letters + letter.charAt(i);
+                        }
+                    }
+                }
+            }
+            String lettersToFind = letters.toUpperCase();
+            int currentPositionTest = 0;
+            while (true) {
+                if(letterFiller(currentPositionTest).equals(lettersToFind)) {
+                    return currentPositionTest;
+                } else {
+                    currentPositionTest++;
+                }
+            }
+        } else {
+            //a less than zero return means failure here...
+            return -1;
+        }
     }
 
     private void caculateNextCommand(int nextCommand, ConsoleInput userInterface){
@@ -66,15 +153,36 @@ public class WebSocketHandler {
                 out.print(SET_TEXT_BOLD);
                 out.print(SET_BG_COLOR_GREEN);
                 out.print("Please enter the rows and columns of the move\n");
-                String move = userInterface.getString();
+                out.print("Start with the starting location of the moving peice\n");
+                ChessPosition peice = getChessPosition(userInterface);
+                out.print("Now give that pieces ending location\n");
+                ChessPosition newLocation = getChessPosition(userInterface);
+                ChessMove move = new ChessMove()
+                myWebSocket.gameMove(myName, gameID, move);
             } else if(nextCommand == 2){
                 out.print(SET_TEXT_COLOR_WHITE);
                 out.print(SET_TEXT_BOLD);
                 out.print(SET_BG_COLOR_GREEN);
                 out.print("Please enter the rows and columns of the piece\n");
-                String move = userInterface.getString();
+                ChessPosition peice = getChessPosition(userInterface);
+                if(thisGame.getBoard().getPiece(peice) == null){
+                    out.print(SET_TEXT_COLOR_RED);
+                    out.print(SET_TEXT_BOLD);
+                    out.print(SET_BG_COLOR_BLACK);
+                    out.print("THERE IS NO PIECE THERE!!!\n");
+                } else {
+                    //I need to have a chessgame here to check this with
+                    Collection<ChessMove> myMoves = thisGame.validMoves(peice);
+                    //draw chessboard
+                    ChessDrawer myPen = new ChessDrawer();
+                    myPen.draw(thisGame, amIBlack(), !amIBlack(), peice);
+                    //make sure that there is always a chessboard when I get here.
+                }
             } else if(nextCommand == 1){
                 //draw chessboard
+                ChessDrawer myPen = new ChessDrawer();
+                //simple chessboard draw...
+                myPen.draw(thisGame, amIBlack(), !amIBlack());
             } else {
                 //next command == 0.
                 helpWords();
@@ -85,7 +193,7 @@ public class WebSocketHandler {
     //might need to add phantom red pieces... just for drawing...
 
     private void helpWords(){
-        String finalPrint = "[0] : Help\n[1] : Redraw Chessboard\n[2] : See valid moves from location- Will need 1 String - (1):letter number: like so \"a4\"\n[3] : Make Move- Will need 1 String - (1):letter number, letter number: like so \"a4,a3\"\n[4] : Leave Game\n";
+        String finalPrint = "[0] : Help\n[1] : Redraw Chessboard\n[2] : See valid moves from location- Will need 1 String and 1 int - (1):letter (2):number\n[3] : Make Move- Will need 2 String and 2 ints - (1):letter (2):number (1):letter (2):number\n[4] : Leave Game\n";
         if(player != null){
             finalPrint = finalPrint + "[5] : Resign\n";
         }
