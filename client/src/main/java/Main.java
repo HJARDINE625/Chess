@@ -26,7 +26,7 @@ public class Main {
         System.out.println("Press 0 for help!\n");
         while(true) {
             for(int i = 0; i < numberOfServers; i++) {
-                System.out.println("In client#" + i + "\n");
+                System.out.println("In client#" + (i + 1) + "\n");
                 facade[i].executeCommands();
             }
         }

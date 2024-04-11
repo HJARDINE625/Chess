@@ -18,10 +18,16 @@ import java.util.Map;
 
 public class Server {
 
+    public Server() {
+        webSocketHandler = new WebSocketHandler();
+    }
+
     private DataBaseAccesser myDataStorageDevice = new DataBaseAccesser();
     private ContolServices reset = new ContolServices();
     private RegistrationServices loginStuff = new RegistrationServices();
     private GameServices gameDataAccess = new GameServices();
+
+    private WebSocketHandler webSocketHandler;
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
@@ -33,6 +39,8 @@ public class Server {
         //Spark.externalStaticFileLocation("public");
         //this next code crashed the internet until I closed this program!
         Spark.staticFiles.location(webDir.toString());
+        Spark.webSocket("/connect", webSocketHandler);
+
 
         //First get request...
         //(will need to convert a json from gson and a json to gson to allow for the request and response type values in spark (not to be confused with my own requests and responses)...
@@ -50,7 +58,7 @@ public class Server {
 
         //here is the new connect endpoint.
         //supposedly this is the best way to implement it... not sure what exactaly to do with it...
-        Spark.webSocket("/connect", WebSocketHandler.class);
+        //Spark.webSocket("/connect", webSocketHandler);
 
         Spark.awaitInitialization();
         return Spark.port();

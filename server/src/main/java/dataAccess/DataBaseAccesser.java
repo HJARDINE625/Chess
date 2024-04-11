@@ -283,10 +283,11 @@ public class DataBaseAccesser implements DataAccesser{
                 for (String observer : observers) {
                     if (!observer.equals(watcherName)) {
                         newObservers[i] = observer;
+                        i++;
                     } else {
                         alreadyExists = true;
                     }
-                    i++;
+                    //i++;
                 }
             }
         }

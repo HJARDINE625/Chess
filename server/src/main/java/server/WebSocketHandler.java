@@ -30,13 +30,21 @@ import java.nio.charset.StandardCharsets;
 
 @WebSocket
 public class WebSocketHandler {
+
+    public WebSocketHandler(){
+        thisGame =  new GameServices();
+        findPeople = new RegistrationServices();
+        extraHelp = new WebSocketServices();
+        myDataStorageDevice = new DataBaseAccesser();
+        connections = new ConnectionManager();
+    }
     private GameServices thisGame =  new GameServices();
     private RegistrationServices findPeople = new RegistrationServices();
 
     private WebSocketServices extraHelp = new WebSocketServices();
 
     private DataBaseAccesser myDataStorageDevice = new DataBaseAccesser();
-    private final ConnectionManager connections = new ConnectionManager();
+    private ConnectionManager connections;
 
     //TODO: I need to discover how to get a new connection from the place the server actually is to
     //TODO: initate this websocket routine. I also need to change out the cases for my cases here (see usergame commands for examples) and
