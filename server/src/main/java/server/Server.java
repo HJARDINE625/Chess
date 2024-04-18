@@ -19,7 +19,8 @@ import java.util.Map;
 public class Server {
 
     public Server() {
-        webSocketHandler = new WebSocketHandler();
+        DataBaseAccesser myDataStorageDevice = new DataBaseAccesser();
+        webSocketHandler = new WebSocketHandler(myDataStorageDevice);
     }
 
     private DataBaseAccesser myDataStorageDevice = new DataBaseAccesser();

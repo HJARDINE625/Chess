@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import dataAccess.DataAccessException;
 import dataAccess.DataBaseAccesser;
 import model.AuthDataInt;
+import model.GameData;
 import model.Responses;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -31,11 +32,11 @@ import java.nio.charset.StandardCharsets;
 @WebSocket
 public class WebSocketHandler {
 
-    public WebSocketHandler(){
+    public WebSocketHandler(DataBaseAccesser myDataStorageDevice){
         thisGame =  new GameServices();
         findPeople = new RegistrationServices();
         extraHelp = new WebSocketServices();
-        myDataStorageDevice = new DataBaseAccesser();
+        this.myDataStorageDevice = myDataStorageDevice;
         connections = new ConnectionManager();
     }
     private GameServices thisGame =  new GameServices();
@@ -43,7 +44,7 @@ public class WebSocketHandler {
 
     private WebSocketServices extraHelp = new WebSocketServices();
 
-    private DataBaseAccesser myDataStorageDevice = new DataBaseAccesser();
+    private DataBaseAccesser myDataStorageDevice;
     private ConnectionManager connections;
 
     //TODO: I need to discover how to get a new connection from the place the server actually is to
@@ -54,6 +55,7 @@ public class WebSocketHandler {
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException, DataAccessException {
         var action = new Gson().fromJson(message, UserGameCommand.class);
+        var test = new Gson().fromJson(message, Join.class);
         switch (action.getCommandType()) {
             case JOIN_PLAYER -> joinGame(new Gson().fromJson(message, Join.class), session, true);
             case JOIN_OBSERVER -> joinGame(new Gson().fromJson(message, Join.class), session, false);
@@ -91,8 +93,8 @@ public class WebSocketHandler {
                 connections.broadcast(name, finalServerMessage, instructions.getGameID());
                 finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, "GAME OVER! You gave up.");
                 connections.narrowcast(name, finalServerMessage);
-                connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()), instructions.getGameID());
-                connections.narrowcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()));
+                //connections.broadcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()), instructions.getGameID());
+                //connections.narrowcast(name, new Load(ServerMessage.ServerMessageType.LOAD_GAME, stillTimeToGiveUp.getMyGameData().implementation()));
             }
         }
     }
@@ -195,6 +197,7 @@ public class WebSocketHandler {
             } else {
                 //broadcast the new update
                 Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, name + " has left the game");
+                connections.remove(name);
                 connections.broadcast(name, finalServerMessage, instuctions.getGameID());
             }
         }
@@ -205,35 +208,115 @@ public class WebSocketHandler {
     private void joinGame(Join instuctions, Session session, boolean isPlaying) throws IOException, DataAccessException {
         String httpLink = newHttpLinker(session) + "/game";
         String color;
+        ChessGame.TeamColor colors;
         if(isPlaying) {
             color = instuctions.getTeamColor();
+            if(color.equals("WHITE")){
+                colors = ChessGame.TeamColor.WHITE;
+            } else {
+                colors = ChessGame.TeamColor.BLACK;
+            }
         } else {
             color = null;
+            colors = null;
         }
         String auth = instuctions.getAuthString();
-        String gameID = Integer.toString(instuctions.getGameID());
-        boolean worked = false;
-        try{
-            join(httpLink, auth, color, gameID);
-            worked = true;
-        } catch(DataAccessException access){
-            Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 " + access.getMessage());
-            String broadcastName = extraHelp.getName(auth, myDataStorageDevice);
-            connections.narrowcast(broadcastName, error);
-            worked = false;
+        //add a check that the auth token works, followed by a check that the gameID works.
+        if(auth == null){
+            throw new IOException("Error: no one is doing anything");
+        } else if (!myDataStorageDevice.checkAuthorization(auth)){
+            Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : unauthorized!");
+            //removedGame.getMyException().getMessage();
+            connections.add(auth, session);
+            connections.narrowcast(auth, error);
+            connections.remove(auth);
+            return;
         }
-        if(worked == true){
-            RegistrationServices personFinder = new RegistrationServices();
-            if(color != null) {
-                String broadcastName = extraHelp.getName(auth, myDataStorageDevice);
-                Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, broadcastName + " has joined the game as " + color);
-                connections.broadcast(broadcastName, finalServerMessage, instuctions.getGameID());
-            } else {
-                String broadcastName = extraHelp.getName(auth, myDataStorageDevice);
-                Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, broadcastName + " has joined the game as an observer");
-                connections.broadcast(broadcastName, finalServerMessage, instuctions.getGameID());
+        String broadcastName = extraHelp.getName(auth, myDataStorageDevice);
+        RegistrationServices personFinder = new RegistrationServices();
+
+        Responses allMyGames = thisGame.listGames(auth, myDataStorageDevice);
+        if(allMyGames.getMyException() != null){
+            Message error = new Message(ServerMessage.ServerMessageType.ERROR, allMyGames.getMyException().getMessage());
+            //removedGame.getMyException().getMessage();
+            connections.add(broadcastName, session);
+            connections.narrowcast(broadcastName, error);
+            connections.remove(broadcastName);
+            return;
+        } else {
+            boolean realGame = false;
+            for (GameData game: allMyGames.getAllGames()) {
+                if(game.gameID() == instuctions.getGameID()){
+                    realGame = true;
+                    break;
+                }
+            }
+            if(!realGame){
+                Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error: not a real game!!!");
+                //removedGame.getMyException().getMessage();
+                connections.add(broadcastName, session);
+                connections.narrowcast(broadcastName, error);
+                connections.remove(broadcastName);
+                return;
             }
         }
+
+        if(colors != null) {
+            if (!extraHelp.amIInPosition(broadcastName, myDataStorageDevice, colors, instuctions.getGameID())) {
+                Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : you have not registered to be in the requested postion!");
+                //removedGame.getMyException().getMessage();
+                connections.add(broadcastName, session);
+                connections.narrowcast(broadcastName, error);
+                connections.remove(broadcastName);
+                return;
+            }
+        }
+        //thisGame.
+
+        //String gameID = Integer.toString(instuctions.getGameID());
+//        boolean worked = false;
+//        try{
+//            join(httpLink, auth, color, gameID);
+//            worked = true;
+//        } catch(DataAccessException access){
+//            Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : 500 " + access.getMessage());
+//            String broadcastName = extraHelp.getName(auth, myDataStorageDevice);
+//            connections.narrowcast(broadcastName, error);
+//            worked = false;
+//        }
+        //if(worked == true){
+
+            if(color != null) {
+
+                //String broadcastName = extraHelp.getName(auth, myDataStorageDevice);
+                connections.add(broadcastName, session);
+                Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, broadcastName + " has joined the game as " + color);
+                connections.broadcast(broadcastName, finalServerMessage, instuctions.getGameID());
+                Responses game = extraHelp.getaGame(auth, myDataStorageDevice, instuctions.getGameID());
+                if(game.getMyException() != null){
+                    //something went wrong... narrowcast it
+                    Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : " + game.getNumericalCode() + game.getMyException());
+                    //removedGame.getMyException().getMessage();
+                    connections.narrowcast(broadcastName, error);
+                } else {
+                    connections.narrowcast(broadcastName, new Load(ServerMessage.ServerMessageType.LOAD_GAME, game.getMyGameData().implementation()));
+                }
+            } else {
+                //String broadcastName = extraHelp.getName(auth, myDataStorageDevice);
+                connections.add(broadcastName, session);
+                Message finalServerMessage = new Message(ServerMessage.ServerMessageType.NOTIFICATION, broadcastName + " has joined the game as an observer");
+                connections.broadcast(broadcastName, finalServerMessage, instuctions.getGameID());
+                Responses game = extraHelp.getaGame(auth, myDataStorageDevice, instuctions.getGameID());
+                if(game.getMyException() != null){
+                    //something went wrong... narrowcast it
+                    Message error = new Message(ServerMessage.ServerMessageType.ERROR, "Error : " + game.getNumericalCode() + game.getMyException());
+                    //removedGame.getMyException().getMessage();
+                    connections.narrowcast(broadcastName, error);
+                } else {
+                    connections.narrowcast(broadcastName, new Load(ServerMessage.ServerMessageType.LOAD_GAME, game.getMyGameData().implementation()));
+                }
+            }
+        //}
     }
 
     private String newHttpLinker(Session session){

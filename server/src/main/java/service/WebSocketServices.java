@@ -12,6 +12,27 @@ import java.util.Collection;
 
 public class WebSocketServices {
 
+    public Responses getaGame(String auth, DataAccesser myDatabase, int gameID) {
+        try {
+            if (!myDatabase.checkAuthorization(auth)) {
+                Responses faliureResponse = new Responses(401);
+                faliureResponse.setMyException(new DataAccessException("Error: unauthorized"));
+                return faliureResponse;
+            } else {
+                GameData thisGame = myDatabase.getGame(gameID);
+                //it is fine to only check authentication as anyone is allowed to view any game, so looking at a game you have not signed up for is not an issue.
+                Responses success = new Responses(200);
+                success.setMyGameData(thisGame);
+                return success;
+            }
+        } catch (DataAccessException e) {
+            //something went wrong...
+            Responses faliureResponse = new Responses(500);
+            faliureResponse.setMyException(e);
+            return faliureResponse;
+        }
+    }
+
     //use this to give up...
     public Responses giveUp(String auth, DataAccesser myDatabase, int gameID){
         Responses firstPart = firstFewChecks(auth, myDatabase, gameID);

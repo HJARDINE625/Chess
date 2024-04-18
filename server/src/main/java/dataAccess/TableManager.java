@@ -76,7 +76,7 @@ public class TableManager {
             TRUNCATE TABLE game""";
 
                 var recreateObserverTable = """
-            TRUNCATE TABLE game""";
+            TRUNCATE TABLE observer""";
 
 
                 try (var createTableStatement = conn.prepareStatement(recreateUserTable)) {

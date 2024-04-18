@@ -9,6 +9,7 @@ import model.WatcherList;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.UUID;
@@ -512,7 +513,13 @@ public class DataBaseAccesser implements DataAccesser{
         //We only call this at appropriate times (when the user has been found), so I think it is fine to do this...
         String username = "";
         String statementBuilder = "SELECT username FROM " + authTable + " WHERE " + " authToken=?";
+        //TODO: I am having some kind of error accessing the connection and using it, but only from the websocket commands... I think that I am misusing the static get connection function somehow.
+        //Connection conn = DatabaseManager.getConnection();
+        //int j = 12;
+        //Connection newConnect = DatabaseManager.getConnection();
+        //j = 13;
         try (Connection conn = DatabaseManager.getConnection()) {
+            //try{
             try (var ps = conn.prepareStatement(statementBuilder)) {
                 ps.setString(1, auth);
                 try (var rs = ps.executeQuery()) {
@@ -527,8 +534,9 @@ public class DataBaseAccesser implements DataAccesser{
             } catch (Exception e) {
                 throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
             }
+            //newConnect.close();
         } catch (Exception e) {
-            throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
+                throw new DataAccessException(String.format("Unable to read data: %s", e.getMessage()));
         }
         return username;
     }
